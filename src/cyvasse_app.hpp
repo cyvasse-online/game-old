@@ -14,12 +14,25 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+// for fea::Application
 #include <featherkit/structure.hpp>
+// for fea::Window
+#include <featherkit/userinterface.hpp>
+// for fea::Renderer2D
+#include <featherkit/render2d.hpp>
 
 class CyvasseApp : public fea::Application
 {
+	private:
+		fea::Window _window;
+		fea::InputHandler _input;
+		fea::Renderer2D _renderer;
+
 	protected:
 		void setup(const std::vector<std::string>& args) override;
 		void loop() override;
 		void destroy() override;
+
+	public:
+		CyvasseApp();
 };

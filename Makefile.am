@@ -8,7 +8,11 @@ CXX = emcc
 AM_CPPFLAGS = -I$(EMSCRIPTEN_PREFIX)/include
 AM_LDFLAGS  = -L$(EMSCRIPTEN_PREFIX)/lib
 
-AM_CXXFLAGS = -std=c++11
+# Second option disables warnings one gets when
+# EMSCRIPTEN_PREFIX is an absolute path
+AM_CXXFLAGS = \
+	-std=c++11 \
+	-Wno-warn-absolute-paths
 
 bin_PROGRAMS = cyvasse.js
 
@@ -17,4 +21,8 @@ cyvasse_js_SOURCES = \
 	src/cyvasse_app.hpp \
 	src/main.cpp
 
-cyvasse_js_LDADD = -lfeatherkit-structure -lfeatherkit-rendering -lfeatherkit-sdl
+cyvasse_js_LDADD = \
+	-lfeatherkit-structure \
+	-lfeatherkit-ui \
+	-lfeatherkit-rendering \
+	-lfeatherkit-sdl

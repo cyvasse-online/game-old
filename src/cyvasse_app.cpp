@@ -16,16 +16,50 @@
 
 #include "cyvasse_app.hpp"
 
+#include <featherkit/ui/sdlwindowbackend.hpp>
+#include <featherkit/ui/sdlinputbackend.hpp>
+
 void CyvasseApp::setup(const std::vector<std::string>& args)
 {
+	_window.create(fea::VideoMode(800, 600, 32), "Cyvasse");
+	_window.setFramerateLimit(60);
+
+	_renderer.setup();
 }
 
 void CyvasseApp::loop()
 {
-    // nothing to do yet
-    quit();
+	fea::Event event;
+	while(_input.pollEvent(event))
+	{
+		// won't happen when compiled to js,
+		// may be of interest somewhen later
+		//if(event.type == fea::Event::CLOSED)
+
+		// may be of interest somewhen later
+		//if(event.type == fea::Event::KEYPRESSED)
+
+		// TODO: check for mouse events
+	}
+
+	// after events were processed
+	// * clear the rendered content from the last frame
+	_renderer.clear();
+
+	// * render something
+	// TODO
+
+	// * display the rendered things
+	_window.swapBuffers();
 }
 
 void CyvasseApp::destroy()
+{
+}
+
+CyvasseApp::CyvasseApp()
+	: _window(new fea::SDLWindowBackend())
+	, _input(new fea::SDLInputBackend())
+	, _renderer(fea::Viewport({800.0f, 600.0f}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
 }
