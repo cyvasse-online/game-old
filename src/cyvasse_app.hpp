@@ -14,6 +14,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef _CYVASSE_APP_HPP_
+#define _CYVASSE_APP_HPP_
+
 // for fea::Application
 #include <featherkit/structure.hpp>
 // for fea::Window
@@ -36,3 +39,5 @@ class CyvasseApp : public fea::Application
 	public:
 		CyvasseApp();
 };
+
+#endif // _CYVASSE_APP_HPP_
