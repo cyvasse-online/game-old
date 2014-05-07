@@ -14,32 +14,25 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _CYVASSE_APP_HPP_
-#define _CYVASSE_APP_HPP_
+#ifndef _INGAME_STATE_HPP_
+#define _INGAME_STATE_HPP_
 
 #include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/application.hpp>
-#include <featherkit/structure/gamestatemachine.hpp>
+#include <featherkit/structure/gamestate.hpp>
 #include <featherkit/ui/inputbackend.hpp>
 #include <featherkit/ui/inputhandler.hpp>
-#include <featherkit/ui/window.hpp>
-#include <featherkit/ui/windowbackend.hpp>
 
-class CyvasseApp : public fea::Application
+class IngameState : public fea::GameState
 {
 	private:
-		fea::Window _window;
-		fea::InputHandler _input;
-		fea::Renderer2D _renderer;
-		fea::GameStateMachine _stateMachine;
-
-	protected:
-		void setup(const std::vector<std::string>& args) override;
-		void loop() override;
-		void destroy() override;
+		fea::InputHandler& _input;
+		fea::Renderer2D& _renderer;
 
 	public:
-		CyvasseApp();
+		IngameState(fea::InputHandler&, fea::Renderer2D&);
+
+		void setup() override;
+		std::string run() override;
 };
 
-#endif // _CYVASSE_APP_HPP_
+#endif // _INGAME_STATE_HPP_

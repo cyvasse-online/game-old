@@ -18,6 +18,7 @@
 
 #include <featherkit/ui/sdlwindowbackend.hpp>
 #include <featherkit/ui/sdlinputbackend.hpp>
+#include "ingame_state.hpp"
 
 void CyvasseApp::setup(const std::vector<std::string>& args)
 {
@@ -25,36 +26,30 @@ void CyvasseApp::setup(const std::vector<std::string>& args)
 	_window.setFramerateLimit(60);
 
 	_renderer.setup();
+
+	_stateMachine.addGameState("ingame", std::unique_ptr<IngameState>(new IngameState(_input, _renderer)));
+
+	// set the initial state
+	_stateMachine.setCurrentState("ingame");
 }
 
 void CyvasseApp::loop()
 {
-	fea::Event event;
-	while(_input.pollEvent(event))
-	{
-		// won't happen when compiled to js,
-		// may be of interest somewhen later
-		//if(event.type == fea::Event::CLOSED)
+	// let the state machine run the current game state
+	_stateMachine.run();
 
-		// may be of interest somewhen later
-		//if(event.type == fea::Event::KEYPRESSED)
-
-		// TODO: check for mouse events
-	}
-
-	// after events were processed
-	// * clear the rendered content from the last frame
-	_renderer.clear();
-
-	// * render something
-	// TODO
-
-	// * display the rendered things
+	// display whatever the current game state rendered
 	_window.swapBuffers();
+
+	// exit the program when the state machine is finished, which never happens
+	// with the current code because no game state ever returns "NONE"
+	if(_stateMachine.isFinished())
+		quit();
 }
 
 void CyvasseApp::destroy()
 {
+	_window.close();
 }
 
 CyvasseApp::CyvasseApp()

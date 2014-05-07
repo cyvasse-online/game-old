@@ -19,6 +19,8 @@ bin_PROGRAMS = cyvasse.js
 cyvasse_js_SOURCES = \
 	src/cyvasse_app.cpp \
 	src/cyvasse_app.hpp \
+	src/ingame_state.cpp \
+	src/ingame_state.hpp \
 	src/main.cpp
 
 cyvasse_js_LDADD = \
