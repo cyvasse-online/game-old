@@ -14,31 +14,24 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INGAME_STATE_HPP_
-#define _INGAME_STATE_HPP_
+#ifndef _RULESET_HPP_
+#define _RULESET_HPP_
 
-#include <memory>
 #include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/gamestate.hpp>
-#include <featherkit/ui/inputbackend.hpp>
-#include <featherkit/ui/inputhandler.hpp>
-#include "ruleset.hpp"
+#include "board.hpp"
 
-class IngameState : public fea::GameState
+class Ruleset
 {
 	private:
-		fea::InputHandler& _input;
 		fea::Renderer2D& _renderer;
 
-		std::unique_ptr<Ruleset> _ruleset;
+		Board& _board;
 
 	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
+		Ruleset(fea::Renderer2D&, Board&);
 
-		void setup() override;
-		std::string run() override;
-
-		void initMatch(Ruleset&);
+		virtual void setup() = 0;
+		
 };
 
-#endif // _INGAME_STATE_HPP_
+#endif // _RULESET_HPP_

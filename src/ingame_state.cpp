@@ -38,7 +38,11 @@ std::string IngameState::run()
 		// may be of interest somewhen later
 		//if(event.type == fea::Event::KEYPRESSED)
 
-		// TODO: check for mouse events
+		if(event.type == fea::Event::MOUSEBUTTONPRESSED)
+			; // do something
+
+		if(event.type == fea::Event::MOUSEBUTTONRELEASED)
+			; // do something
 	}
 	// after events were processed
 	// * clear the rendered content from the last frame
@@ -52,4 +56,9 @@ std::string IngameState::run()
 
 	// keep running the same state
 	return std::string();
+}
+
+void IngameState::initMatch(Ruleset& ruleset)
+{
+	_ruleset = std::unique_ptr<Ruleset>(&ruleset);
 }
