@@ -29,4 +29,5 @@ void MikelepageRuleset::setup()
 
 void MikelepageRuleset::tick()
 {
+	_board->tick();
 }

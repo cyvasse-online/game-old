@@ -19,7 +19,8 @@
 
 #include "board.hpp"
 
-#include <map>
+#include <unordered_map>
+#include <vector>
 #include <featherkit/rendering/renderer2d.hpp>
 #include <featherkit/rendering/quad.hpp>
 #include "hexagon.hpp"
@@ -30,14 +31,16 @@ class HexagonalBoard : public Board
 {
 	typedef cyvmath::hexagon<6> Hexagon;
 	typedef Hexagon::Coordinate Coordinate;
-	typedef std::map<Coordinate, fea::Quad*> tileMap;
+	typedef std::unordered_map<Coordinate, fea::Quad*, std::hash<int>> tileMap;
+	typedef std::vector<fea::Quad*> tileVec;
 
 	private:
 		// non-copyable
 		HexagonalBoard(const HexagonalBoard&) = delete;
 		const HexagonalBoard& operator= (const HexagonalBoard&) = delete;
 
-		tileMap tiles;
+		tileMap _tileMap;
+		tileVec _tileVec;
 
 	public:
 		HexagonalBoard(fea::Renderer2D&);
