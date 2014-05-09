@@ -22,9 +22,16 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 {
 }
 
+// ----- begin test code -----
+
+#include "rulesets/mikelepage_ruleset.hpp"
+
 void IngameState::setup()
 {
+	_ruleset = std::unique_ptr<Ruleset>(new MikelepageRuleset(_renderer));
 }
+
+// ------ end test code ------
 
 std::string IngameState::run()
 {
