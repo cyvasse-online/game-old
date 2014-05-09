@@ -19,7 +19,7 @@
 
 #include "board.hpp"
 
-#include <unordered_map>
+#include <map>
 #include <featherkit/rendering/renderer2d.hpp>
 #include <featherkit/rendering/quad.hpp>
 #include "hexagon.hpp"
@@ -28,8 +28,9 @@
 // be quite complex and for now we only need hexagon<6> anyway.
 class HexagonalBoard : public Board
 {
-	typedef cyvmath::hexagon<6>::Coordinate Coordinate;
-	typedef std::unordered_map<Coordinate, fea::Quad, cyvmath::hexagon<6>::CoordinateHash> tileMap;
+	typedef cyvmath::hexagon<6> Hexagon;
+	typedef Hexagon::Coordinate Coordinate;
+	typedef std::map<Coordinate, fea::Quad*> tileMap;
 
 	private:
 		// non-copyable
@@ -40,6 +41,7 @@ class HexagonalBoard : public Board
 
 	public:
 		HexagonalBoard(fea::Renderer2D&);
+		~HexagonalBoard();
 
 		void setup() override;
 		void tick() override;
