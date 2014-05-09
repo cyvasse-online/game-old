@@ -14,35 +14,17 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INGAME_STATE_HPP_
-#define _INGAME_STATE_HPP_
+#include "hexagonal_board.hpp"
 
-#include <memory>
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/gamestate.hpp>
-#include <featherkit/ui/inputbackend.hpp>
-#include <featherkit/ui/inputhandler.hpp>
-#include "ruleset.hpp"
-
-class IngameState : public fea::GameState
+HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
+	: Board(renderer)
 {
-	private:
-		fea::InputHandler& _input;
-		fea::Renderer2D& _renderer;
+}
 
-		std::unique_ptr<Ruleset> _ruleset;
+void HexagonalBoard::setup()
+{
+}
 
-		// non-copyable
-		IngameState(const Ruleset&) = delete;
-		const IngameState& operator= (const IngameState&) = delete;
-
-	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
-
-		void setup() override;
-		std::string run() override;
-
-		void initMatch(Ruleset&);
-};
-
-#endif // _INGAME_STATE_HPP_
+void HexagonalBoard::tick()
+{
+}

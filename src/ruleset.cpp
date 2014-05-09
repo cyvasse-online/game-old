@@ -16,7 +16,7 @@
 
 #include "ruleset.hpp"
 
-Ruleset::Ruleset(fea::Renderer2D& renderer, Board& board)
+Ruleset::Ruleset(fea::Renderer2D& renderer, Board* board)
 	: _renderer(renderer)
 	, _board(board)
 {

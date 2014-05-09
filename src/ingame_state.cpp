@@ -49,7 +49,7 @@ std::string IngameState::run()
 	_renderer.clear();
 
 	// * queue something to render
-	// TODO
+	_ruleset->tick();
 
 	// * render everything
 	_renderer.render();

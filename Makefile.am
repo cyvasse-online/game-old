@@ -26,7 +26,16 @@ cyvasse_js_SOURCES = \
 	src/ingame_state.hpp \
 	src/main.cpp \
 	src/ruleset.cpp \
-	src/ruleset.hpp
+	src/ruleset.hpp \
+	src/boards/hexagonal_board.cpp \
+	src/boards/hexagonal_board.hpp \
+	src/rulesets/mikelepage_ruleset.cpp \
+	src/rulesets/mikelepage_ruleset.hpp
+
+cyvasse_js_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I $(top_srcdir)/src \
+	-I $(top_srcdir)/cyvmath
 
 cyvasse_js_LDADD = \
 	-lfeatherkit-structure \

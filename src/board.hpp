@@ -22,13 +22,18 @@
 class Board
 {
 	private:
+		// non-copyable
+		Board(const Board&) = delete;
+		const Board& operator= (const Board&) = delete;
+
+	protected:
 		fea::Renderer2D& _renderer;
 
 	public:
 		Board(fea::Renderer2D&);
 
 		virtual void setup() = 0;
-		
+		virtual void tick() = 0;
 };
 
 #endif // _BOARD_HPP_

@@ -23,15 +23,20 @@
 class Ruleset
 {
 	private:
+		// non-copyable
+		Ruleset(const Ruleset&) = delete;
+		const Ruleset& operator= (const Ruleset&) = delete;
+
+	protected:
 		fea::Renderer2D& _renderer;
 
-		Board& _board;
+		std::unique_ptr<Board> _board;
 
 	public:
-		Ruleset(fea::Renderer2D&, Board&);
+		Ruleset(fea::Renderer2D&, Board*);
 
 		virtual void setup() = 0;
-		
+		virtual void tick() = 0;
 };
 
 #endif // _RULESET_HPP_

@@ -14,35 +14,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INGAME_STATE_HPP_
-#define _INGAME_STATE_HPP_
+#ifndef _MIKELEPAGE_RULESET_HPP_
+#define _MIKELEPAGE_RULESET_HPP_
 
-#include <memory>
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/gamestate.hpp>
-#include <featherkit/ui/inputbackend.hpp>
-#include <featherkit/ui/inputhandler.hpp>
 #include "ruleset.hpp"
 
-class IngameState : public fea::GameState
+#include <featherkit/rendering/renderer2d.hpp>
+
+/** This ruleset was created by Michael Le Page (http://www.mikelepage.com/)
+
+    See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
+ */
+class MikelepageRuleset : public Ruleset
 {
 	private:
-		fea::InputHandler& _input;
-		fea::Renderer2D& _renderer;
-
-		std::unique_ptr<Ruleset> _ruleset;
-
 		// non-copyable
-		IngameState(const Ruleset&) = delete;
-		const IngameState& operator= (const IngameState&) = delete;
+		MikelepageRuleset(const MikelepageRuleset&) = delete;
+		const MikelepageRuleset& operator= (const MikelepageRuleset&) = delete;
 
 	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
+		MikelepageRuleset(fea::Renderer2D&);
 
 		void setup() override;
-		std::string run() override;
-
-		void initMatch(Ruleset&);
+		void tick() override;
 };
 
-#endif // _INGAME_STATE_HPP_
+#endif // _MIKELEPAGE_RULESET_HPP_

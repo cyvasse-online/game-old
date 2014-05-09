@@ -14,35 +14,35 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INGAME_STATE_HPP_
-#define _INGAME_STATE_HPP_
+#ifndef _HEXAGONAL_BOARD_HPP_
+#define _HEXAGONAL_BOARD_HPP_
 
-#include <memory>
+#include "board.hpp"
+
+#include <unordered_map>
 #include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/gamestate.hpp>
-#include <featherkit/ui/inputbackend.hpp>
-#include <featherkit/ui/inputhandler.hpp>
-#include "ruleset.hpp"
+#include <featherkit/rendering/quad.hpp>
+#include "hexagon.hpp"
 
-class IngameState : public fea::GameState
+// Should probably be a template as cyvmath::hexagon but that would
+// be quite complex and for now we only need hexagon<6> anyway.
+class HexagonalBoard : public Board
 {
+	typedef cyvmath::hexagon<6>::Coordinate Coordinate;
+	typedef std::unordered_map<Coordinate, fea::Quad, cyvmath::hexagon<6>::CoordinateHash> tileMap;
+
 	private:
-		fea::InputHandler& _input;
-		fea::Renderer2D& _renderer;
-
-		std::unique_ptr<Ruleset> _ruleset;
-
 		// non-copyable
-		IngameState(const Ruleset&) = delete;
-		const IngameState& operator= (const IngameState&) = delete;
+		HexagonalBoard(const HexagonalBoard&) = delete;
+		const HexagonalBoard& operator= (const HexagonalBoard&) = delete;
+
+		tileMap tiles;
 
 	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
+		HexagonalBoard(fea::Renderer2D&);
 
 		void setup() override;
-		std::string run() override;
-
-		void initMatch(Ruleset&);
+		void tick() override;
 };
 
-#endif // _INGAME_STATE_HPP_
+#endif // _HEXAGONAL_BOARD_HPP_
