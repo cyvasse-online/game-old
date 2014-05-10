@@ -47,7 +47,6 @@ class HexagonalBoard : public Board
 		HexagonalBoard(fea::Renderer2D&);
 		~HexagonalBoard();
 
-		void setup() override;
 		void tick() override;
 };
 

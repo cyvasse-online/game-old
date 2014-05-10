@@ -35,7 +35,6 @@ class RuleSet
 	public:
 		RuleSet(fea::Renderer2D&, Board*);
 
-		virtual void setup() = 0;
 		virtual void tick() = 0;
 };
 

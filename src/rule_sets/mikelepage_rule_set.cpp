@@ -51,10 +51,6 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer)
 {
 }
 
-void MikelepageRuleSet::setup()
-{
-}
-
 void MikelepageRuleSet::tick()
 {
 	_board->tick();

@@ -90,7 +90,6 @@ class MikelepageRuleSet : public RuleSet
 	public:
 		MikelepageRuleSet(fea::Renderer2D&);
 
-		void setup() override;
 		void tick() override;
 };
 

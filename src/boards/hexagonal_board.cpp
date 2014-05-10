@@ -84,10 +84,6 @@ HexagonalBoard::~HexagonalBoard()
 	}
 }
 
-void HexagonalBoard::setup()
-{
-}
-
 void HexagonalBoard::tick()
 {
 	for(const fea::Quad* it : _tileVec)

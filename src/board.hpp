@@ -32,7 +32,6 @@ class Board
 	public:
 		Board(fea::Renderer2D&);
 
-		virtual void setup() = 0;
 		virtual void tick() = 0;
 };
 
