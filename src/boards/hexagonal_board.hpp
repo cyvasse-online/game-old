@@ -29,10 +29,11 @@
 // be quite complex and for now we only need hexagon<6> anyway.
 class HexagonalBoard : public Board
 {
-	typedef cyvmath::hexagon<6> Hexagon;
-	typedef Hexagon::Coordinate Coordinate;
-	typedef std::unordered_map<Coordinate, fea::Quad*, std::hash<int>> tileMap;
-	typedef std::vector<fea::Quad*> tileVec;
+	public:
+		typedef cyvmath::hexagon<6> Hexagon;
+		typedef Hexagon::Coordinate Coordinate;
+		typedef std::unordered_map<Coordinate, fea::Quad*, std::hash<int>> tileMap;
+		typedef std::vector<fea::Quad*> tileVec;
 
 	private:
 		// non-copyable

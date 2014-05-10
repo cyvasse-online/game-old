@@ -20,6 +20,7 @@
 #include "rule_set.hpp"
 
 #include <featherkit/rendering/renderer2d.hpp>
+#include "boards/hexagonal_board.hpp"
 
 /** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 
@@ -27,10 +28,64 @@
  */
 class MikelepageRuleSet : public RuleSet
 {
+	public:
+		enum FigureType
+		{
+			FIGURE_MOUNTAIN,
+			FIGURE_RABBLE,
+			FIGURE_CROSSBOWS,
+			FIGURE_SPEARS,
+			FIGURE_LIGHT_HORSE,
+			FIGURE_TREBUCHET,
+			FIGURE_ELEPHANT,
+			FIGURE_HEAVY_HORSE,
+			FIGURE_DRAGON,
+			FIGURE_KING
+		};
+
+		enum PlayersColor
+		{
+			PLAYER_WHITE,
+			PLAYER_BLACK
+		};
+
 	private:
 		// non-copyable
 		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
 		const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
+
+		class Figure
+		{
+			private:
+				FigureType _type;
+
+				fea::Texture _texture;
+				fea::Quad _quad;
+
+			public:
+				Figure(FigureType, PlayersColor);
+
+				operator fea::Quad& ()
+				{
+					return _quad;
+				}
+		};
+
+		typedef std::unordered_map<HexagonalBoard::Coordinate, Figure*, std::hash<int>> figureMap;
+		typedef std::vector<Figure*> figureVec;
+
+		// the following variables are arrays because they exist once for each player
+
+		// figures which are active (on the board) can be found by their coordinate
+		figureMap _activeFigures[2];
+		figureVec _inactiveFigures[2];
+
+		// the dragon is the only figure that can be inactive but alive (after setup)
+		bool _dragonAlive[2];
+
+		// the same as both _activeFigures maps together
+		// for rendering
+		figureVec _allActiveFigures;
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&);

@@ -18,6 +18,9 @@ AM_CXXFLAGS = \
 bin_PROGRAMS = cyvasse.js
 
 cyvasse_js_SOURCES = \
+	lodepng/lodepng.cpp \
+	lodepng/lodepng.h \
+	lodepng/texturemaker.hpp \
 	src/board.cpp \
 	src/board.hpp \
 	src/cyvasse_app.cpp \
@@ -32,18 +35,26 @@ cyvasse_js_SOURCES = \
 	src/rule_sets/mikelepage_rule_set.cpp \
 	src/rule_sets/mikelepage_rule_set.hpp
 
+# The last include directory contains lodepng,
+# which loads png files, plus texturemaker.hpp
+# which uses lodepng to create fea::Texture objects.
+# This functionality will probably be included
+# in Feather Kit in the future, so [TODO] this
+# folder should be removed then.
 cyvasse_js_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I $(top_srcdir)/src \
-	-I $(top_srcdir)/cyvmath
+	-I $(top_srcdir)/cyvmath \
+	-I $(top_srcdir)/lodepng
 
 cyvasse_js_CXXFLAGS = \
 	$(AM_CXXFLAGS) \
-	-O2
+	-O3
 
 cyvasse_js_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	-O2
+	--embed-file $(top_srcdir)/data@/ \
+	-O3
 
 cyvasse_js_LDADD = \
 	-lfeatherkit-structure \
