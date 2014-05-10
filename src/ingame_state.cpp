@@ -24,11 +24,11 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 
 // ----- begin test code -----
 
-#include "rulesets/mikelepage_ruleset.hpp"
+#include "rule_sets/mikelepage_rule_set.hpp"
 
 void IngameState::setup()
 {
-	_ruleset = std::unique_ptr<Ruleset>(new MikelepageRuleset(_renderer));
+	_ruleSet = std::unique_ptr<RuleSet>(new MikelepageRuleSet(_renderer));
 }
 
 // ------ end test code ------
@@ -56,7 +56,7 @@ std::string IngameState::run()
 	_renderer.clear();
 
 	// * queue something to render
-	_ruleset->tick();
+	_ruleSet->tick();
 
 	// * render everything
 	_renderer.render();
@@ -65,7 +65,7 @@ std::string IngameState::run()
 	return std::string();
 }
 
-void IngameState::initMatch(Ruleset& ruleset)
+void IngameState::initMatch(RuleSet& ruleSet)
 {
-	_ruleset = std::unique_ptr<Ruleset>(&ruleset);
+	_ruleSet = std::unique_ptr<RuleSet>(&ruleSet);
 }

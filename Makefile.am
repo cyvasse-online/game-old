@@ -25,12 +25,12 @@ cyvasse_js_SOURCES = \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
 	src/main.cpp \
-	src/ruleset.cpp \
-	src/ruleset.hpp \
+	src/rule_set.cpp \
+	src/rule_set.hpp \
 	src/boards/hexagonal_board.cpp \
 	src/boards/hexagonal_board.hpp \
-	src/rulesets/mikelepage_ruleset.cpp \
-	src/rulesets/mikelepage_ruleset.hpp
+	src/rule_sets/mikelepage_rule_set.cpp \
+	src/rule_sets/mikelepage_rule_set.hpp
 
 cyvasse_js_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

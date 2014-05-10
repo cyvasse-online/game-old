@@ -22,7 +22,7 @@
 #include <featherkit/structure/gamestate.hpp>
 #include <featherkit/ui/inputbackend.hpp>
 #include <featherkit/ui/inputhandler.hpp>
-#include "ruleset.hpp"
+#include "rule_set.hpp"
 
 class IngameState : public fea::GameState
 {
@@ -30,10 +30,10 @@ class IngameState : public fea::GameState
 		fea::InputHandler& _input;
 		fea::Renderer2D& _renderer;
 
-		std::unique_ptr<Ruleset> _ruleset;
+		std::unique_ptr<RuleSet> _ruleSet;
 
 		// non-copyable
-		IngameState(const Ruleset&) = delete;
+		IngameState(const RuleSet&) = delete;
 		const IngameState& operator= (const IngameState&) = delete;
 
 	public:
@@ -42,7 +42,7 @@ class IngameState : public fea::GameState
 		void setup() override;
 		std::string run() override;
 
-		void initMatch(Ruleset&);
+		void initMatch(RuleSet&);
 };
 
 #endif // _INGAME_STATE_HPP_

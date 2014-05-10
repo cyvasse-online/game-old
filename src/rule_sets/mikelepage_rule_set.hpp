@@ -14,20 +14,29 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mikelepage_ruleset.hpp"
+#ifndef _MIKELEPAGE_RULESET_HPP_
+#define _MIKELEPAGE_RULESET_HPP_
 
-#include "boards/hexagonal_board.hpp"
+#include "rule_set.hpp"
 
-MikelepageRuleset::MikelepageRuleset(fea::Renderer2D& renderer)
-	: Ruleset(renderer, new HexagonalBoard(renderer))
+#include <featherkit/rendering/renderer2d.hpp>
+
+/** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
+
+    See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
+ */
+class MikelepageRuleSet : public RuleSet
 {
-}
+	private:
+		// non-copyable
+		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
+		const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
 
-void MikelepageRuleset::setup()
-{
-}
+	public:
+		MikelepageRuleSet(fea::Renderer2D&);
 
-void MikelepageRuleset::tick()
-{
-	_board->tick();
-}
+		void setup() override;
+		void tick() override;
+};
+
+#endif // _MIKELEPAGE_RULESET_HPP_

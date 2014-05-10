@@ -14,9 +14,9 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ruleset.hpp"
+#include "rule_set.hpp"
 
-Ruleset::Ruleset(fea::Renderer2D& renderer, Board* board)
+RuleSet::RuleSet(fea::Renderer2D& renderer, Board* board)
 	: _renderer(renderer)
 	, _board(board)
 {

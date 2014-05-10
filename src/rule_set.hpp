@@ -14,18 +14,18 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _RULESET_HPP_
-#define _RULESET_HPP_
+#ifndef _RULE_SET_HPP_
+#define _RULE_SET_HPP_
 
 #include <featherkit/rendering/renderer2d.hpp>
 #include "board.hpp"
 
-class Ruleset
+class RuleSet
 {
 	private:
 		// non-copyable
-		Ruleset(const Ruleset&) = delete;
-		const Ruleset& operator= (const Ruleset&) = delete;
+		RuleSet(const RuleSet&) = delete;
+		const RuleSet& operator= (const RuleSet&) = delete;
 
 	protected:
 		fea::Renderer2D& _renderer;
@@ -33,10 +33,10 @@ class Ruleset
 		std::unique_ptr<Board> _board;
 
 	public:
-		Ruleset(fea::Renderer2D&, Board*);
+		RuleSet(fea::Renderer2D&, Board*);
 
 		virtual void setup() = 0;
 		virtual void tick() = 0;
 };
 
-#endif // _RULESET_HPP_
+#endif // _RULE_SET_HPP_
