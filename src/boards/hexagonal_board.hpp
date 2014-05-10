@@ -35,6 +35,8 @@ class HexagonalBoard : public Board
 		typedef std::unordered_map<Coordinate, fea::Quad*, std::hash<int>> tileMap;
 		typedef std::vector<fea::Quad*> tileVec;
 
+		static glm::vec2 getTilePosition(Coordinate, glm::vec2 tileSize, int xOffset, int yOffset);
+
 	private:
 		// non-copyable
 		HexagonalBoard(const HexagonalBoard&) = delete;

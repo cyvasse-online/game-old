@@ -18,6 +18,12 @@
 
 #include <cassert>
 
+glm::vec2 HexagonalBoard::getTilePosition(Coordinate c, glm::vec2 tileSize, int xOffset, int yOffset)
+{
+	return {tileSize.x * c.x() + (tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)) + xOffset,
+	        tileSize.y * c.y() + yOffset};
+}
+
 HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
 	: Board(renderer)
 {
@@ -34,12 +40,7 @@ HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
 	{
 		fea::Quad* quad = new fea::Quad({60, 40});
 
-		// TODO: understand where that 150 comes from, move this
-		// functionality to hexagon (with the constants parametrized)
-		quad->setPosition({
-				60 * c.x() + 30 * c.y() - 150 + 20,
-				40 * c.y() + 20
-			});
+		quad->setPosition(getTilePosition(c, {60, 40}, 40, 40));
 
 		// finding the right color for the next tile...
 		if(lastX < c.x()) // We got to a new "column"
