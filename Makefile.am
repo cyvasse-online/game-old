@@ -37,6 +37,14 @@ cyvasse_js_CPPFLAGS = \
 	-I $(top_srcdir)/src \
 	-I $(top_srcdir)/cyvmath
 
+cyvasse_js_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
+	-O2
+
+cyvasse_js_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-O2
+
 cyvasse_js_LDADD = \
 	-lfeatherkit-structure \
 	-lfeatherkit-ui \

@@ -44,21 +44,20 @@ HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
 		// finding the right color for the next tile...
 		if(lastX < c.x()) // We got to a new "column"
 		{
-			// I don't know how to do this better yet.
-			// This functionality or parts of it may be moved to hexagon.hpp
+			// TODO: optimize and move to hexagon.hpp
 			//if   (c == Coordinate( 0, 5)) colorIndex = 0;
-			if     (c == Coordinate( 1, 4)) colorIndex = 1;
-			else if(c == Coordinate( 2, 3)) colorIndex = 2;
-			else if(c == Coordinate( 3, 2)) colorIndex = 0;
-			else if(c == Coordinate( 4, 1)) colorIndex = 1;
+			if     (c == *Coordinate::create( 1, 4)) colorIndex = 1;
+			else if(c == *Coordinate::create( 2, 3)) colorIndex = 2;
+			else if(c == *Coordinate::create( 3, 2)) colorIndex = 0;
+			else if(c == *Coordinate::create( 4, 1)) colorIndex = 1;
 
-			else if(c == Coordinate( 5, 0)) colorIndex = 2;
+			else if(c == *Coordinate::create( 5, 0)) colorIndex = 2;
 
-			else if(c == Coordinate( 6, 0)) colorIndex = 1;
-			else if(c == Coordinate( 7, 0)) colorIndex = 0;
-			else if(c == Coordinate( 8, 0)) colorIndex = 2;
-			else if(c == Coordinate( 9, 0)) colorIndex = 1;
-			else if(c == Coordinate(10, 0)) colorIndex = 0;
+			else if(c == *Coordinate::create( 6, 0)) colorIndex = 1;
+			else if(c == *Coordinate::create( 7, 0)) colorIndex = 0;
+			else if(c == *Coordinate::create( 8, 0)) colorIndex = 2;
+			else if(c == *Coordinate::create( 9, 0)) colorIndex = 1;
+			else if(c == *Coordinate::create(10, 0)) colorIndex = 0;
 		}
 		else
 		{
