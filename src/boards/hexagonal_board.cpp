@@ -17,11 +17,17 @@
 #include "hexagonal_board.hpp"
 
 #include <cassert>
+#include <cstdlib>
 
 glm::vec2 HexagonalBoard::getTilePosition(Coordinate c, glm::vec2 tileSize, int xOffset, int yOffset)
 {
 	return {tileSize.x * c.x() + (tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)) + xOffset,
 	        tileSize.y * c.y() + yOffset};
+}
+
+int8_t HexagonalBoard::getColorIndex(Coordinate c)
+{
+	return (((c.x() - c.y()) % 3) + 3) % 3;
 }
 
 HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
@@ -34,40 +40,12 @@ HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
 			{0.6f, 0.6f, 0.6f}
 		};
 
-	int8_t colorIndex = 0;
-	int8_t lastX = -1;
 	for(Coordinate c : Hexagon::getAllCoordinates())
 	{
 		fea::Quad* quad = new fea::Quad({60, 40});
 
 		quad->setPosition(getTilePosition(c, {60, 40}, 40, 40));
-
-		// finding the right color for the next tile...
-		if(lastX < c.x()) // We got to a new "column"
-		{
-			// TODO: optimize and move to hexagon.hpp
-			//if   (c == Coordinate( 0, 5)) colorIndex = 0;
-			if     (c == *Coordinate::create( 1, 4)) colorIndex = 1;
-			else if(c == *Coordinate::create( 2, 3)) colorIndex = 2;
-			else if(c == *Coordinate::create( 3, 2)) colorIndex = 0;
-			else if(c == *Coordinate::create( 4, 1)) colorIndex = 1;
-
-			else if(c == *Coordinate::create( 5, 0)) colorIndex = 2;
-
-			else if(c == *Coordinate::create( 6, 0)) colorIndex = 1;
-			else if(c == *Coordinate::create( 7, 0)) colorIndex = 0;
-			else if(c == *Coordinate::create( 8, 0)) colorIndex = 2;
-			else if(c == *Coordinate::create( 9, 0)) colorIndex = 1;
-			else if(c == *Coordinate::create(10, 0)) colorIndex = 0;
-		}
-		else
-		{
-			colorIndex = (colorIndex + 1) % 3;
-		}
-		lastX = c.x();
-
-		// set the color
-		quad->setColor(tileColors[colorIndex]);
+		quad->setColor(tileColors[getColorIndex(c)]);
 
 		// add the tile to the map and vector
 		_tileVec.push_back(quad);

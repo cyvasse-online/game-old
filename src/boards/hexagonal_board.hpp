@@ -36,6 +36,7 @@ class HexagonalBoard : public Board
 		typedef std::vector<fea::Quad*> tileVec;
 
 		static glm::vec2 getTilePosition(Coordinate, glm::vec2 tileSize, int xOffset, int yOffset);
+		static int8_t getColorIndex(Coordinate);
 
 	private:
 		// non-copyable
