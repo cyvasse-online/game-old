@@ -29,18 +29,18 @@
 class MikelepageRuleSet : public RuleSet
 {
 	public:
-		enum FigureType
+		enum PieceType
 		{
-			FIGURE_MOUNTAIN,
-			FIGURE_RABBLE,
-			FIGURE_CROSSBOWS,
-			FIGURE_SPEARS,
-			FIGURE_LIGHT_HORSE,
-			FIGURE_TREBUCHET,
-			FIGURE_ELEPHANT,
-			FIGURE_HEAVY_HORSE,
-			FIGURE_DRAGON,
-			FIGURE_KING
+			PIECE_MOUNTAIN,
+			PIECE_RABBLE,
+			PIECE_CROSSBOWS,
+			PIECE_SPEARS,
+			PIECE_LIGHT_HORSE,
+			PIECE_TREBUCHET,
+			PIECE_ELEPHANT,
+			PIECE_HEAVY_HORSE,
+			PIECE_DRAGON,
+			PIECE_KING
 		};
 
 		enum PlayersColor
@@ -54,16 +54,21 @@ class MikelepageRuleSet : public RuleSet
 		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
 		const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
 
-		class Figure
+		class Piece
 		{
 			private:
-				FigureType _type;
+				PieceType _type;
 
 				fea::Texture _texture;
 				fea::Quad _quad;
 
 			public:
-				Figure(FigureType, PlayersColor);
+				Piece(PieceType, PlayersColor);
+
+				fea::Quad& getQuad()
+				{
+					return _quad;
+				}
 
 				operator fea::Quad& ()
 				{
@@ -71,21 +76,22 @@ class MikelepageRuleSet : public RuleSet
 				}
 		};
 
-		typedef std::unordered_map<HexagonalBoard::Coordinate, Figure*, std::hash<int>> figureMap;
-		typedef std::vector<Figure*> figureVec;
+		typedef std::unordered_map<HexagonalBoard::Coordinate, Piece*, std::hash<int>> pieceMap;
+		typedef std::vector<Piece*> pieceVec;
 
 		// the following variables are arrays because they exist once for each player
+		bool _setup;
 
-		// figures which are active (on the board) can be found by their coordinate
-		figureMap _activeFigures[2];
-		figureVec _inactiveFigures[2];
+		// pieces which are active (on the board) can be found by their coordinate
+		pieceMap _activePieces[2];
+		pieceVec _inactivePieces[2];
 
-		// the dragon is the only figure that can be inactive but alive (after setup)
+		// the dragon is the only piece that can be inactive but alive (after setup)
 		bool _dragonAlive[2];
 
-		// the same as both _activeFigures maps together
+		// the same as both _activePieces maps together
 		// for rendering
-		figureVec _allActiveFigures;
+		pieceVec _allActivePieces;
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&);

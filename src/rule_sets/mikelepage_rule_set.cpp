@@ -19,7 +19,7 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-MikelepageRuleSet::Figure::Figure(MikelepageRuleSet::FigureType type, MikelepageRuleSet::PlayersColor c)
+MikelepageRuleSet::Piece::Piece(MikelepageRuleSet::PieceType type, MikelepageRuleSet::PlayersColor c)
 	: _type(type)
 	, _quad({48.0f, 40.0f})
 {
@@ -29,16 +29,16 @@ MikelepageRuleSet::Figure::Figure(MikelepageRuleSet::FigureType type, Mikelepage
 
 	switch(type)
 	{
-		case FIGURE_MOUNTAIN:    texturePath += "mountain.png";    break;
-		case FIGURE_RABBLE:      texturePath += "rabble.png";      break;
-		case FIGURE_CROSSBOWS:   texturePath += "crossbows.png";   break;
-		case FIGURE_SPEARS:      texturePath += "spears.png";      break;
-		case FIGURE_LIGHT_HORSE: texturePath += "light_horse.png"; break;
-		case FIGURE_TREBUCHET:   texturePath += "trebuchet.png";   break;
-		case FIGURE_ELEPHANT:    texturePath += "elephant.png";    break;
-		case FIGURE_HEAVY_HORSE: texturePath += "heavy_horse.png"; break;
-		case FIGURE_DRAGON:      texturePath += "dragon.png";      break;
-		case FIGURE_KING:        texturePath += "king.png";        break;
+		case PIECE_MOUNTAIN:    texturePath += "mountain.png";    break;
+		case PIECE_RABBLE:      texturePath += "rabble.png";      break;
+		case PIECE_CROSSBOWS:   texturePath += "crossbows.png";   break;
+		case PIECE_SPEARS:      texturePath += "spears.png";      break;
+		case PIECE_LIGHT_HORSE: texturePath += "light_horse.png"; break;
+		case PIECE_TREBUCHET:   texturePath += "trebuchet.png";   break;
+		case PIECE_ELEPHANT:    texturePath += "elephant.png";    break;
+		case PIECE_HEAVY_HORSE: texturePath += "heavy_horse.png"; break;
+		case PIECE_DRAGON:      texturePath += "dragon.png";      break;
+		case PIECE_KING:        texturePath += "king.png";        break;
 	}
 
 	_texture = makeTexture(texturePath, 48, 40);
@@ -47,14 +47,95 @@ MikelepageRuleSet::Figure::Figure(MikelepageRuleSet::FigureType type, Mikelepage
 
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer)
 	: RuleSet(renderer, new HexagonalBoard(renderer))
-	, _dragonAlive{false, false} // to be set to true on game start
+	, _setup(true)
+	, _dragonAlive{true, true}
 {
+	// should better be defined once for HexagonalBoard
+	// and this, but defining it twice is okay for now
+	// + 6 because the icons are only 48px wide, while
+	// the tiles are 60px wide
+	// + 40 because piece graphics should start in the
+	// second row of tiles
+	int xOffset = 40 + 6, yOffset = 40 + 40;
+
+	// creating one RuleSet means starting a new game,
+	// so there are no setup() and destroy() functions
+	// and the setup is done in this constructor.
+	for(int player = 0; player < 2; player++)
+	{
+		for(int i = 0; i < 6; i++)
+		{
+			Piece* tmpMountain = new Piece(PIECE_MOUNTAIN, (PlayersColor) player);
+			tmpMountain->getQuad().setPosition({xOffset + 150 + i * 60, yOffset});
+			_inactivePieces[player].push_back(tmpMountain);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpCrossbows = new Piece(PIECE_CROSSBOWS, (PlayersColor) player);
+			tmpCrossbows->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 40});
+			_inactivePieces[player].push_back(tmpCrossbows);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpSpears = new Piece(PIECE_SPEARS, (PlayersColor) player);
+			tmpSpears->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 40});
+			_inactivePieces[player].push_back(tmpSpears);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpLightHorse = new Piece(PIECE_LIGHT_HORSE, (PlayersColor) player);
+			tmpLightHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 40});
+			_inactivePieces[player].push_back(tmpLightHorse);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpTrebuchet = new Piece(PIECE_TREBUCHET, (PlayersColor) player);
+			tmpTrebuchet->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 80});
+			_inactivePieces[player].push_back(tmpTrebuchet);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpElephant = new Piece(PIECE_ELEPHANT, (PlayersColor) player);
+			tmpElephant->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 80});
+			_inactivePieces[player].push_back(tmpElephant);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpHeavyHorse = new Piece(PIECE_HEAVY_HORSE, (PlayersColor) player);
+			tmpHeavyHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 80});
+			_inactivePieces[player].push_back(tmpHeavyHorse);
+		}
+		for(int i = 0; i < 3; i++)
+		{
+			Piece* tmpRabble = new Piece(PIECE_RABBLE, (PlayersColor) player);
+			tmpRabble->getQuad().setPosition({xOffset + 120 + i * 60, yOffset + 120});
+			_inactivePieces[player].push_back(tmpRabble);
+		}
+
+		Piece* tmpKing = new Piece(PIECE_KING, (PlayersColor) player);
+		tmpKing->getQuad().setPosition({xOffset + 300, yOffset + 120});
+		_inactivePieces[player].push_back(tmpKing);
+
+		for(int i = 0; i < 3; i++)
+		{
+			Piece* tmpRabble = new Piece(PIECE_RABBLE, (PlayersColor) player);
+			tmpRabble->getQuad().setPosition({xOffset + 360 + i * 60, yOffset + 120});
+			_inactivePieces[player].push_back(tmpRabble);
+		}
+	}
 }
 
 void MikelepageRuleSet::tick()
 {
 	_board->tick();
-	for(Figure* it : _allActiveFigures)
+
+	pieceVec* piecesToBeRendered;
+	if(_setup)
+		piecesToBeRendered = &_inactivePieces[0];
+	else
+		piecesToBeRendered = &_allActivePieces;
+
+	for(Piece* it : *piecesToBeRendered)
 	{
 		_renderer.queue(*it);
 	}

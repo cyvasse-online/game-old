@@ -45,7 +45,12 @@ HexagonalBoard::HexagonalBoard(fea::Renderer2D& renderer)
 		fea::Quad* quad = new fea::Quad({60, 40});
 
 		quad->setPosition(getTilePosition(c, {60, 40}, 40, 40));
-		quad->setColor(tileColors[getColorIndex(c)]);
+
+		// may be no permanent solution
+		if(c.y() <= 5)
+			quad->setColor({0.4f, 0.4f, 0.4f});
+		else
+			quad->setColor(tileColors[getColorIndex(c)]);
 
 		// add the tile to the map and vector
 		_tileVec.push_back(quad);
