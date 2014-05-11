@@ -63,48 +63,6 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer)
 	// and the setup is done in this constructor.
 	for(int player = 0; player < 2; player++)
 	{
-		for(int i = 0; i < 6; i++)
-		{
-			Piece* tmpMountain = new Piece(PIECE_MOUNTAIN, (PlayersColor) player);
-			tmpMountain->getQuad().setPosition({xOffset + 150 + i * 60, yOffset});
-			_inactivePieces[player].push_back(tmpMountain);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpCrossbows = new Piece(PIECE_CROSSBOWS, (PlayersColor) player);
-			tmpCrossbows->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 40});
-			_inactivePieces[player].push_back(tmpCrossbows);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpSpears = new Piece(PIECE_SPEARS, (PlayersColor) player);
-			tmpSpears->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 40});
-			_inactivePieces[player].push_back(tmpSpears);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpLightHorse = new Piece(PIECE_LIGHT_HORSE, (PlayersColor) player);
-			tmpLightHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 40});
-			_inactivePieces[player].push_back(tmpLightHorse);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpTrebuchet = new Piece(PIECE_TREBUCHET, (PlayersColor) player);
-			tmpTrebuchet->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 80});
-			_inactivePieces[player].push_back(tmpTrebuchet);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpElephant = new Piece(PIECE_ELEPHANT, (PlayersColor) player);
-			tmpElephant->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 80});
-			_inactivePieces[player].push_back(tmpElephant);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpHeavyHorse = new Piece(PIECE_HEAVY_HORSE, (PlayersColor) player);
-			tmpHeavyHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 80});
-			_inactivePieces[player].push_back(tmpHeavyHorse);
-		}
 		for(int i = 0; i < 3; i++)
 		{
 			Piece* tmpRabble = new Piece(PIECE_RABBLE, (PlayersColor) player);
@@ -121,6 +79,48 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer)
 			Piece* tmpRabble = new Piece(PIECE_RABBLE, (PlayersColor) player);
 			tmpRabble->getQuad().setPosition({xOffset + 360 + i * 60, yOffset + 120});
 			_inactivePieces[player].push_back(tmpRabble);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpCrossbows = new Piece(PIECE_CROSSBOWS, (PlayersColor) player);
+			tmpCrossbows->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 80});
+			_inactivePieces[player].push_back(tmpCrossbows);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpSpears = new Piece(PIECE_SPEARS, (PlayersColor) player);
+			tmpSpears->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 80});
+			_inactivePieces[player].push_back(tmpSpears);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpLightHorse = new Piece(PIECE_LIGHT_HORSE, (PlayersColor) player);
+			tmpLightHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 80});
+			_inactivePieces[player].push_back(tmpLightHorse);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpTrebuchet = new Piece(PIECE_TREBUCHET, (PlayersColor) player);
+			tmpTrebuchet->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 40});
+			_inactivePieces[player].push_back(tmpTrebuchet);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpElephant = new Piece(PIECE_ELEPHANT, (PlayersColor) player);
+			tmpElephant->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 40});
+			_inactivePieces[player].push_back(tmpElephant);
+		}
+		for(int i = 0; i < 2; i++)
+		{
+			Piece* tmpHeavyHorse = new Piece(PIECE_HEAVY_HORSE, (PlayersColor) player);
+			tmpHeavyHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 40});
+			_inactivePieces[player].push_back(tmpHeavyHorse);
+		}
+		for(int i = 0; i < 6; i++)
+		{
+			Piece* tmpMountain = new Piece(PIECE_MOUNTAIN, (PlayersColor) player);
+			tmpMountain->getQuad().setPosition({xOffset + 150 + i * 60, yOffset});
+			_inactivePieces[player].push_back(tmpMountain);
 		}
 	}
 }
