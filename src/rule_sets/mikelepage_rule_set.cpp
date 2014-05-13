@@ -46,7 +46,7 @@ MikelepageRuleSet::Piece::Piece(MikelepageRuleSet::PieceType type, MikelepageRul
 }
 
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer)
-	: RuleSet(renderer, new HexagonalBoard(renderer))
+	: RuleSet(renderer, new HexagonalBoard<6>(renderer, {40, 40}, {800 - 2 * 40, 600 - 2 * 40}))
 	, _setup(true)
 	, _dragonAlive{true, true}
 {

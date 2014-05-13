@@ -76,7 +76,7 @@ class MikelepageRuleSet : public RuleSet
 				}
 		};
 
-		typedef std::unordered_map<HexagonalBoard::Coordinate, Piece*, std::hash<int>> pieceMap;
+		typedef std::unordered_map<HexagonalBoard<6>::Coordinate, Piece*, std::hash<int>> pieceMap;
 		typedef std::vector<Piece*> pieceVec;
 
 		// the following variables are arrays because they exist once for each player
