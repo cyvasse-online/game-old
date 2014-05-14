@@ -51,16 +51,12 @@ class HexagonalBoard : public Board
 		HexagonalBoard(const HexagonalBoard&) = delete;
 		const HexagonalBoard& operator= (const HexagonalBoard&) = delete;
 
-		glm::vec2 _position, _size;
-
 		tileMap _tileMap;
 		tileVec _tileVec;
 
 	public:
 		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 position, glm::vec2 size)
 			: Board(renderer)
-			, _position(position)
-			, _size(size)
 		{
 			// the tiles map never changes so it is set up here instead of in setup()
 			fea::Color tileColors[3] = {
@@ -69,16 +65,19 @@ class HexagonalBoard : public Board
 					{0.6f, 0.6f, 0.6f}
 				};
 
-			glm::vec2 tileSize = {
-					_size.x / static_cast<float>((l * 2) - 1),
-					_size.y / static_cast<float>((l * 2) - 1)
+			float tileWidth = size.x / static_cast<float>(l * 2 - 1);
+			glm::vec2 tileSize = {tileWidth, tileWidth / 3 * 2};
+
+			glm::vec2 realPosition = {
+					position.x,
+					position.y + (size.y - ((l * 2 - 1) * tileSize.y)) / 2
 				};
 
 			for(Coordinate c : Hexagon::getAllCoordinates())
 			{
 				fea::Quad* quad = new fea::Quad(tileSize);
 
-				quad->setPosition(getTilePosition(c, tileSize, position));
+				quad->setPosition(getTilePosition(c, tileSize, realPosition));
 
 				// may be no permanent solution
 				if(c.y() <= (l - 1))
