@@ -76,8 +76,13 @@ class MikelepageRuleSet : public RuleSet
 				}
 		};
 
-		typedef std::unordered_map<HexagonalBoard<6>::Coordinate, Piece*, std::hash<int>> pieceMap;
+		typedef HexagonalBoard<6> Board;
+		typedef std::unordered_map<Board::Coordinate, Piece*, std::hash<int>> pieceMap;
 		typedef std::vector<Piece*> pieceVec;
+
+		Board _board;
+
+		const PlayersColor _playersColor;
 
 		// the following variables are arrays because they exist once for each player
 		bool _setup;
@@ -94,7 +99,7 @@ class MikelepageRuleSet : public RuleSet
 		pieceVec _allActivePieces;
 
 	public:
-		MikelepageRuleSet(fea::Renderer2D&);
+		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);
 
 		void tick() override;
 };

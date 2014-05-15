@@ -18,7 +18,6 @@
 #define _RULE_SET_HPP_
 
 #include <featherkit/rendering/renderer2d.hpp>
-#include "board.hpp"
 
 class RuleSet
 {
@@ -30,10 +29,11 @@ class RuleSet
 	protected:
 		fea::Renderer2D& _renderer;
 
-		std::unique_ptr<Board> _board;
-
 	public:
-		RuleSet(fea::Renderer2D&, Board*);
+		RuleSet(fea::Renderer2D& renderer)
+			: _renderer(renderer)
+		{
+		}
 
 		virtual void tick() = 0;
 };

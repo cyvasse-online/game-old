@@ -17,8 +17,6 @@
 #ifndef _HEXAGONAL_BOARD_HPP_
 #define _HEXAGONAL_BOARD_HPP_
 
-#include "board.hpp"
-
 #include <unordered_map>
 #include <vector>
 #include <cassert>
@@ -28,7 +26,7 @@
 #include "hexagon.hpp"
 
 template<int l>
-class HexagonalBoard : public Board
+class HexagonalBoard
 {
 	public:
 		typedef typename cyvmath::hexagon<l> Hexagon;
@@ -36,27 +34,35 @@ class HexagonalBoard : public Board
 		typedef typename std::unordered_map<Coordinate, fea::Quad*, std::hash<int>> tileMap;
 		typedef std::vector<fea::Quad*> tileVec;
 
-		static glm::vec2 getTilePosition(Coordinate c, glm::vec2 tileSize, glm::vec2 offset)
-		{
-			return {tileSize.x * c.x() + (tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)) + offset.x,
-			        tileSize.y * c.y() + offset.y};
-		}
-		static int8_t getColorIndex(Coordinate c)
-		{
-			return (((c.x() - c.y()) % 3) + 3) % 3;
-		}
-
 	private:
 		// non-copyable
 		HexagonalBoard(const HexagonalBoard&) = delete;
 		const HexagonalBoard& operator= (const HexagonalBoard&) = delete;
 
+		fea::Renderer2D& _renderer;
+
+		glm::vec2 _size;
+		glm::vec2 _position;
+		glm::vec2 _tileSize;
+
 		tileMap _tileMap;
 		tileVec _tileVec;
 
+		static int8_t getColorIndex(Coordinate c)
+		{
+			return (((c.x() - c.y()) % 3) + 3) % 3;
+		}
+
 	public:
-		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 position, glm::vec2 size)
-			: Board(renderer)
+		glm::vec2 getTilePosition(Coordinate c)
+		{
+			return {_tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)) + _position.x,
+			        _size.y - (_tileSize.y * c.y() + _position.y)};
+		}
+
+		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
+			: _renderer(renderer)
+			, _size(size)
 		{
 			// the tiles map never changes so it is set up here instead of in setup()
 			fea::Color tileColors[3] = {
@@ -64,24 +70,29 @@ class HexagonalBoard : public Board
 					{0.8f, 0.8f, 0.8f},
 					{0.6f, 0.6f, 0.6f}
 				};
+			fea::Color tileColorsDark[3] = {
+					{0.4f, 0.4f, 0.4f},
+					{0.3f, 0.3f, 0.3f},
+					{0.2f, 0.2f, 0.2f}
+				};
 
-			float tileWidth = size.x / static_cast<float>(l * 2 - 1);
-			glm::vec2 tileSize = {tileWidth, tileWidth / 3 * 2};
+			float tileWidth = _size.x / static_cast<float>(l * 2 - 1);
+			_tileSize = {tileWidth, tileWidth / 3 * 2};
 
-			glm::vec2 realPosition = {
-					position.x,
-					position.y + (size.y - ((l * 2 - 1) * tileSize.y)) / 2
+			_position = {
+					offset.x,
+					offset.y + (_size.y - ((l * 2 - 1) * _tileSize.y)) / 2
 				};
 
 			for(Coordinate c : Hexagon::getAllCoordinates())
 			{
-				fea::Quad* quad = new fea::Quad(tileSize);
+				fea::Quad* quad = new fea::Quad(_tileSize);
 
-				quad->setPosition(getTilePosition(c, tileSize, realPosition));
+				quad->setPosition(getTilePosition(c));
 
 				// may be no permanent solution
-				if(c.y() <= (l - 1))
-					quad->setColor({0.4f, 0.4f, 0.4f});
+				if(c.y() >= (l - 1))
+					quad->setColor(tileColorsDark[getColorIndex(c)]);
 				else
 					quad->setColor(tileColors[getColorIndex(c)]);
 
@@ -101,7 +112,12 @@ class HexagonalBoard : public Board
 			}
 		}
 
-		void tick() override
+		const glm::vec2& getTileSize() const
+		{
+			return _tileSize;
+		}
+
+		void tick()
 		{
 			for(const fea::Quad* it : _tileVec)
 			{

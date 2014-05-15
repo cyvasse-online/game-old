@@ -28,7 +28,7 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 
 void IngameState::setup()
 {
-	_ruleSet = std::unique_ptr<RuleSet>(new MikelepageRuleSet(_renderer));
+	_ruleSet = std::unique_ptr<RuleSet>(new MikelepageRuleSet(_renderer, MikelepageRuleSet::PLAYER_WHITE));
 }
 
 // ------ end test code ------

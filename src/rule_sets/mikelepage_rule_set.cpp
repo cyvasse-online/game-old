@@ -24,110 +24,96 @@ MikelepageRuleSet::Piece::Piece(MikelepageRuleSet::PieceType type, MikelepageRul
 	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
+	static std::unordered_map<MikelepageRuleSet::PieceType, std::string, std::hash<int8_t>> fileNames = {
+			{PIECE_MOUNTAIN,    "mountain.png"},
+			{PIECE_RABBLE,      "rabble.png"},
+			{PIECE_CROSSBOWS,   "crossbows.png"},
+			{PIECE_SPEARS,      "spears.png"},
+			{PIECE_LIGHT_HORSE, "light_horse.png"},
+			{PIECE_TREBUCHET,   "trebuchet.png"},
+			{PIECE_ELEPHANT,    "elephant.png"},
+			{PIECE_HEAVY_HORSE, "heavy_horse.png"},
+			{PIECE_DRAGON,      "dragon.png"},
+			{PIECE_KING,        "king.png"}
+		};
 
-	std::string texturePath = "icons/" + colorStr[c] + "/";
-
-	switch(type)
-	{
-		case PIECE_MOUNTAIN:    texturePath += "mountain.png";    break;
-		case PIECE_RABBLE:      texturePath += "rabble.png";      break;
-		case PIECE_CROSSBOWS:   texturePath += "crossbows.png";   break;
-		case PIECE_SPEARS:      texturePath += "spears.png";      break;
-		case PIECE_LIGHT_HORSE: texturePath += "light_horse.png"; break;
-		case PIECE_TREBUCHET:   texturePath += "trebuchet.png";   break;
-		case PIECE_ELEPHANT:    texturePath += "elephant.png";    break;
-		case PIECE_HEAVY_HORSE: texturePath += "heavy_horse.png"; break;
-		case PIECE_DRAGON:      texturePath += "dragon.png";      break;
-		case PIECE_KING:        texturePath += "king.png";        break;
-	}
-
-	_texture = makeTexture(texturePath, 48, 40);
+	_texture = makeTexture(("icons/" + colorStr[c] + "/" + fileNames.at(type)), 48, 40);
 	_quad.setTexture(_texture);
 }
 
-MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer)
-	: RuleSet(renderer, new HexagonalBoard<6>(renderer, {40, 40}, {800 - 2 * 40, 600 - 2 * 40}))
+MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, MikelepageRuleSet::PlayersColor playersColor)
+	// TODO: parametrize the numerical stuff
+	: RuleSet(renderer)
+	, _board(renderer, {800 - 2 * 40, 600 - 2 * 40}, {40, 40})
+	, _playersColor(playersColor)
 	, _setup(true)
 	, _dragonAlive{true, true}
 {
-	// should better be defined once for HexagonalBoard
-	// and this, but defining it twice is okay for now
-	// + 6 because the icons are only 48px wide, while
-	// the tiles are 60px wide
-	// + 40 because piece graphics should start in the
-	// second row of tiles
-	int xOffset = 40 + 6, yOffset = 40 + 40;
+	const glm::vec2& tileSize = _board.getTileSize();
 
 	// creating one RuleSet means starting a new game,
 	// so there are no setup() and destroy() functions
 	// and the setup is done in this constructor.
-	for(int player = 0; player < 2; player++)
+
+	// {type, hex-coordinate, mid-coordinate}
+	// if the last bool is true, the piece will not be directly on one
+	// tile, but have its horizontal center on the line between the
+	// tile with the given coordinate and the next tile to the right
+	static std::vector<std::tuple<MikelepageRuleSet::PieceType, std::pair<int8_t, int8_t>, bool>> defaultPiecePositions = {
+			{PIECE_MOUNTAIN, std::make_pair(0,9), true},
+			{PIECE_MOUNTAIN, std::make_pair(1,9), true},
+			{PIECE_MOUNTAIN, std::make_pair(2,9), true},
+			{PIECE_MOUNTAIN, std::make_pair(3,9), true},
+			{PIECE_MOUNTAIN, std::make_pair(4,9), true},
+			{PIECE_MOUNTAIN, std::make_pair(5,9), true},
+
+			{PIECE_TREBUCHET,   std::make_pair(1,8), false},
+			{PIECE_TREBUCHET,   std::make_pair(2,8), false},
+			{PIECE_ELEPHANT,    std::make_pair(3,8), false},
+			{PIECE_ELEPHANT,    std::make_pair(4,8), false},
+			{PIECE_HEAVY_HORSE, std::make_pair(5,8), false},
+			{PIECE_HEAVY_HORSE, std::make_pair(6,8), false},
+
+			{PIECE_CROSSBOWS,   std::make_pair(1,7), true},
+			{PIECE_CROSSBOWS,   std::make_pair(2,7), true},
+			{PIECE_SPEARS,      std::make_pair(3,7), true},
+			{PIECE_SPEARS,      std::make_pair(4,7), true},
+			{PIECE_LIGHT_HORSE, std::make_pair(5,7), true},
+			{PIECE_LIGHT_HORSE, std::make_pair(6,7), true},
+
+			{PIECE_RABBLE, std::make_pair(1,6), true},
+			{PIECE_RABBLE, std::make_pair(2,6), true},
+			{PIECE_RABBLE, std::make_pair(3,6), true},
+			{PIECE_KING,   std::make_pair(4,6), true},
+			{PIECE_RABBLE, std::make_pair(5,6), true},
+			{PIECE_RABBLE, std::make_pair(6,6), true},
+			{PIECE_RABBLE, std::make_pair(7,6), true}
+		};
+
+	for(auto it : defaultPiecePositions)
 	{
-		for(int i = 0; i < 3; i++)
-		{
-			Piece* tmpRabble = new Piece(PIECE_RABBLE, (PlayersColor) player);
-			tmpRabble->getQuad().setPosition({xOffset + 120 + i * 60, yOffset + 120});
-			_inactivePieces[player].push_back(tmpRabble);
-		}
+		Piece* tmpPiece = new Piece(std::get<0>(it), _playersColor);
 
-		Piece* tmpKing = new Piece(PIECE_KING, (PlayersColor) player);
-		tmpKing->getQuad().setPosition({xOffset + 300, yOffset + 120});
-		_inactivePieces[player].push_back(tmpKing);
+		std::unique_ptr<Board::Coordinate> c = Board::Coordinate::create(std::get<1>(it));
+		assert(c); // not null
 
-		for(int i = 0; i < 3; i++)
-		{
-			Piece* tmpRabble = new Piece(PIECE_RABBLE, (PlayersColor) player);
-			tmpRabble->getQuad().setPosition({xOffset + 360 + i * 60, yOffset + 120});
-			_inactivePieces[player].push_back(tmpRabble);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpCrossbows = new Piece(PIECE_CROSSBOWS, (PlayersColor) player);
-			tmpCrossbows->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 80});
-			_inactivePieces[player].push_back(tmpCrossbows);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpSpears = new Piece(PIECE_SPEARS, (PlayersColor) player);
-			tmpSpears->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 80});
-			_inactivePieces[player].push_back(tmpSpears);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpLightHorse = new Piece(PIECE_LIGHT_HORSE, (PlayersColor) player);
-			tmpLightHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 80});
-			_inactivePieces[player].push_back(tmpLightHorse);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpTrebuchet = new Piece(PIECE_TREBUCHET, (PlayersColor) player);
-			tmpTrebuchet->getQuad().setPosition({xOffset + 150 + i * 60, yOffset + 40});
-			_inactivePieces[player].push_back(tmpTrebuchet);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpElephant = new Piece(PIECE_ELEPHANT, (PlayersColor) player);
-			tmpElephant->getQuad().setPosition({xOffset + 270 + i * 60, yOffset + 40});
-			_inactivePieces[player].push_back(tmpElephant);
-		}
-		for(int i = 0; i < 2; i++)
-		{
-			Piece* tmpHeavyHorse = new Piece(PIECE_HEAVY_HORSE, (PlayersColor) player);
-			tmpHeavyHorse->getQuad().setPosition({xOffset + 390 + i * 60, yOffset + 40});
-			_inactivePieces[player].push_back(tmpHeavyHorse);
-		}
-		for(int i = 0; i < 6; i++)
-		{
-			Piece* tmpMountain = new Piece(PIECE_MOUNTAIN, (PlayersColor) player);
-			tmpMountain->getQuad().setPosition({xOffset + 150 + i * 60, yOffset});
-			_inactivePieces[player].push_back(tmpMountain);
-		}
+		glm::vec2 position = _board.getTilePosition(*c);
+		glm::vec2 tileSize = _board.getTileSize();
+		// piece graphics should be scaled, after that
+		// this constant should also be changed
+		position.x += 8;
+		if(std::get<2>(it))
+			position.x += _board.getTileSize().x / 2;
+
+		tmpPiece->getQuad().setPosition(position);
+
+		_inactivePieces[_playersColor].push_back(tmpPiece);
 	}
 }
 
 void MikelepageRuleSet::tick()
 {
-	_board->tick();
+	_board.tick();
 
 	pieceVec* piecesToBeRendered;
 	if(_setup)

@@ -21,14 +21,11 @@ cyvasse_js_SOURCES = \
 	lodepng/lodepng.cpp \
 	lodepng/lodepng.h \
 	lodepng/texturemaker.hpp \
-	src/board.cpp \
-	src/board.hpp \
 	src/cyvasse_app.cpp \
 	src/cyvasse_app.hpp \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
 	src/main.cpp \
-	src/rule_set.cpp \
 	src/rule_set.hpp \
 	src/boards/hexagonal_board.hpp \
 	src/rule_sets/mikelepage_rule_set.cpp \
