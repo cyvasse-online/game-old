@@ -42,6 +42,7 @@ class HexagonalBoard
 		fea::Renderer2D& _renderer;
 
 		glm::vec2 _size;
+		glm::vec2 _realSize;
 		glm::vec2 _position;
 		glm::vec2 _tileSize;
 
@@ -56,8 +57,9 @@ class HexagonalBoard
 	public:
 		glm::vec2 getTilePosition(Coordinate c)
 		{
-			return {_tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)) + _position.x,
-			        _size.y - (_tileSize.y * c.y() + _position.y)};
+			// TODO: document
+			return {_position.x + _tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)),
+			        _position.y - _tileSize.y + (_realSize.y - (_tileSize.y * c.y()))};
 		}
 
 		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
@@ -79,9 +81,11 @@ class HexagonalBoard
 			float tileWidth = _size.x / static_cast<float>(l * 2 - 1);
 			_tileSize = {tileWidth, tileWidth / 3 * 2};
 
+			_realSize = {_size.x, (l * 2 - 1) * _tileSize.y};
+
 			_position = {
 					offset.x,
-					offset.y + (_size.y - ((l * 2 - 1) * _tileSize.y)) / 2
+					offset.y + (_size.y - _realSize.y) / 2
 				};
 
 			for(Coordinate c : Hexagon::getAllCoordinates())
