@@ -21,6 +21,7 @@ cyvasse_js_SOURCES = \
 	lodepng/lodepng.cpp \
 	lodepng/lodepng.h \
 	lodepng/texturemaker.hpp \
+	src/common.hpp \
 	src/cyvasse_app.cpp \
 	src/cyvasse_app.hpp \
 	src/ingame_state.cpp \

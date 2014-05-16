@@ -16,6 +16,7 @@
 
 #include "mikelepage_rule_set.hpp"
 
+#include "common.hpp"
 // lodepng helper function
 #include "texturemaker.hpp"
 
@@ -115,13 +116,23 @@ void MikelepageRuleSet::tick()
 {
 	_board.tick();
 
-	pieceVec* piecesToBeRendered;
 	if(_setup)
-		piecesToBeRendered = &_inactivePieces[0];
+		tickSetup();
 	else
-		piecesToBeRendered = &_allActivePieces;
+		tickPlaying();
+}
 
-	for(Piece* it : *piecesToBeRendered)
+void MikelepageRuleSet::tickSetup()
+{
+	for(Piece* it : _inactivePieces[0])
+	{
+		_renderer.queue(*it);
+	}
+}
+
+void MikelepageRuleSet::tickPlaying()
+{
+	for(Piece* it : _allActivePieces)
 	{
 		_renderer.queue(*it);
 	}

@@ -102,6 +102,8 @@ class MikelepageRuleSet : public RuleSet
 		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);
 
 		void tick() override;
+		void tickSetup();
+		void tickPlaying();
 };
 
 #endif // _MIKELEPAGE_RULESET_HPP_
