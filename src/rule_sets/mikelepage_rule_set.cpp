@@ -20,12 +20,12 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-MikelepageRuleSet::Piece::Piece(MikelepageRuleSet::PieceType type, MikelepageRuleSet::PlayersColor c)
+MikelepageRuleSet::Piece::Piece(PieceType type, MikelepageRuleSet::PlayersColor c)
 	: _type(type)
 	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
-	static std::unordered_map<MikelepageRuleSet::PieceType, std::string, std::hash<int8_t>> fileNames = {
+	static std::unordered_map<PieceType, std::string> fileNames = {
 			{PIECE_MOUNTAIN,    "mountain.png"},
 			{PIECE_RABBLE,      "rabble.png"},
 			{PIECE_CROSSBOWS,   "crossbows.png"},
@@ -60,7 +60,7 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, MikelepageRuleSe
 	// if the last bool is true, the piece will not be directly on one
 	// tile, but have its horizontal center on the line between the
 	// tile with the given coordinate and the next tile to the right
-	static std::vector<std::tuple<MikelepageRuleSet::PieceType, std::pair<int8_t, int8_t>, bool>> defaultPiecePositions = {
+	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>, bool>> defaultPiecePositions = {
 			{PIECE_MOUNTAIN, std::make_pair(0,9), true},
 			{PIECE_MOUNTAIN, std::make_pair(1,9), true},
 			{PIECE_MOUNTAIN, std::make_pair(2,9), true},

@@ -31,7 +31,7 @@ class HexagonalBoard
 	public:
 		typedef typename cyvmath::hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
-		typedef typename std::unordered_map<Coordinate, fea::Quad*, std::hash<int>> tileMap;
+		typedef typename std::unordered_map<Coordinate, fea::Quad*> tileMap;
 		typedef std::vector<fea::Quad*> tileVec;
 
 	private:

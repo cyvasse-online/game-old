@@ -21,6 +21,9 @@
 
 #include <featherkit/rendering/renderer2d.hpp>
 #include "boards/hexagonal_board.hpp"
+#include "mikelepage/piece.hpp"
+
+using namespace cyvmath::mikelepage;
 
 /** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 
@@ -29,20 +32,6 @@
 class MikelepageRuleSet : public RuleSet
 {
 	public:
-		enum PieceType
-		{
-			PIECE_MOUNTAIN,
-			PIECE_RABBLE,
-			PIECE_CROSSBOWS,
-			PIECE_SPEARS,
-			PIECE_LIGHT_HORSE,
-			PIECE_TREBUCHET,
-			PIECE_ELEPHANT,
-			PIECE_HEAVY_HORSE,
-			PIECE_DRAGON,
-			PIECE_KING
-		};
-
 		enum PlayersColor
 		{
 			PLAYER_WHITE,
@@ -77,7 +66,7 @@ class MikelepageRuleSet : public RuleSet
 		};
 
 		typedef HexagonalBoard<6> Board;
-		typedef std::unordered_map<Board::Coordinate, Piece*, std::hash<int>> pieceMap;
+		typedef std::unordered_map<Board::Coordinate, Piece*> pieceMap;
 		typedef std::vector<Piece*> pieceVec;
 
 		Board _board;
