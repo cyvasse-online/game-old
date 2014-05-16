@@ -20,8 +20,8 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-MikelepageRuleSet::Piece::Piece(PieceType type, MikelepageRuleSet::PlayersColor c)
-	: _type(type)
+MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, PlayersColor c)
+	: Piece(type)
 	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
@@ -42,7 +42,7 @@ MikelepageRuleSet::Piece::Piece(PieceType type, MikelepageRuleSet::PlayersColor 
 	_quad.setTexture(_texture);
 }
 
-MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, MikelepageRuleSet::PlayersColor playersColor)
+MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
 	// TODO: parametrize the numerical stuff
 	: RuleSet(renderer)
 	, _board(renderer, {800 - 2 * 40, 600 - 2 * 40}, {40, 40})
@@ -93,7 +93,7 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, MikelepageRuleSe
 
 	for(auto it : defaultPiecePositions)
 	{
-		Piece* tmpPiece = new Piece(std::get<0>(it), _playersColor);
+		RenderedPiece* tmpPiece = new RenderedPiece(std::get<0>(it), _playersColor);
 
 		std::unique_ptr<Board::Coordinate> c = Board::Coordinate::create(std::get<1>(it));
 		assert(c); // not null
@@ -124,7 +124,7 @@ void MikelepageRuleSet::tick()
 
 void MikelepageRuleSet::tickSetup()
 {
-	for(Piece* it : _inactivePieces[0])
+	for(RenderedPiece* it : _inactivePieces[0])
 	{
 		_renderer.queue(*it);
 	}
@@ -132,7 +132,7 @@ void MikelepageRuleSet::tickSetup()
 
 void MikelepageRuleSet::tickPlaying()
 {
-	for(Piece* it : _allActivePieces)
+	for(RenderedPiece* it : _allActivePieces)
 	{
 		_renderer.queue(*it);
 	}

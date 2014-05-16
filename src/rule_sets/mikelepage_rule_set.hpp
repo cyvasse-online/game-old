@@ -31,28 +31,19 @@ using namespace cyvmath::mikelepage;
  */
 class MikelepageRuleSet : public RuleSet
 {
-	public:
-		enum PlayersColor
-		{
-			PLAYER_WHITE,
-			PLAYER_BLACK
-		};
-
 	private:
 		// non-copyable
 		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
 		const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
 
-		class Piece
+		class RenderedPiece : public Piece
 		{
 			private:
-				PieceType _type;
-
 				fea::Texture _texture;
 				fea::Quad _quad;
 
 			public:
-				Piece(PieceType, PlayersColor);
+				RenderedPiece(PieceType, PlayersColor);
 
 				fea::Quad& getQuad()
 				{
@@ -66,8 +57,8 @@ class MikelepageRuleSet : public RuleSet
 		};
 
 		typedef HexagonalBoard<6> Board;
-		typedef std::unordered_map<Board::Coordinate, Piece*> pieceMap;
-		typedef std::vector<Piece*> pieceVec;
+		typedef std::unordered_map<Board::Coordinate, RenderedPiece*> pieceMap;
+		typedef std::vector<RenderedPiece*> pieceVec;
 
 		Board _board;
 
