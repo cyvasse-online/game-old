@@ -78,35 +78,35 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 	// if the last bool is true, the piece will not be directly on one
 	// tile, but have its horizontal center on the line between the
 	// tile with the given coordinate and the next tile to the right
-	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>, bool>> defaultPiecePositions = {
-			{PIECE_MOUNTAIN, std::make_pair(0,9), true},
-			{PIECE_MOUNTAIN, std::make_pair(1,9), true},
-			{PIECE_MOUNTAIN, std::make_pair(2,9), true},
-			{PIECE_MOUNTAIN, std::make_pair(3,9), true},
-			{PIECE_MOUNTAIN, std::make_pair(4,9), true},
-			{PIECE_MOUNTAIN, std::make_pair(5,9), true},
+	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>>> defaultPiecePositions = {
+			{PIECE_MOUNTAIN, std::make_pair(0,10)},
+			{PIECE_MOUNTAIN, std::make_pair(1,10)},
+			{PIECE_MOUNTAIN, std::make_pair(2,10)},
+			{PIECE_MOUNTAIN, std::make_pair(3,10)},
+			{PIECE_MOUNTAIN, std::make_pair(4,10)},
+			{PIECE_MOUNTAIN, std::make_pair(5,10)},
 
-			{PIECE_TREBUCHET,   std::make_pair(1,8), false},
-			{PIECE_TREBUCHET,   std::make_pair(2,8), false},
-			{PIECE_ELEPHANT,    std::make_pair(3,8), false},
-			{PIECE_ELEPHANT,    std::make_pair(4,8), false},
-			{PIECE_HEAVY_HORSE, std::make_pair(5,8), false},
-			{PIECE_HEAVY_HORSE, std::make_pair(6,8), false},
+			{PIECE_TREBUCHET,   std::make_pair(1,8)},
+			{PIECE_TREBUCHET,   std::make_pair(2,8)},
+			{PIECE_ELEPHANT,    std::make_pair(3,8)},
+			{PIECE_ELEPHANT,    std::make_pair(4,8)},
+			{PIECE_HEAVY_HORSE, std::make_pair(5,8)},
+			{PIECE_HEAVY_HORSE, std::make_pair(6,8)},
 
-			{PIECE_CROSSBOWS,   std::make_pair(1,7), true},
-			{PIECE_CROSSBOWS,   std::make_pair(2,7), true},
-			{PIECE_SPEARS,      std::make_pair(3,7), true},
-			{PIECE_SPEARS,      std::make_pair(4,7), true},
-			{PIECE_LIGHT_HORSE, std::make_pair(5,7), true},
-			{PIECE_LIGHT_HORSE, std::make_pair(6,7), true},
+			{PIECE_RABBLE, std::make_pair(1,7)},
+			{PIECE_RABBLE, std::make_pair(2,7)},
+			{PIECE_RABBLE, std::make_pair(3,7)},
+			{PIECE_KING,   std::make_pair(4,7)},
+			{PIECE_RABBLE, std::make_pair(5,7)},
+			{PIECE_RABBLE, std::make_pair(6,7)},
+			{PIECE_RABBLE, std::make_pair(7,7)},
 
-			{PIECE_RABBLE, std::make_pair(1,6), true},
-			{PIECE_RABBLE, std::make_pair(2,6), true},
-			{PIECE_RABBLE, std::make_pair(3,6), true},
-			{PIECE_KING,   std::make_pair(4,6), true},
-			{PIECE_RABBLE, std::make_pair(5,6), true},
-			{PIECE_RABBLE, std::make_pair(6,6), true},
-			{PIECE_RABBLE, std::make_pair(7,6), true}
+			{PIECE_CROSSBOWS,   std::make_pair(2,6)},
+			{PIECE_CROSSBOWS,   std::make_pair(3,6)},
+			{PIECE_SPEARS,      std::make_pair(4,6)},
+			{PIECE_SPEARS,      std::make_pair(5,6)},
+			{PIECE_LIGHT_HORSE, std::make_pair(6,6)},
+			{PIECE_LIGHT_HORSE, std::make_pair(7,6)}
 		};
 
 	for(auto it : defaultPiecePositions)
@@ -121,8 +121,6 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 		// TODO: piece graphics should be scaled, after
 		// that this constant should also be changed
 		position.x += 8;
-		if(std::get<2>(it))
-			position.x += _board.getTileSize().x / 2;
 
 		tmpPiece->_quad.setPosition(position);
 
