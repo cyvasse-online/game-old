@@ -18,6 +18,7 @@
 #define _RULE_SET_HPP_
 
 #include <featherkit/rendering/renderer2d.hpp>
+#include <featherkit/ui/event.hpp>
 
 class RuleSet
 {
@@ -36,6 +37,7 @@ class RuleSet
 		}
 
 		virtual void tick() = 0;
+		virtual void processMouseEvent(fea::Event&) = 0;
 };
 
 #endif // _RULE_SET_HPP_

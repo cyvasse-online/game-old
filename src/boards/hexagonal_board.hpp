@@ -31,8 +31,8 @@ class HexagonalBoard
 	public:
 		typedef typename cyvmath::hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
-		typedef typename std::unordered_map<Coordinate, fea::Quad*> tileMap;
-		typedef std::vector<fea::Quad*> tileVec;
+		typedef typename std::unordered_map<Coordinate, fea::Quad*> TileMap;
+		typedef std::vector<fea::Quad*> TileVec;
 
 	private:
 		// non-copyable
@@ -46,8 +46,8 @@ class HexagonalBoard
 		glm::vec2 _position;
 		glm::vec2 _tileSize;
 
-		tileMap _tileMap;
-		tileVec _tileVec;
+		TileMap _tileMap;
+		TileVec _tileVec;
 
 		static int8_t getColorIndex(Coordinate c)
 		{
@@ -57,9 +57,32 @@ class HexagonalBoard
 	public:
 		glm::vec2 getTilePosition(Coordinate c)
 		{
-			// TODO: document
-			return {_position.x + _tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1)),
+			// This should *maybe* be rewritten...
+			return {_position.x + _tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - Hexagon::edgeLength + 1),
 			        _position.y - _tileSize.y + (_realSize.y - (_tileSize.y * c.y()))};
+		}
+
+		std::unique_ptr<Coordinate> getCoordinate(std::pair<int32_t, int32_t> tilePosition)
+		{
+			// This is some crap I got from my CAS because that math part is a bit of getting over my head
+			// It is very close to be fully functional, but probably no one can understand it.
+			// TODO: find someone to tame this beast of a mathematical formula and rewrite this!
+			int8_t y = (_realSize.y - (tilePosition.second - _position.y)) / _tileSize.y;
+			std::unique_ptr<Coordinate> c = Coordinate::create(
+					(2 * tilePosition.first + Hexagon::edgeLength * _tileSize.x - y * _tileSize.x - 2 * _position.x - _tileSize.x)
+					/ (2 * _tileSize.x), y
+				);
+
+			return c;
+		}
+
+		fea::Quad* getTileAt(Coordinate c)
+		{
+			typename TileMap::iterator it = _tileMap.find(c);
+			if(it == _tileMap.end())
+				return nullptr;
+
+			return it->second;
 		}
 
 		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
@@ -102,7 +125,7 @@ class HexagonalBoard
 
 				// add the tile to the map and vector
 				_tileVec.push_back(quad);
-				std::pair<typename tileMap::iterator, bool> res = _tileMap.insert({c, quad});
+				std::pair<typename TileMap::iterator, bool> res = _tileMap.insert({c, quad});
 
 				assert(res.second); // assert the insertion was successful
 			}

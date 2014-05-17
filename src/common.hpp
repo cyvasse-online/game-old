@@ -20,11 +20,28 @@
 #include <featherkit/rendering/quad.hpp>
 #include <featherkit/ui/event.hpp>
 
-bool mouseOver(fea::Quad& quad, fea::Event::MouseMoveEvent e)
+bool mouseOver(fea::Quad& quad, fea::Event event)
 {
+	assert(event.type == fea::Event::MOUSEBUTTONPRESSED ||
+	       event.type == fea::Event::MOUSEBUTTONRELEASED ||
+	       event.type == fea::Event::MOUSEMOVED);
+
+	int mX, mY; // mouse x and y coordinates
+	if(event.type == fea::Event::MOUSEMOVED)
+	{
+		mX = event.mouseMove.x;
+		mY = event.mouseMove.y;
+	}
+	else
+	{
+		mX = event.mouseButton.x;
+		mY = event.mouseButton.y;
+	}
+
 	glm::vec2 quadPos = quad.getPosition(), quadSize = quad.getSize();
-	return (e.x >= quadPos.x && e.x < quadPos.x + quadSize.x) &&
-	       (e.y >= quadPos.y && e.y < quadPos.y + quadSize.y);
+
+	return (mX >= quadPos.x && mX < quadPos.x + quadSize.x) &&
+	       (mY >= quadPos.y && mY < quadPos.y + quadSize.y);
 }
 
 #endif // _COMMON_HPP_

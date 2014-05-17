@@ -156,3 +156,43 @@ void MikelepageRuleSet::tickPlaying()
 		_renderer.queue(*it);
 	}
 }
+
+void MikelepageRuleSet::processMouseEvent(fea::Event& event)
+{
+	assert(event.type == fea::Event::MOUSEBUTTONPRESSED ||
+	       event.type == fea::Event::MOUSEBUTTONRELEASED ||
+	       event.type == fea::Event::MOUSEMOVED);
+
+	int mX, mY; // mouse x and y coordinates
+	if(event.type == fea::Event::MOUSEMOVED)
+	{
+		mX = event.mouseMove.x;
+		mY = event.mouseMove.y;
+	}
+	else
+	{
+		mX = event.mouseButton.x;
+		mY = event.mouseButton.y;
+	}
+
+	std::unique_ptr<Coordinate> c = _board.getCoordinate(std::make_pair(mX, mY));
+
+	if(c)
+	{
+		static fea::Quad* lastQuad = nullptr;
+		static fea::Color lastQuadColor;
+
+		fea::Quad* quad = _board.getTileAt(*c);
+
+		if(lastQuad != quad)
+		{
+			if(lastQuad)
+				lastQuad->setColor(lastQuadColor);
+
+			lastQuad = quad;
+			lastQuadColor = quad->getColor();
+
+			quad->setColor({0.0f, 0.5f, 0.0f});
+		}
+	}
+}

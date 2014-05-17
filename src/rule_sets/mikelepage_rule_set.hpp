@@ -92,6 +92,8 @@ class MikelepageRuleSet : public RuleSet
 		void tick() override;
 		void tickSetup();
 		void tickPlaying();
+
+		void processMouseEvent(fea::Event&) override;
 };
 
 #endif // _MIKELEPAGE_RULESET_HPP_
