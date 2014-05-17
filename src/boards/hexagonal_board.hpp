@@ -91,14 +91,14 @@ class HexagonalBoard
 		{
 			// the tiles map never changes so it is set up here instead of in setup()
 			fea::Color tileColors[3] = {
-					{1.0f, 1.0f, 1.0f},
 					{0.8f, 0.8f, 0.8f},
+					{0.7f, 0.7f, 0.7f},
 					{0.6f, 0.6f, 0.6f}
 				};
 			fea::Color tileColorsDark[3] = {
+					{0.5f, 0.5f, 0.5f},
 					{0.4f, 0.4f, 0.4f},
-					{0.3f, 0.3f, 0.3f},
-					{0.2f, 0.2f, 0.2f}
+					{0.3f, 0.3f, 0.3f}
 				};
 
 			float tileWidth = _size.x / static_cast<float>(l * 2 - 1);

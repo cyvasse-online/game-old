@@ -190,7 +190,7 @@ void MikelepageRuleSet::processMouseEvent(fea::Event& event)
 			lastQuad = quad;
 			lastQuadColor = quad->getColor();
 
-			quad->setColor({0.0f, 0.5f, 0.0f});
+			quad->setColor((quad->getColor() + fea::Color(0.0f, 0.7f, 0.0f)) - fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
 		}
 	}
 }
