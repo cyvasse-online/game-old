@@ -31,6 +31,9 @@ using namespace cyvmath::mikelepage;
  */
 class MikelepageRuleSet : public RuleSet
 {
+	public:
+		typedef HexagonalBoard<6> Board;
+
 	private:
 		// non-copyable
 		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
@@ -38,27 +41,33 @@ class MikelepageRuleSet : public RuleSet
 
 		class RenderedPiece : public Piece
 		{
+			friend MikelepageRuleSet;
+
+			public:
+				typedef std::unordered_map<Coordinate, RenderedPiece*> PieceMap;
+				typedef std::vector<RenderedPiece*> PieceVec;
+
 			private:
+				Board& _board;
+				PieceMap* _map;
+
 				fea::Texture _texture;
 				fea::Quad _quad;
 
 			public:
-				RenderedPiece(PieceType, PlayersColor);
+				RenderedPiece(PieceType, PlayersColor, Board&);
 
-				fea::Quad& getQuad()
+				operator const fea::Quad& () const
 				{
 					return _quad;
 				}
 
-				operator fea::Quad& ()
-				{
-					return _quad;
-				}
+				// If setup is true, all "moves" are valid
+				void moveTo(Coordinate, bool setup);
 		};
 
-		typedef HexagonalBoard<6> Board;
-		typedef std::unordered_map<Board::Coordinate, RenderedPiece*> pieceMap;
-		typedef std::vector<RenderedPiece*> pieceVec;
+		typedef RenderedPiece::PieceMap PieceMap;
+		typedef RenderedPiece::PieceVec PieceVec;
 
 		Board _board;
 
@@ -68,15 +77,14 @@ class MikelepageRuleSet : public RuleSet
 		bool _setup;
 
 		// pieces which are active (on the board) can be found by their coordinate
-		pieceMap _activePieces[2];
-		pieceVec _inactivePieces[2];
+		PieceMap _activePieces[2];
+		PieceVec _inactivePieces[2];
 
 		// the dragon is the only piece that can be inactive but alive (after setup)
 		bool _dragonAlive[2];
 
-		// the same as both _activePieces maps together
-		// for rendering
-		pieceVec _allActivePieces;
+		// the same as the two maps + the two other vectors
+		PieceVec _allPieces;
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);

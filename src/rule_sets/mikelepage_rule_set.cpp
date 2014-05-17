@@ -20,8 +20,10 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, PlayersColor c)
+MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, PlayersColor c, Board& board)
 	: Piece(type)
+	, _board(board)
+	, _map(nullptr)
 	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
@@ -40,6 +42,22 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, PlayersColor c)
 
 	_texture = makeTexture(("icons/" + colorStr[c] + "/" + fileNames.at(type)), 48, 40);
 	_quad.setTexture(_texture);
+}
+
+void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate c, bool setup)
+{
+	if(!setup)
+	{
+		// Check if the movement is legal
+		// (Use assert for the check or return if the check fails)
+	}
+
+	_cPos = std::unique_ptr<Coordinate>(new Coordinate(c));
+
+	glm::vec2 position = _board.getTilePosition(*_cPos);
+	position += 8; // TODO
+
+	_quad.setPosition(position);
 }
 
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
@@ -93,22 +111,23 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 
 	for(auto it : defaultPiecePositions)
 	{
-		RenderedPiece* tmpPiece = new RenderedPiece(std::get<0>(it), _playersColor);
+		RenderedPiece* tmpPiece = new RenderedPiece(std::get<0>(it), _playersColor, _board);
 
-		std::unique_ptr<Board::Coordinate> c = Board::Coordinate::create(std::get<1>(it));
+		std::unique_ptr<Coordinate> c = Coordinate::create(std::get<1>(it));
 		assert(c); // not null
 
 		glm::vec2 position = _board.getTilePosition(*c);
 		glm::vec2 tileSize = _board.getTileSize();
-		// piece graphics should be scaled, after that
-		// this constant should also be changed
+		// TODO: piece graphics should be scaled, after
+		// that this constant should also be changed
 		position.x += 8;
 		if(std::get<2>(it))
 			position.x += _board.getTileSize().x / 2;
 
-		tmpPiece->getQuad().setPosition(position);
+		tmpPiece->_quad.setPosition(position);
 
 		_inactivePieces[_playersColor].push_back(tmpPiece);
+		_allPieces.push_back(tmpPiece);
 	}
 }
 
@@ -132,7 +151,7 @@ void MikelepageRuleSet::tickSetup()
 
 void MikelepageRuleSet::tickPlaying()
 {
-	for(RenderedPiece* it : _allActivePieces)
+	for(RenderedPiece* it : _allPieces)
 	{
 		_renderer.queue(*it);
 	}
