@@ -173,24 +173,58 @@ void MikelepageRuleSet::processMouseEvent(fea::Event& event)
 		mY = event.mouseButton.y;
 	}
 
+	static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> lastTile
+		= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+	static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> selectedTile
+		= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+
 	std::unique_ptr<Coordinate> c = _board.getCoordinate(std::make_pair(mX, mY));
 
 	if(c)
 	{
-		static fea::Quad* lastQuad = nullptr;
-		static fea::Color lastQuadColor;
-
 		fea::Quad* quad = _board.getTileAt(*c);
 
-		if(lastQuad != quad)
+		switch(event.type)
 		{
-			if(lastQuad)
-				lastQuad->setColor(lastQuadColor);
+			case fea::Event::MOUSEMOVED:
+				if(*c != *lastTile.first)
+				{
+					// reset color of old highlighted tile
+					if(lastTile.first && *lastTile.first != *selectedTile.first)
+						lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
 
-			lastQuad = quad;
-			lastQuadColor = quad->getColor();
+					if(*c != *selectedTile.first)
+					{
+						quad->setColor((_board.getTileColor(*c, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
+							- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
 
-			quad->setColor((quad->getColor() + fea::Color(0.0f, 0.7f, 0.0f)) - fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
+						// don't access c in this function after it was moved!
+						lastTile = std::make_pair(std::move(c), quad);
+					}
+				}
+				break;
+			case fea::Event::MOUSEBUTTONPRESSED:
+				// this stuff should be moved to MOUSEBUTTONRELEASED when
+				// we check if the mouse is still on the same tile there
+				if(*c != *selectedTile.first)
+				{
+					// reset color of old highlighted tile
+					if(selectedTile.first)
+						selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+
+					quad->setColor((_board.getTileColor(*c, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
+						- fea::Color(0.0f, 0.3f, 0.3f, 0.0f));
+
+					// don't access c in this function after it was moved!
+					selectedTile = std::make_pair(std::move(c), quad);
+				}
 		}
+	}
+	else
+	{
+		if(lastTile.first)
+			lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+
+		lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 	}
 }

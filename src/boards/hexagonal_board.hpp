@@ -49,11 +49,6 @@ class HexagonalBoard
 		TileMap _tileMap;
 		TileVec _tileVec;
 
-		static int8_t getColorIndex(Coordinate c)
-		{
-			return (((c.x() - c.y()) % 3) + 3) % 3;
-		}
-
 	public:
 		glm::vec2 getTilePosition(Coordinate c)
 		{
@@ -85,22 +80,31 @@ class HexagonalBoard
 			return it->second;
 		}
 
-		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
-			: _renderer(renderer)
-			, _size(size)
+		static fea::Color getTileColor(Coordinate c, bool setup)
 		{
-			// the tiles map never changes so it is set up here instead of in setup()
-			fea::Color tileColors[3] = {
+			static fea::Color tileColors[3] = {
 					{0.8f, 0.8f, 0.8f},
 					{0.7f, 0.7f, 0.7f},
 					{0.6f, 0.6f, 0.6f}
 				};
-			fea::Color tileColorsDark[3] = {
+			static fea::Color tileColorsDark[3] = {
 					{0.5f, 0.5f, 0.5f},
 					{0.4f, 0.4f, 0.4f},
 					{0.3f, 0.3f, 0.3f}
 				};
 
+			int8_t index = (((c.x() - c.y()) % 3) + 3) % 3;
+
+			if(setup && c.y() >= (l - 1))
+				return tileColorsDark[index];
+			else
+				return tileColors[index];
+		}
+
+		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
+			: _renderer(renderer)
+			, _size(size)
+		{
 			float tileWidth = _size.x / static_cast<float>(l * 2 - 1);
 			_tileSize = {tileWidth, tileWidth / 3 * 2};
 
@@ -116,12 +120,7 @@ class HexagonalBoard
 				fea::Quad* quad = new fea::Quad(_tileSize);
 
 				quad->setPosition(getTilePosition(c));
-
-				// may be no permanent solution
-				if(c.y() >= (l - 1))
-					quad->setColor(tileColorsDark[getColorIndex(c)]);
-				else
-					quad->setColor(tileColors[getColorIndex(c)]);
+				quad->setColor(getTileColor(c, true));
 
 				// add the tile to the map and vector
 				_tileVec.push_back(quad);
@@ -134,9 +133,7 @@ class HexagonalBoard
 		~HexagonalBoard()
 		{
 			for(fea::Quad* it : _tileVec)
-			{
 				delete it;
-			}
 		}
 
 		const glm::vec2& getTileSize() const
@@ -147,9 +144,7 @@ class HexagonalBoard
 		void tick()
 		{
 			for(const fea::Quad* it : _tileVec)
-			{
 				_renderer.queue(*it);
-			}
 		}
 };
 
