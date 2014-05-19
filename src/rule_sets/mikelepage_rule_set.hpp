@@ -20,7 +20,7 @@
 #include "rule_set.hpp"
 
 #include <featherkit/rendering/renderer2d.hpp>
-#include "boards/hexagonal_board.hpp"
+#include "hexagon_board.hpp"
 #include "mikelepage/piece.hpp"
 
 using namespace cyvmath::mikelepage;
@@ -32,7 +32,7 @@ using namespace cyvmath::mikelepage;
 class MikelepageRuleSet : public RuleSet
 {
 	public:
-		typedef HexagonalBoard<6> Board;
+		typedef HexagonBoard<6> Board;
 
 	private:
 		// non-copyable

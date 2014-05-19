@@ -24,11 +24,11 @@ cyvasse_js_SOURCES = \
 	src/common.hpp \
 	src/cyvasse_app.cpp \
 	src/cyvasse_app.hpp \
+	src/hexagon_board.hpp \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
 	src/main.cpp \
 	src/rule_set.hpp \
-	src/boards/hexagonal_board.hpp \
 	src/rule_sets/mikelepage_rule_set.cpp \
 	src/rule_sets/mikelepage_rule_set.hpp
 

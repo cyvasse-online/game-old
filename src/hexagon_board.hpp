@@ -14,8 +14,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _HEXAGONAL_BOARD_HPP_
-#define _HEXAGONAL_BOARD_HPP_
+#ifndef _HEXAGON_BOARD_HPP_
+#define _HEXAGON_BOARD_HPP_
 
 #include <unordered_map>
 #include <vector>
@@ -26,7 +26,7 @@
 #include "hexagon.hpp"
 
 template<int l>
-class HexagonalBoard
+class HexagonBoard
 {
 	public:
 		typedef typename cyvmath::hexagon<l> Hexagon;
@@ -36,8 +36,8 @@ class HexagonalBoard
 
 	private:
 		// non-copyable
-		HexagonalBoard(const HexagonalBoard&) = delete;
-		const HexagonalBoard& operator= (const HexagonalBoard&) = delete;
+		HexagonBoard(const HexagonBoard&) = delete;
+		const HexagonBoard& operator= (const HexagonBoard&) = delete;
 
 		fea::Renderer2D& _renderer;
 
@@ -101,7 +101,7 @@ class HexagonalBoard
 				return tileColors[index];
 		}
 
-		HexagonalBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
+		HexagonBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
 			: _renderer(renderer)
 			, _size(size)
 		{
@@ -130,7 +130,7 @@ class HexagonalBoard
 			}
 		}
 
-		~HexagonalBoard()
+		~HexagonBoard()
 		{
 			for(fea::Quad* it : _tileVec)
 				delete it;
@@ -148,4 +148,4 @@ class HexagonalBoard
 		}
 };
 
-#endif // _HEXAGONAL_BOARD_HPP_
+#endif // _HEXAGON_BOARD_HPP_
