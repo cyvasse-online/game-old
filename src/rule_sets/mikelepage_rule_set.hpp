@@ -48,14 +48,14 @@ class MikelepageRuleSet : public RuleSet
 				typedef std::vector<RenderedPiece*> PieceVec;
 
 			private:
+				PieceMap& _map;
 				Board& _board;
-				PieceMap* _map;
 
 				fea::Texture _texture;
 				fea::Quad _quad;
 
 			public:
-				RenderedPiece(PieceType, PlayersColor, Board&);
+				RenderedPiece(PieceType, Coordinate*, PlayersColor, PieceMap&, Board&);
 
 				operator const fea::Quad& () const
 				{
@@ -76,18 +76,19 @@ class MikelepageRuleSet : public RuleSet
 		// the following variables are arrays because they exist once for each player
 		bool _setup;
 
-		// pieces which are active (on the board) can be found by their coordinate
+		// for accessing individual pieces
 		PieceMap _activePieces[2];
 		PieceVec _inactivePieces[2];
 
-		// the dragon is the only piece that can be inactive but alive (after setup)
-		bool _dragonAlive[2];
+		// for rendering
+		PieceVec _allPieces[2];
 
-		// the same as the two maps + the two other vectors
-		PieceVec _allPieces;
+		// the dragon is the only piece that can be inactive but alive
+		bool _dragonAlive[2];
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);
+		~MikelepageRuleSet();
 
 		void tick() override;
 		void tickSetup();

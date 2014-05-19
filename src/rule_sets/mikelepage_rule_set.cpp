@@ -20,10 +20,11 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, PlayersColor c, Board& board)
-	: Piece(type)
+MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord, PlayersColor color,
+                                                PieceMap& map, Board& board)
+	: Piece(type, coord)
+	, _map(map)
 	, _board(board)
-	, _map(nullptr)
 	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
@@ -40,21 +41,28 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, PlayersColor c, 
 			{PIECE_KING,        "king.png"}
 		};
 
-	_texture = makeTexture(("icons/" + colorStr[c] + "/" + fileNames.at(type)), 48, 40);
+	_texture = makeTexture(("icons/" + colorStr[color] + "/" + fileNames.at(type)), 48, 40);
 	_quad.setTexture(_texture);
 }
 
-void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate c, bool setup)
+void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 {
 	if(!setup)
 	{
 		// Check if the movement is legal
 		// (Use assert for the check or return if the check fails)
+		// TODO
 	}
 
-	_cPos = std::unique_ptr<Coordinate>(new Coordinate(c));
+	PieceMap::iterator it = _map.find(*_coord);
+	assert(it != _map.end());
 
-	glm::vec2 position = _board.getTilePosition(*_cPos);
+	_coord = std::unique_ptr<Coordinate>(new Coordinate(coord));
+
+	_map.erase(it);
+	_map.emplace(*_coord, this);
+
+	glm::vec2 position = _board.getTilePosition(*_coord);
 	position += 8; // TODO
 
 	_quad.setPosition(position);
@@ -68,16 +76,11 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 	, _setup(true)
 	, _dragonAlive{true, true}
 {
-	const glm::vec2& tileSize = _board.getTileSize();
-
 	// creating one RuleSet means starting a new game,
 	// so there are no setup() and destroy() functions
 	// and the setup is done in this constructor.
 
-	// {type, hex-coordinate, mid-coordinate}
-	// if the last bool is true, the piece will not be directly on one
-	// tile, but have its horizontal center on the line between the
-	// tile with the given coordinate and the next tile to the right
+	// {type, hex-coordinate}
 	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>>> defaultPiecePositions = {
 			{PIECE_MOUNTAIN, std::make_pair(0,10)},
 			{PIECE_MOUNTAIN, std::make_pair(1,10)},
@@ -111,22 +114,35 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 
 	for(auto it : defaultPiecePositions)
 	{
-		RenderedPiece* tmpPiece = new RenderedPiece(std::get<0>(it), _playersColor, _board);
+		std::unique_ptr<Coordinate> coord = Coordinate::create(std::get<1>(it));
+		assert(coord); // not null
 
-		std::unique_ptr<Coordinate> c = Coordinate::create(std::get<1>(it));
-		assert(c); // not null
+		// Create a copy of coord here to avoid troubles
+		// with the ownership of the real object
+		RenderedPiece* tmpPiece = new RenderedPiece(
+				std::get<0>(it), new Coordinate(*coord), _playersColor,
+				_activePieces[_playersColor], _board
+			);
 
-		glm::vec2 position = _board.getTilePosition(*c);
-		glm::vec2 tileSize = _board.getTileSize();
+		glm::vec2 position = _board.getTilePosition(*coord);
 		// TODO: piece graphics should be scaled, after
 		// that this constant should also be changed
 		position.x += 8;
 
 		tmpPiece->_quad.setPosition(position);
 
-		_inactivePieces[_playersColor].push_back(tmpPiece);
-		_allPieces.push_back(tmpPiece);
+		_activePieces[_playersColor].emplace(*coord, tmpPiece);
+		_allPieces[_playersColor].push_back(tmpPiece);
 	}
+}
+
+MikelepageRuleSet::~MikelepageRuleSet()
+{
+	for(RenderedPiece* it : _allPieces[PLAYER_WHITE])
+		delete it;
+
+	for(RenderedPiece* it : _allPieces[PLAYER_BLACK])
+		delete it;
 }
 
 void MikelepageRuleSet::tick()
@@ -141,22 +157,23 @@ void MikelepageRuleSet::tick()
 
 void MikelepageRuleSet::tickSetup()
 {
-	for(RenderedPiece* it : _inactivePieces[0])
-	{
+	for(RenderedPiece* it : _allPieces[_playersColor])
 		_renderer.queue(*it);
-	}
 }
 
 void MikelepageRuleSet::tickPlaying()
 {
-	for(RenderedPiece* it : _allPieces)
-	{
+	for(RenderedPiece* it : _allPieces[PLAYER_WHITE])
 		_renderer.queue(*it);
-	}
+
+	for(RenderedPiece* it : _allPieces[PLAYER_BLACK])
+		_renderer.queue(*it);
 }
 
 void MikelepageRuleSet::processMouseEvent(fea::Event& event)
 {
+	// TODO: This function could use some cleanup
+	// and splitting up into smaller functions
 	assert(event.type == fea::Event::MOUSEBUTTONPRESSED ||
 	       event.type == fea::Event::MOUSEBUTTONRELEASED ||
 	       event.type == fea::Event::MOUSEMOVED);
@@ -206,8 +223,30 @@ void MikelepageRuleSet::processMouseEvent(fea::Event& event)
 			case fea::Event::MOUSEBUTTONPRESSED:
 				// this stuff should be moved to MOUSEBUTTONRELEASED when
 				// we check if the mouse is still on the same tile there
-				if(*c != *selectedTile.first)
+				if(!selectedTile.first || *c != *selectedTile.first)
 				{
+					// a non-selected tile was clicked
+					if(selectedTile.first)
+					{
+						PieceMap::iterator it = _activePieces[_playersColor].find(*selectedTile.first);
+						if(it != _activePieces[_playersColor].end())
+						{
+							// if there is a piece on the previously selected
+							// tile, the piece is moved (if possible)
+							it->second->moveTo(*c, _setup);
+
+							selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+
+							selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+							return;
+						}
+					}
+
+					// if return wasn't executed, that means either there
+					// was no tile selected before or the tile selected
+					// before didn't have a piece on it; both means we
+					// now move the selection to the clicked tile.
+
 					// reset color of old highlighted tile
 					if(selectedTile.first)
 						selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
@@ -217,6 +256,19 @@ void MikelepageRuleSet::processMouseEvent(fea::Event& event)
 
 					// don't access c in this function after it was moved!
 					selectedTile = std::make_pair(std::move(c), quad);
+				}
+				else
+				{
+					// selected tile was clicked again - unselect it
+					// giving it the hovered color may be weird on
+					// touch screens, this should be fixed somewhen
+					quad->setColor((_board.getTileColor(*c, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
+							- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
+
+					// don't access c in this function after it was moved!
+					lastTile = std::make_pair(std::move(c), quad);
+
+					selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 				}
 		}
 	}
