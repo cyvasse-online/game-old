@@ -60,7 +60,11 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 	_coord = std::unique_ptr<Coordinate>(new Coordinate(coord));
 
 	_map.erase(it);
-	_map.emplace(*_coord, this);
+	std::pair<PieceMap::iterator, bool> res = _map.emplace(*_coord, this);
+	// assert there is no other piece already on coord.
+	// the check for that is probably better to do outside this
+	// functions, but this line still may change in the future.
+	assert(res.second);
 
 	glm::vec2 position = _board.getTilePosition(*_coord);
 	position += 8; // TODO
@@ -222,12 +226,13 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 					// a non-selected tile was clicked
 					if(selectedTile.first)
 					{
-						PieceMap::iterator it = _activePieces[_playersColor].find(*selectedTile.first);
-						if(it != _activePieces[_playersColor].end())
+						PieceMap::iterator it1 = _activePieces[_playersColor].find(*selectedTile.first);
+						PieceMap::iterator it2 = _activePieces[_playersColor].find(*c);
+						if(it1 != _activePieces[_playersColor].end() && it2 == _activePieces[_playersColor].end())
 						{
-							// if there is a piece on the previously selected
-							// tile, the piece is moved (if possible)
-							RenderedPiece* tmpPiece = dynamic_cast<RenderedPiece*>(it->second);
+							// if there is a piece on the previously selected tile,
+							// and none on the clicked, the piece is moved (if possible)
+							RenderedPiece* tmpPiece = dynamic_cast<RenderedPiece*>(it1->second);
 							assert(tmpPiece);
 							tmpPiece->moveTo(*c, _setup);
 
