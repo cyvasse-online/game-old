@@ -18,6 +18,7 @@
 #define _MIKELEPAGE_RULESET_HPP_
 
 #include "rule_set.hpp"
+#include "mikelepage/match.hpp"
 
 #include <featherkit/rendering/renderer2d.hpp>
 #include "hexagon_board.hpp"
@@ -28,8 +29,11 @@ using namespace cyvmath::mikelepage;
 /** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 
     See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
+
+    This class represents one rendered match, so could be renamed
+    MikelepageRuleSetMatch, but the name is long enough as it is
  */
-class MikelepageRuleSet : public RuleSet
+class MikelepageRuleSet : public RuleSet, public Match
 {
 	public:
 		typedef HexagonBoard<6> Board;
@@ -44,8 +48,7 @@ class MikelepageRuleSet : public RuleSet
 			friend MikelepageRuleSet;
 
 			public:
-				typedef std::unordered_map<Coordinate, RenderedPiece*> PieceMap;
-				typedef std::vector<RenderedPiece*> PieceVec;
+				typedef std::vector<RenderedPiece*> RenderedPieceVec;
 
 			private:
 				PieceMap& _map;
@@ -66,25 +69,12 @@ class MikelepageRuleSet : public RuleSet
 				void moveTo(Coordinate, bool setup);
 		};
 
-		typedef RenderedPiece::PieceMap PieceMap;
-		typedef RenderedPiece::PieceVec PieceVec;
+		typedef RenderedPiece::RenderedPieceVec RenderedPieceVec;
 
 		Board _board;
 
-		const PlayersColor _playersColor;
-
-		// the following variables are arrays because they exist once for each player
-		bool _setup;
-
-		// for accessing individual pieces
-		PieceMap _activePieces[2];
-		PieceVec _inactivePieces[2];
-
 		// for rendering
-		PieceVec _allPieces[2];
-
-		// the dragon is the only piece that can be inactive but alive
-		bool _dragonAlive[2];
+		RenderedPieceVec _allPieces[2];
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);
@@ -94,7 +84,7 @@ class MikelepageRuleSet : public RuleSet
 		void tickSetup();
 		void tickPlaying();
 
-		void processMouseEvent(fea::Event&) override;
+		void processEvent(fea::Event&) override;
 };
 
 #endif // _MIKELEPAGE_RULESET_HPP_

@@ -71,10 +71,8 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
 	// TODO: parametrize the numerical stuff
 	: RuleSet(renderer)
+	, Match(playersColor)
 	, _board(renderer, {800 - 2 * 40, 600 - 2 * 40}, {40, 40})
-	, _playersColor(playersColor)
-	, _setup(true)
-	, _dragonAlive{true, true}
 {
 	// creating one RuleSet means starting a new game,
 	// so there are no setup() and destroy() functions
@@ -170,14 +168,10 @@ void MikelepageRuleSet::tickPlaying()
 		_renderer.queue(*it);
 }
 
-void MikelepageRuleSet::processMouseEvent(fea::Event& event)
+void MikelepageRuleSet::processEvent(fea::Event& event)
 {
 	// TODO: This function could use some cleanup
 	// and splitting up into smaller functions
-	assert(event.type == fea::Event::MOUSEBUTTONPRESSED ||
-	       event.type == fea::Event::MOUSEBUTTONRELEASED ||
-	       event.type == fea::Event::MOUSEMOVED);
-
 	int mX, mY; // mouse x and y coordinates
 	if(event.type == fea::Event::MOUSEMOVED)
 	{
@@ -233,7 +227,9 @@ void MikelepageRuleSet::processMouseEvent(fea::Event& event)
 						{
 							// if there is a piece on the previously selected
 							// tile, the piece is moved (if possible)
-							it->second->moveTo(*c, _setup);
+							RenderedPiece* tmpPiece = dynamic_cast<RenderedPiece*>(it->second);
+							assert(tmpPiece);
+							tmpPiece->moveTo(*c, _setup);
 
 							selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
 

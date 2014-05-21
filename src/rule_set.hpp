@@ -36,8 +36,12 @@ class RuleSet
 		{
 		}
 
+		virtual ~RuleSet()
+		{
+		}
+
 		virtual void tick() = 0;
-		virtual void processMouseEvent(fea::Event&) = 0;
+		virtual void processEvent(fea::Event&) = 0;
 };
 
 #endif // _RULE_SET_HPP_

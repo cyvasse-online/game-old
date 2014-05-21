@@ -45,12 +45,15 @@ std::string IngameState::run()
 		// may be of interest somewhen later
 		//if(event.type == fea::Event::KEYPRESSED)
 
-		if(event.type == fea::Event::MOUSEBUTTONPRESSED ||
+		/*if(event.type == fea::Event::MOUSEBUTTONPRESSED ||
 		   event.type == fea::Event::MOUSEBUTTONRELEASED ||
 		   event.type == fea::Event::MOUSEMOVED)
-		{
-			 _ruleSet->processMouseEvent(event);
-		}
+		{*/
+		// at the moment we don't have to find the right
+		// part of the applications that has to get the
+		// input because there only is one part.
+		_ruleSet->processEvent(event);
+		/*}*/
 	}
 	// after events were processed
 	// * clear the rendered content from the last frame
