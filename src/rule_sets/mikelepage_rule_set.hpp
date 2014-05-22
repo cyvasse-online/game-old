@@ -21,7 +21,7 @@
 #include "mikelepage/match.hpp"
 
 #include <fea/rendering/renderer2d.hpp>
-#include <fea/rendering/textsurface.hpp>
+//#include <fea/rendering/textsurface.hpp>
 #include "hexagon_board.hpp"
 #include "mikelepage/piece.hpp"
 
@@ -77,7 +77,7 @@ class MikelepageRuleSet : public RuleSet, public Match
 		// for rendering
 		RenderedPieceVec _allPieces[2];
 
-		fea::TextSurface _buttonSetupDone;
+		//fea::TextSurface _buttonSetupDone;
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);
