@@ -18,10 +18,10 @@
 #define _INGAME_STATE_HPP_
 
 #include <memory>
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/gamestate.hpp>
-#include <featherkit/ui/inputbackend.hpp>
-#include <featherkit/ui/inputhandler.hpp>
+#include <fea/rendering/renderer2d.hpp>
+#include <fea/structure/gamestate.hpp>
+#include <fea/ui/inputbackend.hpp>
+#include <fea/ui/inputhandler.hpp>
 #include "rule_set.hpp"
 
 class IngameState : public fea::GameState

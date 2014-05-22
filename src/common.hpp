@@ -17,8 +17,8 @@
 #ifndef _COMMON_HPP_
 #define _COMMON_HPP_
 
-#include <featherkit/rendering/quad.hpp>
-#include <featherkit/ui/event.hpp>
+#include <fea/rendering/quad.hpp>
+#include <fea/ui/event.hpp>
 
 bool mouseOver(fea::Quad& quad, fea::Event event)
 {

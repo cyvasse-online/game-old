@@ -4,7 +4,7 @@
 #define _TEXTUREMAKER_HPP_
 
 #include <iostream>
-#include <featherkit/render2d.hpp>
+#include <fea/render2d.hpp>
 #include "lodepng.h"
 
 fea::Texture makeTexture(std::string path, uint32_t width, uint32_t height)

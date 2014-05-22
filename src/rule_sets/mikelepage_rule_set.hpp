@@ -20,8 +20,8 @@
 #include "rule_set.hpp"
 #include "mikelepage/match.hpp"
 
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/rendering/textsurface.hpp>
+#include <fea/rendering/renderer2d.hpp>
+#include <fea/rendering/textsurface.hpp>
 #include "hexagon_board.hpp"
 #include "mikelepage/piece.hpp"
 

@@ -17,13 +17,13 @@
 #ifndef _CYVASSE_APP_HPP_
 #define _CYVASSE_APP_HPP_
 
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/structure/application.hpp>
-#include <featherkit/structure/gamestatemachine.hpp>
-#include <featherkit/ui/inputbackend.hpp>
-#include <featherkit/ui/inputhandler.hpp>
-#include <featherkit/ui/window.hpp>
-#include <featherkit/ui/windowbackend.hpp>
+#include <fea/rendering/renderer2d.hpp>
+#include <fea/structure/application.hpp>
+#include <fea/structure/gamestatemachine.hpp>
+#include <fea/ui/inputbackend.hpp>
+#include <fea/ui/inputhandler.hpp>
+#include <fea/ui/window.hpp>
+#include <fea/ui/windowbackend.hpp>
 
 class CyvasseApp : public fea::Application
 {

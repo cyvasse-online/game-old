@@ -17,8 +17,8 @@
 #ifndef _RULE_SET_HPP_
 #define _RULE_SET_HPP_
 
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/ui/event.hpp>
+#include <fea/rendering/renderer2d.hpp>
+#include <fea/ui/event.hpp>
 
 class RuleSet
 {

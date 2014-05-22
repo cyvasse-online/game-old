@@ -16,8 +16,8 @@
 
 #include "cyvasse_app.hpp"
 
-#include <featherkit/ui/sdlwindowbackend.hpp>
-#include <featherkit/ui/sdlinputbackend.hpp>
+#include <fea/ui/sdlwindowbackend.hpp>
+#include <fea/ui/sdlinputbackend.hpp>
 #include "ingame_state.hpp"
 
 void CyvasseApp::setup(const std::vector<std::string>& args)

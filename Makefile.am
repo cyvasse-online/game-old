@@ -54,7 +54,7 @@ cyvasse_js_LDFLAGS = \
 	-O3
 
 cyvasse_js_LDADD = \
-	-lfeatherkit-structure \
-	-lfeatherkit-ui \
-	-lfeatherkit-rendering \
-	-lfeatherkit-sdl
+	-lfea-structure \
+	-lfea-ui \
+	-lfea-rendering \
+	-lfea-sdl

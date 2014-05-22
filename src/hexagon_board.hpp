@@ -21,8 +21,8 @@
 #include <vector>
 #include <cassert>
 #include <cstdlib>
-#include <featherkit/rendering/renderer2d.hpp>
-#include <featherkit/rendering/quad.hpp>
+#include <fea/rendering/renderer2d.hpp>
+#include <fea/rendering/quad.hpp>
 #include "hexagon.hpp"
 
 template<int l>
