@@ -136,6 +136,10 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 		_activePieces[_playersColor].emplace(*coord, tmpPiece);
 		_allPieces[_playersColor].push_back(tmpPiece);
 	}
+
+	// hardcoded for now, can be done properly somewhen else
+	_buttonSetupDone.setPosition({700, 540});
+	_buttonSetupDone.write("Setup done");
 }
 
 MikelepageRuleSet::~MikelepageRuleSet()
@@ -161,6 +165,8 @@ void MikelepageRuleSet::tickSetup()
 {
 	for(RenderedPiece* it : _allPieces[_playersColor])
 		_renderer.queue(*it);
+
+	_renderer.queue(_buttonSetupDone);
 }
 
 void MikelepageRuleSet::tickPlaying()
