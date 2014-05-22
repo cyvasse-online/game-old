@@ -78,6 +78,7 @@ class MikelepageRuleSet : public RuleSet, public Match
 		RenderedPieceVec _allPieces[2];
 
 		//fea::TextSurface _buttonSetupDone;
+		fea::Quad _buttonSetupDone;
 
 	public:
 		MikelepageRuleSet(fea::Renderer2D&, PlayersColor);
