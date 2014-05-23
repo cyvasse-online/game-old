@@ -43,6 +43,13 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coor
 
 	_texture = makeTexture(("icons/" + colorStr[color] + "/" + fileNames.at(type)), 48, 40);
 	_quad.setTexture(_texture);
+
+	glm::vec2 position = _board.getTilePosition(*_coord);
+	// TODO: piece graphics should be scaled, after
+	// that this constant should also be changed
+	position.x += 8;
+
+	_quad.setPosition(position);
 }
 
 void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
@@ -67,7 +74,7 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 	assert(res.second);
 
 	glm::vec2 position = _board.getTilePosition(*_coord);
-	position += 8; // TODO
+	position.x += 8; // TODO
 
 	_quad.setPosition(position);
 }
@@ -125,13 +132,6 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 				std::get<0>(it), new Coordinate(*coord), _playersColor,
 				_activePieces[_playersColor], _board
 			);
-
-		glm::vec2 position = _board.getTilePosition(*coord);
-		// TODO: piece graphics should be scaled, after
-		// that this constant should also be changed
-		position.x += 8;
-
-		tmpPiece->_quad.setPosition(position);
 
 		_activePieces[_playersColor].emplace(*coord, tmpPiece);
 		_allPieces[_playersColor].push_back(tmpPiece);

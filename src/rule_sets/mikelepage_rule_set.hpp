@@ -46,8 +46,6 @@ class MikelepageRuleSet : public RuleSet, public Match
 
 		class RenderedPiece : public Piece
 		{
-			friend MikelepageRuleSet;
-
 			public:
 				typedef std::vector<RenderedPiece*> RenderedPieceVec;
 
