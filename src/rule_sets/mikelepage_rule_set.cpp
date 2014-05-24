@@ -88,53 +88,7 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 	// so there are no setup() and destroy() functions
 	// and the setup is done in this constructor.
 
-	// {type, hex-coordinate}
-	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>>> defaultPiecePositions = {
-			{PIECE_MOUNTAIN, std::make_pair(0,10)},
-			{PIECE_MOUNTAIN, std::make_pair(1,10)},
-			{PIECE_MOUNTAIN, std::make_pair(2,10)},
-			{PIECE_MOUNTAIN, std::make_pair(3,10)},
-			{PIECE_MOUNTAIN, std::make_pair(4,10)},
-			{PIECE_MOUNTAIN, std::make_pair(5,10)},
-
-			{PIECE_TREBUCHET,   std::make_pair(1,8)},
-			{PIECE_TREBUCHET,   std::make_pair(2,8)},
-			{PIECE_ELEPHANT,    std::make_pair(3,8)},
-			{PIECE_ELEPHANT,    std::make_pair(4,8)},
-			{PIECE_HEAVY_HORSE, std::make_pair(5,8)},
-			{PIECE_HEAVY_HORSE, std::make_pair(6,8)},
-
-			{PIECE_RABBLE, std::make_pair(1,7)},
-			{PIECE_RABBLE, std::make_pair(2,7)},
-			{PIECE_RABBLE, std::make_pair(3,7)},
-			{PIECE_KING,   std::make_pair(4,7)},
-			{PIECE_RABBLE, std::make_pair(5,7)},
-			{PIECE_RABBLE, std::make_pair(6,7)},
-			{PIECE_RABBLE, std::make_pair(7,7)},
-
-			{PIECE_CROSSBOWS,   std::make_pair(2,6)},
-			{PIECE_CROSSBOWS,   std::make_pair(3,6)},
-			{PIECE_SPEARS,      std::make_pair(4,6)},
-			{PIECE_SPEARS,      std::make_pair(5,6)},
-			{PIECE_LIGHT_HORSE, std::make_pair(6,6)},
-			{PIECE_LIGHT_HORSE, std::make_pair(7,6)}
-		};
-
-	for(auto it : defaultPiecePositions)
-	{
-		std::unique_ptr<Coordinate> coord = Coordinate::create(std::get<1>(it));
-		assert(coord); // not null
-
-		// Create a copy of coord here to avoid troubles
-		// with the ownership of the real object
-		RenderedPiece* tmpPiece = new RenderedPiece(
-				std::get<0>(it), new Coordinate(*coord), _playersColor,
-				_activePieces[_playersColor], _board
-			);
-
-		_activePieces[_playersColor].emplace(*coord, tmpPiece);
-		_allPieces[_playersColor].push_back(tmpPiece);
-	}
+	placePiecesSetup(_playersColor);
 
 	// hardcoded for now, can be done properly somewhen else
 	_buttonSetupDoneTexture = makeTexture("setup-done.png", 80, 50);
@@ -201,9 +155,9 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 	static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> selectedTile
 		= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 
-	std::unique_ptr<Coordinate> c = _board.getCoordinate(std::make_pair(mX, mY));
+	std::unique_ptr<Coordinate> c = _board.getCoordinate({mX, mY});
 
-	if(c)
+	if(c) // mouse is on tile (*c)
 	{
 		fea::Quad* quad = _board.getTileAt(*c);
 
@@ -285,11 +239,130 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 				break;
 		}
 	}
+	else // mouse is outside the board
+	{
+		// one tile is still marked with the hover effect
+		if(lastTile.first)
+		{
+			lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+			lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+		}
+
+		// clicked outside
+		if(event.type == fea::Event::MOUSEBUTTONPRESSED)
+		{
+			// a tile is selected
+			if(selectedTile.first)
+			{
+				selectedTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+				selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+			}
+
+			// 'Setup done' button pressed (while being visible)
+			if(_setupComplete && mouseOver(_buttonSetupDone, event))
+				exitSetup();
+		}
+	}
+}
+
+void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
+{
+	// {type, hex-coordinate}
+	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>>> defaultPiecePositions[2] = {
+		{ // PLAYER_WHITE
+			{PIECE_MOUNTAIN,    std::make_pair(0,10)},
+			{PIECE_MOUNTAIN,    std::make_pair(1,10)},
+			{PIECE_MOUNTAIN,    std::make_pair(2,10)},
+			{PIECE_MOUNTAIN,    std::make_pair(3,10)},
+			{PIECE_MOUNTAIN,    std::make_pair(4,10)},
+			{PIECE_MOUNTAIN,    std::make_pair(5,10)},
+
+			{PIECE_TREBUCHET,   std::make_pair(1,8)},
+			{PIECE_TREBUCHET,   std::make_pair(2,8)},
+			{PIECE_ELEPHANT,    std::make_pair(3,8)},
+			{PIECE_ELEPHANT,    std::make_pair(4,8)},
+			{PIECE_HEAVY_HORSE, std::make_pair(5,8)},
+			{PIECE_HEAVY_HORSE, std::make_pair(6,8)},
+
+			{PIECE_RABBLE,      std::make_pair(1,7)},
+			{PIECE_RABBLE,      std::make_pair(2,7)},
+			{PIECE_RABBLE,      std::make_pair(3,7)},
+			{PIECE_KING,        std::make_pair(4,7)},
+			{PIECE_RABBLE,      std::make_pair(5,7)},
+			{PIECE_RABBLE,      std::make_pair(6,7)},
+			{PIECE_RABBLE,      std::make_pair(7,7)},
+
+			{PIECE_CROSSBOWS,   std::make_pair(2,6)},
+			{PIECE_CROSSBOWS,   std::make_pair(3,6)},
+			{PIECE_SPEARS,      std::make_pair(4,6)},
+			{PIECE_SPEARS,      std::make_pair(5,6)},
+			{PIECE_LIGHT_HORSE, std::make_pair(6,6)},
+			{PIECE_LIGHT_HORSE, std::make_pair(7,6)}
+		},
+		{ // PLAYER_BLACK
+			{PIECE_MOUNTAIN,    std::make_pair(10,0)},
+			{PIECE_MOUNTAIN,    std::make_pair( 9,0)},
+			{PIECE_MOUNTAIN,    std::make_pair( 8,0)},
+			{PIECE_MOUNTAIN,    std::make_pair( 7,0)},
+			{PIECE_MOUNTAIN,    std::make_pair( 6,0)},
+			{PIECE_MOUNTAIN,    std::make_pair( 5,0)},
+
+			{PIECE_TREBUCHET,   std::make_pair(9,2)},
+			{PIECE_TREBUCHET,   std::make_pair(8,2)},
+			{PIECE_ELEPHANT,    std::make_pair(7,2)},
+			{PIECE_ELEPHANT,    std::make_pair(6,2)},
+			{PIECE_HEAVY_HORSE, std::make_pair(5,2)},
+			{PIECE_HEAVY_HORSE, std::make_pair(4,2)},
+
+			{PIECE_RABBLE,      std::make_pair(9,3)},
+			{PIECE_RABBLE,      std::make_pair(8,3)},
+			{PIECE_RABBLE,      std::make_pair(7,3)},
+			{PIECE_KING,        std::make_pair(6,3)},
+			{PIECE_RABBLE,      std::make_pair(5,3)},
+			{PIECE_RABBLE,      std::make_pair(4,3)},
+			{PIECE_RABBLE,      std::make_pair(3,3)},
+
+			{PIECE_CROSSBOWS,   std::make_pair(8,4)},
+			{PIECE_CROSSBOWS,   std::make_pair(7,4)},
+			{PIECE_SPEARS,      std::make_pair(6,4)},
+			{PIECE_SPEARS,      std::make_pair(5,4)},
+			{PIECE_LIGHT_HORSE, std::make_pair(4,4)},
+			{PIECE_LIGHT_HORSE, std::make_pair(3,4)}
+		}};
+
+	// this absolutely weird code will be changed when multiplayer is added
+	// it's just for test purposes
+	for(auto it : defaultPiecePositions[_setup ? playersColor : !playersColor])
+	{
+		std::unique_ptr<Coordinate> coord = Coordinate::create(std::get<1>(it));
+		assert(coord); // not null
+
+		// Create a copy of coord here to avoid troubles
+		// with the ownership of the real object
+		RenderedPiece* tmpPiece = new RenderedPiece(
+				std::get<0>(it), new Coordinate(*coord), playersColor,
+				_activePieces[playersColor], _board
+			);
+
+		_activePieces[playersColor].emplace(*coord, tmpPiece);
+		_allPieces[playersColor].push_back(tmpPiece);
+	}
+}
+
+void MikelepageRuleSet::exitSetup()
+{
+	_setup = false;
+
+	if(_playersColor == PLAYER_WHITE)
+	{
+		_board.updateTileColors(5, 11);
+		// for test purposes only - does very weird stuff herein, don't try to understand
+		placePiecesSetup(PLAYER_BLACK);
+	}
 	else
 	{
-		if(lastTile.first)
-			lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
-
-		lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+		_board.updateTileColors(0, 5);
+		// for test purposes only - does very weird stuff herein, don't try to understand
+		placePiecesSetup(PLAYER_WHITE);
 	}
 }

@@ -86,6 +86,9 @@ class MikelepageRuleSet : public RuleSet, public Match
 		void tickPlaying();
 
 		void processEvent(fea::Event&) override;
+
+		void placePiecesSetup(PlayersColor);
+		void exitSetup();
 };
 
 #endif // _MIKELEPAGE_RULESET_HPP_

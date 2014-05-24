@@ -57,14 +57,14 @@ class HexagonBoard
 			        _position.y - _tileSize.y + (_size.y - (_tileSize.y * c.y()))};
 		}
 
-		std::unique_ptr<Coordinate> getCoordinate(std::pair<int32_t, int32_t> tilePosition)
+		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition)
 		{
 			// This is some crap I got from my CAS because that math part is a bit of getting over my head
 			// It is very close to be fully functional, but probably no one can understand it.
 			// TODO: find someone to tame this beast of a mathematical formula and rewrite this!
-			int8_t y = (_size.y - (tilePosition.second - _position.y)) / _tileSize.y;
+			int8_t y = (_size.y - (tilePosition.y - _position.y)) / _tileSize.y;
 			std::unique_ptr<Coordinate> c = Coordinate::create(
-					(2 * tilePosition.first + Hexagon::edgeLength * _tileSize.x - y * _tileSize.x - 2 * _position.x - _tileSize.x)
+					(2 * tilePosition.x + Hexagon::edgeLength * _tileSize.x - y * _tileSize.x - 2 * _position.x - _tileSize.x)
 					/ (2 * _tileSize.x), y
 				);
 
@@ -153,6 +153,16 @@ class HexagonBoard
 		const glm::vec2& getTileSize() const
 		{
 			return _tileSize;
+		}
+
+		void updateTileColors(int8_t fromRow, int8_t toRow, bool setup = false)
+		{
+			assert(fromRow <= toRow);
+			for(auto it : _tileMap)
+			{
+				if(it.first.y() >= fromRow && it.first.y() <= toRow)
+					it.second->setColor(getTileColor(it.first, setup));
+			}
 		}
 
 		void tick()
