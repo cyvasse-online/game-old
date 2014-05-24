@@ -62,7 +62,7 @@ class HexagonBoard
 					// normal horizontal position offset
 					+ _tileSize.x * c.x()
 					// additional horizontal offset due to non-orthogonal y axis
-					+ (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1));
+					+ (_tileSize.x / 2) * (c.y() - (l - 1));
 
 				ret.y = _position.y // padding
 					// inverted normal vertical offset
@@ -80,7 +80,7 @@ class HexagonBoard
 					// to get correct origin point with inverted offsets
 					- _tileSize.x
 					// additional horizontal offset due to non-orthogonal y axis
-					- (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1));
+					- (_tileSize.x / 2) * (c.y() - (l - 1));
 
 				ret.y = _position.y // padding
 					// twice-inverted -> normal vertical offset
@@ -92,16 +92,39 @@ class HexagonBoard
 
 		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition)
 		{
-			// This is some crap I got from my CAS because that math part is a bit of getting over my head
-			// It is very close to be fully functional, but probably no one can understand it.
-			// TODO: find someone to tame this beast of a mathematical formula and rewrite this!
-			int8_t y = (_size.y - (tilePosition.y - _position.y)) / _tileSize.y;
-			std::unique_ptr<Coordinate> c = Coordinate::create(
-					(2 * tilePosition.x + Hexagon::edgeLength * _tileSize.x - y * _tileSize.x - 2 * _position.x - _tileSize.x)
-					/ (2 * _tileSize.x), y
-				);
+			// remove padding - we're just altering a temporary variable
+			tilePosition -= glm::ivec2(_position.x, _position.y);
 
-			return c;
+			int8_t x, y;
+
+			if(!_upsideDown) // 'normal' orientation first
+			{
+				// y = (maximal y) - ('inverted' coord y)
+				y = (l * 2 - 1)
+					- tilePosition.y / _tileSize.y;
+
+				x = (
+						tilePosition.x
+						+ ((l - y) * _tileSize.x / 2)
+						- _tileSize.x / 2
+					)
+					/ _tileSize.x;
+			}
+			else // upsideDown
+			{
+				y = tilePosition.y / _tileSize.y;
+
+				x = (l * 2 - 1)
+					- ((
+							tilePosition.x
+							- ((l - y) * _tileSize.x / 2)
+							+ _tileSize.x / 2
+						)
+						/ _tileSize.x
+					);
+			}
+
+			return std::unique_ptr<Coordinate>(Coordinate::create(x, y));
 		}
 
 		fea::Quad* getTileAt(Coordinate c)
