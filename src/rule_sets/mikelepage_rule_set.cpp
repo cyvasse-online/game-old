@@ -167,7 +167,8 @@ void MikelepageRuleSet::tickSetup()
 	for(RenderedPiece* it : _allPieces[_playersColor])
 		_renderer.queue(*it);
 
-	_renderer.queue(_buttonSetupDone);
+	if(_setupComplete)
+		_renderer.queue(_buttonSetupDone);
 }
 
 void MikelepageRuleSet::tickPlaying()
@@ -243,6 +244,9 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 							assert(tmpPiece);
 							tmpPiece->moveTo(*c, _setup);
 
+							if(_setup)
+								checkSetupComplete();
+
 							selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
 
 							selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
@@ -278,6 +282,7 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 
 					selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 				}
+				break;
 		}
 	}
 	else
