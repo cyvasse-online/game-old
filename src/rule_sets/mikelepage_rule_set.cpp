@@ -47,7 +47,7 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coor
 	glm::vec2 position = _board.getTilePosition(*_coord);
 	// TODO: piece graphics should be scaled, after
 	// that this constant should also be changed
-	position.x += 8;
+	position += glm::vec2(8, 4);
 
 	_quad.setPosition(position);
 }
@@ -74,16 +74,15 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 	assert(res.second);
 
 	glm::vec2 position = _board.getTilePosition(*_coord);
-	position.x += 8; // TODO
+	position += glm::vec2(8, 4); // TODO
 
 	_quad.setPosition(position);
 }
 
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
-	// TODO: parametrize the numerical stuff
 	: RuleSet(renderer)
 	, Match(playersColor)
-	, _board(renderer, {800 - 2 * 40, 600 - 2 * 40}, {40, 40})
+	, _board(renderer)
 {
 	// creating one RuleSet means starting a new game,
 	// so there are no setup() and destroy() functions

@@ -17,6 +17,7 @@
 #ifndef _HEXAGON_BOARD_HPP_
 #define _HEXAGON_BOARD_HPP_
 
+#include <algorithm>
 #include <unordered_map>
 #include <vector>
 #include <cassert>
@@ -41,9 +42,8 @@ class HexagonBoard
 
 		fea::Renderer2D& _renderer;
 
-		glm::vec2 _size;
-		glm::vec2 _realSize;
-		glm::vec2 _position;
+		glm::uvec2 _size;
+		glm::uvec2 _position;
 		glm::vec2 _tileSize;
 
 		TileMap _tileMap;
@@ -54,7 +54,7 @@ class HexagonBoard
 		{
 			// This should *maybe* be rewritten...
 			return {_position.x + _tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - Hexagon::edgeLength + 1),
-			        _position.y - _tileSize.y + (_realSize.y - (_tileSize.y * c.y()))};
+			        _position.y - _tileSize.y + (_size.y - (_tileSize.y * c.y()))};
 		}
 
 		std::unique_ptr<Coordinate> getCoordinate(std::pair<int32_t, int32_t> tilePosition)
@@ -62,7 +62,7 @@ class HexagonBoard
 			// This is some crap I got from my CAS because that math part is a bit of getting over my head
 			// It is very close to be fully functional, but probably no one can understand it.
 			// TODO: find someone to tame this beast of a mathematical formula and rewrite this!
-			int8_t y = (_realSize.y - (tilePosition.second - _position.y)) / _tileSize.y;
+			int8_t y = (_size.y - (tilePosition.second - _position.y)) / _tileSize.y;
 			std::unique_ptr<Coordinate> c = Coordinate::create(
 					(2 * tilePosition.first + Hexagon::edgeLength * _tileSize.x - y * _tileSize.x - 2 * _position.x - _tileSize.x)
 					/ (2 * _tileSize.x), y
@@ -101,19 +101,33 @@ class HexagonBoard
 				return tileColors[index];
 		}
 
-		HexagonBoard(fea::Renderer2D& renderer, glm::vec2 size, glm::vec2 offset)
+		HexagonBoard(fea::Renderer2D& renderer)
 			: _renderer(renderer)
-			, _size(size)
 		{
-			float tileWidth = _size.x / static_cast<float>(l * 2 - 1);
-			_tileSize = {tileWidth, tileWidth / 3 * 2};
+			const glm::uvec2 windowSize = renderer.getViewport().getSize();
 
-			_realSize = {_size.x, (l * 2 - 1) * _tileSize.y};
+			unsigned padding = std::min(windowSize.x, windowSize.y) / 20;
 
-			_position = {
-					offset.x,
-					offset.y + (_size.y - _realSize.y) / 2
-				};
+			_size = {windowSize.x - padding * 2, windowSize.y - padding * 2};
+
+			if(_size.x / _size.y < 4.0f / 3.0f) // wider than 4:3
+			{
+				_tileSize.y = _size.y / static_cast<float>(l * 2 - 1);
+				_tileSize.x = _tileSize.y / 3 * 4;
+
+				_size.x = _tileSize.x * (l * 2 - 1);
+
+				_position = {(windowSize.x - _size.x) / 2, padding};
+			}
+			else
+			{
+				_tileSize.x = _size.x / static_cast<float>(l * 2 - 1);
+				_tileSize.y = _tileSize.x / 4 * 3;
+
+				_size.y = _tileSize.x * (l * 2 - 1);
+
+				_position = {padding, (windowSize.y - _size.y) / 2};
+			}
 
 			for(Coordinate c : Hexagon::getAllCoordinates())
 			{

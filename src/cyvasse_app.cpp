@@ -55,6 +55,6 @@ void CyvasseApp::destroy()
 CyvasseApp::CyvasseApp()
 	: _window(new fea::SDLWindowBackend())
 	, _input(new fea::SDLInputBackend())
-	, _renderer(fea::Viewport({800.0f, 600.0f}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
+	, _renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
 }
