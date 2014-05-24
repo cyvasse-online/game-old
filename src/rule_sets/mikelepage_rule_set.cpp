@@ -82,12 +82,10 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
 	: RuleSet(renderer)
 	, Match(playersColor)
-	, _board(renderer)
+	// PLAYER_WHITE = 0 -> upsideDown = false
+	// PLAYER_BLACK = 1 -> upsideDown = true
+	, _board(renderer, playersColor)
 {
-	// creating one RuleSet means starting a new game,
-	// so there are no setup() and destroy() functions
-	// and the setup is done in this constructor.
-
 	placePiecesSetup(_playersColor);
 
 	// hardcoded for now, can be done properly somewhen else

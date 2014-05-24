@@ -42,6 +42,8 @@ class HexagonBoard
 
 		fea::Renderer2D& _renderer;
 
+		bool _upsideDown;
+
 		glm::uvec2 _size;
 		glm::uvec2 _position;
 		glm::vec2 _tileSize;
@@ -52,9 +54,40 @@ class HexagonBoard
 	public:
 		glm::vec2 getTilePosition(Coordinate c)
 		{
-			// This should *maybe* be rewritten...
-			return {_position.x + _tileSize.x * c.x() + (_tileSize.x / 2) * (c.y() - Hexagon::edgeLength + 1),
-			        _position.y - _tileSize.y + (_size.y - (_tileSize.y * c.y()))};
+			glm::vec2 ret;
+
+			if(!_upsideDown) // 'normal' orientation first
+			{
+				ret.x = _position.x // padding
+					// normal horizontal position offset
+					+ _tileSize.x * c.x()
+					// additional horizontal offset due to non-orthogonal y axis
+					+ (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1));
+
+				ret.y = _position.y // padding
+					// inverted normal vertical offset
+					// because coordinate y = 0 should be on the bottom
+					// but Feather Kit has y = 0 on the top
+					+ (_size.y - (_tileSize.y * c.y()))
+					// to get correct origin point with inverted offsets
+					- _tileSize.y;
+			}
+			else // upsideDown
+			{
+				ret.x = _position.x // padding
+					// inverted normal horizontal position offset
+					+ (_size.x - (_tileSize.x * c.x()))
+					// to get correct origin point with inverted offsets
+					- _tileSize.x
+					// additional horizontal offset due to non-orthogonal y axis
+					- (_tileSize.x / 2) * (c.y() - (Hexagon::edgeLength - 1));
+
+				ret.y = _position.y // padding
+					// twice-inverted -> normal vertical offset
+					+ _tileSize.y * c.y();
+			}
+
+			return ret;
 		}
 
 		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition)
@@ -80,7 +113,7 @@ class HexagonBoard
 			return it->second;
 		}
 
-		static fea::Color getTileColor(Coordinate c, bool setup)
+		fea::Color getTileColor(Coordinate c, bool setup)
 		{
 			static fea::Color tileColors[3] = {
 					{0.8f, 0.8f, 0.8f},
@@ -95,14 +128,16 @@ class HexagonBoard
 
 			int8_t index = (((c.x() - c.y()) % 3) + 3) % 3;
 
-			if(setup && c.y() >= (l - 1))
+			if(setup && ((!_upsideDown && c.y() >= (l - 1)) ||
+			              (_upsideDown && c.y() <= (l - 1))))
 				return tileColorsDark[index];
 			else
 				return tileColors[index];
 		}
 
-		HexagonBoard(fea::Renderer2D& renderer)
+		HexagonBoard(fea::Renderer2D& renderer, bool upsideDown)
 			: _renderer(renderer)
+			, _upsideDown(upsideDown)
 		{
 			const glm::uvec2 windowSize = renderer.getViewport().getSize();
 
