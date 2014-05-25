@@ -44,6 +44,10 @@ class HexagonBoard
 
 		bool _upsideDown;
 
+		// Changing one of these uvec2 variables
+		// has very weird effects on the vertical
+		// positioning of the board...
+		// altough it seems to simply work like this.
 		glm::uvec2 _size;
 		glm::uvec2 _position;
 		glm::vec2 _tileSize;
@@ -62,7 +66,7 @@ class HexagonBoard
 					// normal horizontal position offset
 					+ _tileSize.x * c.x()
 					// additional horizontal offset due to non-orthogonal y axis
-					+ (_tileSize.x / 2) * (c.y() - (l - 1));
+					+ (_tileSize.x / 2.0f) * (c.y() - (l - 1));
 
 				ret.y = _position.y // padding
 					// inverted normal vertical offset
@@ -80,7 +84,7 @@ class HexagonBoard
 					// to get correct origin point with inverted offsets
 					- _tileSize.x
 					// additional horizontal offset due to non-orthogonal y axis
-					- (_tileSize.x / 2) * (c.y() - (l - 1));
+					- (_tileSize.x / 2.0f) * (c.y() - (l - 1));
 
 				ret.y = _position.y // padding
 					// twice-inverted -> normal vertical offset
@@ -95,7 +99,7 @@ class HexagonBoard
 			// remove padding - we're just altering a temporary variable
 			tilePosition -= glm::ivec2(_position.x, _position.y);
 
-			int8_t x, y;
+			float x, y;
 
 			if(!_upsideDown) // 'normal' orientation first
 			{
@@ -105,8 +109,8 @@ class HexagonBoard
 
 				x = (
 						tilePosition.x
-						+ ((l - y) * _tileSize.x / 2)
-						- _tileSize.x / 2
+						+ ((l - static_cast<int>(y)) * _tileSize.x / 2.0f)
+						- _tileSize.x / 2.0f
 					)
 					/ _tileSize.x;
 			}
@@ -117,14 +121,19 @@ class HexagonBoard
 				x = (l * 2 - 1)
 					- ((
 							tilePosition.x
-							- ((l - y) * _tileSize.x / 2)
-							+ _tileSize.x / 2
+							- ((l - static_cast<int>(y)) * _tileSize.x / 2.0f)
+							+ _tileSize.x / 2.0f
 						)
 						/ _tileSize.x
 					);
 			}
 
-			return std::unique_ptr<Coordinate>(Coordinate::create(x, y));
+			if(x < 0.0f || y < 0.0f)
+				return nullptr;
+
+			return std::unique_ptr<Coordinate>(
+					Coordinate::create(static_cast<int>(x), static_cast<int>(y))
+				);
 		}
 
 		fea::Quad* getTileAt(Coordinate c)
@@ -171,20 +180,20 @@ class HexagonBoard
 			if(_size.x / _size.y < 4.0f / 3.0f) // wider than 4:3
 			{
 				_tileSize.y = _size.y / static_cast<float>(l * 2 - 1);
-				_tileSize.x = _tileSize.y / 3 * 4;
+				_tileSize.x = _tileSize.y / 3.0f * 4.0f;
 
 				_size.x = _tileSize.x * (l * 2 - 1);
 
-				_position = {(windowSize.x - _size.x) / 2, padding};
+				_position = {(windowSize.x - _size.x) / 2.0f, padding};
 			}
 			else
 			{
 				_tileSize.x = _size.x / static_cast<float>(l * 2 - 1);
-				_tileSize.y = _tileSize.x / 4 * 3;
+				_tileSize.y = _tileSize.x / 4.0f * 3.0f;
 
 				_size.y = _tileSize.x * (l * 2 - 1);
 
-				_position = {padding, (windowSize.y - _size.y) / 2};
+				_position = {padding, (windowSize.y - _size.y) / 2.0f};
 			}
 
 			for(Coordinate c : Hexagon::getAllCoordinates())

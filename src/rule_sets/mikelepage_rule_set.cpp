@@ -240,7 +240,7 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 	else // mouse is outside the board
 	{
 		// one tile is still marked with the hover effect
-		if(lastTile.first)
+		if(lastTile.first && *lastTile.first != *selectedTile.first)
 		{
 			lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
 			lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
