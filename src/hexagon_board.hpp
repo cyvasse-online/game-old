@@ -148,14 +148,14 @@ class HexagonBoard
 		fea::Color getTileColor(Coordinate c, bool setup)
 		{
 			static fea::Color tileColors[3] = {
-					{0.8f, 0.8f, 0.8f},
-					{0.7f, 0.7f, 0.7f},
-					{0.6f, 0.6f, 0.6f}
+					{125,  81,  55},
+					{167, 108,  73},
+					{191, 140, 109}
 				};
 			static fea::Color tileColorsDark[3] = {
-					{0.5f, 0.5f, 0.5f},
-					{0.4f, 0.4f, 0.4f},
-					{0.3f, 0.3f, 0.3f}
+					{ 50,  32,  22},
+					{ 67,  43,  29},
+					{ 76,  56,  44}
 				};
 
 			int8_t index = (((c.x() - c.y()) % 3) + 3) % 3;

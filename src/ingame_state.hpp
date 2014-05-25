@@ -18,6 +18,7 @@
 #define _INGAME_STATE_HPP_
 
 #include <memory>
+#include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/structure/gamestate.hpp>
 #include <fea/ui/inputbackend.hpp>
@@ -29,6 +30,8 @@ class IngameState : public fea::GameState
 	private:
 		fea::InputHandler& _input;
 		fea::Renderer2D& _renderer;
+
+		fea::Quad _background;
 
 		std::unique_ptr<RuleSet> _ruleSet;
 

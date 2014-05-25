@@ -19,6 +19,7 @@
 IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& renderer)
 	: _input(inputHandler)
 	, _renderer(renderer)
+	, _background(renderer.getViewport().getSize())
 {
 }
 
@@ -28,7 +29,8 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 
 void IngameState::setup()
 {
-	_ruleSet = std::unique_ptr<RuleSet>(new MikelepageRuleSet(_renderer, PLAYER_BLACK));
+	_background.setColor({255, 255, 255});
+	_ruleSet = std::unique_ptr<RuleSet>(new MikelepageRuleSet(_renderer, PLAYER_WHITE));
 }
 
 // ------ end test code ------
@@ -60,6 +62,7 @@ std::string IngameState::run()
 	_renderer.clear();
 
 	// * queue something to render
+	_renderer.queue(_background);
 	_ruleSet->tick();
 
 	// * render everything
