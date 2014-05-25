@@ -1,0 +1,3 @@
+[submodule "cyvmath"]
+	path = cyvmath
+	url = https://github.com/Cyvasse-Online/cyvmath.git

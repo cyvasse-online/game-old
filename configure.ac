@@ -9,6 +9,7 @@ AC_CHECK_PROG([emcc])
 
 AC_ARG_VAR([EMSCRIPTEN_PREFIX], [prefix in which to search for library bitcode for emscripten])
 
+AC_CONFIG_SUBDIRS([cyvmath])
 AC_CONFIG_FILES([
 	Makefile
 ])

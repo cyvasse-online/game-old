@@ -1,6 +1,8 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
+SUBDIRS = cyvmath
+
 ## probably not the best way to do this, but until we
 ## create a native program from this source it's okay
 CXX = emcc
@@ -40,8 +42,8 @@ cyvasse_js_SOURCES = \
 # folder should be removed then.
 cyvasse_js_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
+	-I $(top_srcdir)/cyvmath/include \
 	-I $(top_srcdir)/src \
-	-I $(top_srcdir)/cyvmath \
 	-I $(top_srcdir)/lodepng
 
 cyvasse_js_CXXFLAGS = \
