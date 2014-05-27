@@ -49,7 +49,6 @@ class MikelepageRuleSet : public RuleSet, public Match
 				typedef std::vector<RenderedPiece*> RenderedPieceVec;
 
 			private:
-				PieceMap& _map;
 				Board& _board;
 
 				fea::Texture _texture;

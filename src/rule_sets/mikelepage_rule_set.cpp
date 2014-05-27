@@ -22,8 +22,7 @@
 
 MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord, PlayersColor color,
                                                 PieceMap& map, Board& board)
-	: Piece(type, coord)
-	, _map(map)
+	: Piece(color, type, coord, map)
 	, _board(board)
 	, _quad({48.0f, 40.0f})
 {
@@ -181,28 +180,44 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 			case fea::Event::MOUSEBUTTONPRESSED:
 				// this stuff should be moved to MOUSEBUTTONRELEASED when
 				// we check if the mouse is still on the same tile there
+
+				// a non-selected tile was clicked
 				if(!selectedTile.first || *c != *selectedTile.first)
 				{
-					// a non-selected tile was clicked
+					// there already was a tile selected
 					if(selectedTile.first)
 					{
-						PieceMap::iterator it1 = _activePieces[_playersColor].find(*selectedTile.first);
-						PieceMap::iterator it2 = _activePieces[_playersColor].find(*c);
-						if(it1 != _activePieces[_playersColor].end() && it2 == _activePieces[_playersColor].end())
+						PieceMap::iterator it1 = _activePieces.find(*selectedTile.first);
+						PieceMap::iterator it2 = _activePieces.find(*c);
+
+						// the selected tile has a piece of the player on it
+						if(it1 != _activePieces.end() && it1->second->getPlayersColor() == _playersColor)
 						{
-							// if there is a piece on the previously selected tile,
-							// and none on the clicked, the piece is moved (if possible)
-							RenderedPiece* tmpPiece = dynamic_cast<RenderedPiece*>(it1->second);
-							assert(tmpPiece);
-							tmpPiece->moveTo(*c, _setup);
+							// the clicked tile has no piece on it
+							if(it2 == _activePieces.end())
+							{
+								// try to move the piece from selected piece to clicked piece
+								RenderedPiece* tmpPiece = dynamic_cast<RenderedPiece*>(it1->second);
+								assert(tmpPiece);
+								tmpPiece->moveTo(*c, _setup);
 
-							if(_setup)
-								checkSetupComplete();
+								if(_setup)
+									checkSetupComplete();
 
-							selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+								selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
 
-							selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
-							return;
+								selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+								return;
+							}
+							// the clicked piece has a piece of the opponent on it
+							else if(it2->second->getPlayersColor() != _playersColor)
+							{
+								// TODO: ATTACK!
+								selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+
+								selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+								return;
+							}
 						}
 					}
 
@@ -330,7 +345,7 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 
 	// this absolutely weird code will be changed when multiplayer is added
 	// it's just for test purposes
-	for(auto it : defaultPiecePositions[_setup ? playersColor : !playersColor])
+	for(auto it : defaultPiecePositions[!playersColor])
 	{
 		std::unique_ptr<Coordinate> coord = Coordinate::create(std::get<1>(it));
 		assert(coord); // not null
@@ -338,11 +353,10 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 		// Create a copy of coord here to avoid troubles
 		// with the ownership of the real object
 		RenderedPiece* tmpPiece = new RenderedPiece(
-				std::get<0>(it), new Coordinate(*coord), playersColor,
-				_activePieces[playersColor], _board
+				std::get<0>(it), new Coordinate(*coord), playersColor, _activePieces, _board
 			);
 
-		_activePieces[playersColor].emplace(*coord, tmpPiece);
+		_activePieces.emplace(*coord, tmpPiece);
 		_allPieces[playersColor].push_back(tmpPiece);
 	}
 }
