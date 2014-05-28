@@ -7,8 +7,6 @@ depcomp
 install-sh
 missing
 
-**/m4/*.m4
-
 .deps
 config.log
 config.status
