@@ -30,7 +30,7 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 void IngameState::setup()
 {
 	_background.setColor({255, 255, 255});
-	_ruleSet = std::unique_ptr<RuleSet>(new MikelepageRuleSet(_renderer, PLAYER_WHITE));
+	initMatch(new MikelepageRuleSet(_renderer, PLAYER_WHITE));
 }
 
 // ------ end test code ------
@@ -72,7 +72,7 @@ std::string IngameState::run()
 	return std::string();
 }
 
-void IngameState::initMatch(RuleSet& ruleSet)
+void IngameState::initMatch(RuleSet* ruleSet)
 {
-	_ruleSet = std::unique_ptr<RuleSet>(&ruleSet);
+	_ruleSet = std::unique_ptr<RuleSet>(ruleSet);
 }

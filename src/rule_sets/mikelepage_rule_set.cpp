@@ -108,33 +108,26 @@ void MikelepageRuleSet::tick()
 	_board.tick();
 
 	if(_setup)
-		tickSetup();
+	{
+		for(RenderedPiece* it : _allPieces[_playersColor])
+			_renderer.queue(*it);
+
+		if(_setupComplete)
+			_renderer.queue(_buttonSetupDone);
+	}
 	else
-		tickPlaying();
-}
+	{
+		for(RenderedPiece* it : _allPieces[PLAYER_WHITE])
+			_renderer.queue(*it);
 
-void MikelepageRuleSet::tickSetup()
-{
-	for(RenderedPiece* it : _allPieces[_playersColor])
-		_renderer.queue(*it);
-
-	if(_setupComplete)
-		_renderer.queue(_buttonSetupDone);
-}
-
-void MikelepageRuleSet::tickPlaying()
-{
-	for(RenderedPiece* it : _allPieces[PLAYER_WHITE])
-		_renderer.queue(*it);
-
-	for(RenderedPiece* it : _allPieces[PLAYER_BLACK])
-		_renderer.queue(*it);
+		for(RenderedPiece* it : _allPieces[PLAYER_BLACK])
+			_renderer.queue(*it);
+	}
 }
 
 void MikelepageRuleSet::processEvent(fea::Event& event)
 {
-	// TODO: This function could use some cleanup
-	// and splitting up into smaller functions
+	// assert that we are processing a mouse event (for now)
 	int mX, mY; // mouse x and y coordinates
 	if(event.type == fea::Event::MOUSEMOVED)
 	{
@@ -152,43 +145,50 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 	static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> selectedTile
 		= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 
-	std::unique_ptr<Coordinate> c = _board.getCoordinate({mX, mY});
+	std::unique_ptr<Coordinate> pCoord = _board.getCoordinate({mX, mY});
+	fea::Quad* quad = _board.getTileAt(*pCoord);
 
-	if(c) // mouse is on tile (*c)
+	switch(event.type)
 	{
-		fea::Quad* quad = _board.getTileAt(*c);
-
-		switch(event.type)
-		{
-			case fea::Event::MOUSEMOVED:
-				if(*c != *lastTile.first)
+		case fea::Event::MOUSEMOVED:
+			if(pCoord) // mouse hovered on tile (*pCoord)
+			{
+				if(*pCoord != *lastTile.first)
 				{
 					// reset color of old highlighted tile
 					if(lastTile.first && *lastTile.first != *selectedTile.first)
 						lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
 
-					if(*c != *selectedTile.first)
+					if(*pCoord != *selectedTile.first)
 					{
-						quad->setColor((_board.getTileColor(*c, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
+						quad->setColor((_board.getTileColor(*pCoord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
 							- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
 
-						// don't access c in this function after it was moved!
-						lastTile = std::make_pair(std::move(c), quad);
+						// don't access pCoord in this function after it was moved!
+						lastTile = std::make_pair(std::move(pCoord), quad);
 					}
 				}
-				break;
-			case fea::Event::MOUSEBUTTONPRESSED:
-				// this stuff should be moved to MOUSEBUTTONRELEASED when
-				// we check if the mouse is still on the same tile there
-
+			}
+			else if(lastTile.first && *lastTile.first != *selectedTile.first)
+			{
+				// mouse is outside the board and one tile is still marked with the hover effect
+				lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+				lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+			}
+			break;
+		case fea::Event::MOUSEBUTTONPRESSED:
+			// this stuff should be moved to MOUSEBUTTONRELEASED when
+			// we check if the mouse is still on the same tile there
+			if(pCoord) // clicked on the tile *pCoord
+			{
 				// a non-selected tile was clicked
-				if(!selectedTile.first || *c != *selectedTile.first)
+				if(!selectedTile.first || *pCoord != *selectedTile.first)
 				{
 					// there already was a tile selected
 					if(selectedTile.first)
 					{
 						PieceMap::iterator it1 = _activePieces.find(*selectedTile.first);
-						PieceMap::iterator it2 = _activePieces.find(*c);
+						PieceMap::iterator it2 = _activePieces.find(*pCoord);
 
 						// the selected tile has a piece of the player on it
 						if(it1 != _activePieces.end() && it1->second->getPlayersColor() == _playersColor)
@@ -199,7 +199,7 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 								// try to move the piece from selected piece to clicked piece
 								RenderedPiece* tmpPiece = dynamic_cast<RenderedPiece*>(it1->second);
 								assert(tmpPiece);
-								tmpPiece->moveTo(*c, _setup);
+								tmpPiece->moveTo(*pCoord, _setup);
 
 								if(_setup)
 									checkSetupComplete();
@@ -230,51 +230,39 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 					if(selectedTile.first)
 						selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
 
-					quad->setColor((_board.getTileColor(*c, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
+					quad->setColor((_board.getTileColor(*pCoord, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
 						- fea::Color(0.0f, 0.3f, 0.3f, 0.0f));
 
-					// don't access c in this function after it was moved!
-					selectedTile = std::make_pair(std::move(c), quad);
+					// don't access pCoord in this function after it was moved!
+					selectedTile = std::make_pair(std::move(pCoord), quad);
 				}
-				else
+				else // selected tile was clicked again - unselect it
 				{
-					// selected tile was clicked again - unselect it
 					// giving it the hovered color may be weird on
 					// touch screens, this should be fixed somewhen
-					quad->setColor((_board.getTileColor(*c, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
+					quad->setColor((_board.getTileColor(*pCoord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
 							- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
 
-					// don't access c in this function after it was moved!
-					lastTile = std::make_pair(std::move(c), quad);
+					// don't access pCoord in this function after it was moved!
+					lastTile = std::make_pair(std::move(pCoord), quad);
 
 					selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 				}
-				break;
-		}
-	}
-	else // mouse is outside the board
-	{
-		// one tile is still marked with the hover effect
-		if(lastTile.first && *lastTile.first != *selectedTile.first)
-		{
-			lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
-			lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
-		}
-
-		// clicked outside
-		if(event.type == fea::Event::MOUSEBUTTONPRESSED)
-		{
-			// a tile is selected
-			if(selectedTile.first)
-			{
-				selectedTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
-				selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 			}
+			else // clicked outside the board
+			{
+				// a tile is selected
+				if(selectedTile.first)
+				{
+					selectedTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+					selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+				}
 
-			// 'Setup done' button pressed (while being visible)
-			if(_setupComplete && mouseOver(_buttonSetupDone, event))
-				exitSetup();
-		}
+				// 'Setup done' button pressed (while being visible)
+				if(_setupComplete && mouseOver(_buttonSetupDone, event))
+					exitSetup();
+			}
+			break;
 	}
 }
 
@@ -343,8 +331,9 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 			{PIECE_LIGHT_HORSE, std::make_pair(3,4)}
 		}};
 
-	// this absolutely weird code will be changed when multiplayer is added
-	// it's just for test purposes
+	// TODO: remove the '!' when there is a better
+	// alternative for testing the game without
+	// manually doing the setup over and over again
 	for(auto it : defaultPiecePositions[!playersColor])
 	{
 		std::unique_ptr<Coordinate> coord = Coordinate::create(std::get<1>(it));

@@ -45,7 +45,7 @@ class IngameState : public fea::GameState
 		void setup() override;
 		std::string run() override;
 
-		void initMatch(RuleSet&);
+		void initMatch(RuleSet*);
 };
 
 #endif // _INGAME_STATE_HPP_

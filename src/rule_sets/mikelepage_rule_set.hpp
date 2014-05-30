@@ -81,8 +81,6 @@ class MikelepageRuleSet : public RuleSet, public Match
 		~MikelepageRuleSet();
 
 		void tick() override;
-		void tickSetup();
-		void tickPlaying();
 
 		void processEvent(fea::Event&) override;
 
