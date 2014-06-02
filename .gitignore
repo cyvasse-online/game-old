@@ -17,6 +17,7 @@ Makefile.in
 
 cyvasse.data
 cyvasse.js
+cyvasse.js.mem
 cyvmath-tests
 
 *.o
