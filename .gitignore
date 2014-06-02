@@ -15,6 +15,7 @@ Makefile.in
 
 # Compiled files
 
+cyvasse.data
 cyvasse.js
 cyvmath-tests
 

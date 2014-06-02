@@ -51,7 +51,7 @@ cyvasse_js_CXXFLAGS = \
 
 cyvasse_js_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	--embed-file $(top_srcdir)/data@/ \
+	--preload-file $(top_srcdir)/data@/ \
 	-O3
 
 cyvasse_js_LDADD = \
