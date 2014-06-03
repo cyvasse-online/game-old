@@ -52,7 +52,6 @@ cyvasse_js_CXXFLAGS = \
 cyvasse_js_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	--preload-file $(top_srcdir)/data@/ \
-	--memory-init-file 1 \
 	-O3
 
 cyvasse_js_LDADD = \

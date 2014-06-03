@@ -33,7 +33,7 @@ using namespace cyvmath::mikelepage;
     This class represents one rendered match, so could be renamed
     MikelepageRuleSetMatch, but the name is long enough as it is
  */
-class MikelepageRuleSet : public RuleSet, public Match
+class MikelepageRuleSet : public RuleSet, protected Match
 {
 	public:
 		typedef HexagonBoard<6> Board;
