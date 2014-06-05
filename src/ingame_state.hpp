@@ -23,6 +23,7 @@
 #include <fea/structure/gamestate.hpp>
 #include <fea/ui/inputbackend.hpp>
 #include <fea/ui/inputhandler.hpp>
+#include <cyvmath/common.hpp>
 #include "rule_set.hpp"
 
 class IngameState : public fea::GameState
@@ -35,17 +36,17 @@ class IngameState : public fea::GameState
 
 		std::unique_ptr<RuleSet> _ruleSet;
 
+	public:
+		IngameState(fea::InputHandler&, fea::Renderer2D&);
+
 		// non-copyable
 		IngameState(const RuleSet&) = delete;
 		const IngameState& operator= (const IngameState&) = delete;
 
-	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
+		void initMatch(const std::string&, cyvmath::PlayersColor);
 
 		void setup() override;
 		std::string run() override;
-
-		void initMatch(RuleSet*);
 };
 
 #endif // _INGAME_STATE_HPP_

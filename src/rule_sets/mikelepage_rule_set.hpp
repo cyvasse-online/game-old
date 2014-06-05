@@ -18,13 +18,14 @@
 #define _MIKELEPAGE_RULESET_HPP_
 
 #include "rule_set.hpp"
-#include "mikelepage/match.hpp"
+#include <cyvmath/mikelepage/match.hpp>
 
 #include <fea/rendering/renderer2d.hpp>
+#include <cyvmath/mikelepage/piece.hpp>
 #include "hexagon_board.hpp"
-#include "mikelepage/piece.hpp"
 
-using namespace cyvmath::mikelepage;
+using namespace cyvmath;
+using namespace mikelepage;
 
 /** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 

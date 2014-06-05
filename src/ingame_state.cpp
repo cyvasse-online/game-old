@@ -16,6 +16,11 @@
 
 #include "ingame_state.hpp"
 
+#include <unordered_map>
+#include "rule_set.hpp"
+
+#include "rule_sets/mikelepage_rule_set.hpp"
+
 IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& renderer)
 	: _input(inputHandler)
 	, _renderer(renderer)
@@ -23,17 +28,32 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 {
 }
 
-// ----- begin test code -----
+void IngameState::initMatch(const std::string& ruleSetStr, cyvmath::PlayersColor playersColor)
+{
+	// The world needs more crazy C++11 lambda expressions!
+	static std::unordered_map<std::string, std::function<RuleSet*(fea::Renderer2D&, cyvmath::PlayersColor)>>
+		createRuleSet({{
+				"mikelepage",
+				[](fea::Renderer2D& r, cyvmath::PlayersColor c)
+					{ return new MikelepageRuleSet(r, c); }
+			}/*, {
+				"nextruleset",
+				[](fea::Renderer2D& r, cyvmath::PlayersColor c)
+					{ return new NextRuleSet(r, c); }
+			}*/
+		});
 
-#include "rule_sets/mikelepage_rule_set.hpp"
+	auto it = createRuleSet.find(ruleSetStr);
+	if(it == createRuleSet.end())
+		return;
+
+	_ruleSet = std::unique_ptr<RuleSet>(it->second(_renderer, playersColor));
+}
 
 void IngameState::setup()
 {
 	_background.setColor({255, 255, 255});
-	initMatch(new MikelepageRuleSet(_renderer, PLAYER_WHITE));
 }
-
-// ------ end test code ------
 
 std::string IngameState::run()
 {
@@ -70,9 +90,4 @@ std::string IngameState::run()
 
 	// keep running the same state
 	return std::string();
-}
-
-void IngameState::initMatch(RuleSet* ruleSet)
-{
-	_ruleSet = std::unique_ptr<RuleSet>(ruleSet);
 }

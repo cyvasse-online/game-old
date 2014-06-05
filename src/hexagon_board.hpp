@@ -24,7 +24,7 @@
 #include <cstdlib>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/rendering/quad.hpp>
-#include "hexagon.hpp"
+#include <cyvmath/hexagon.hpp>
 
 template<int l>
 class HexagonBoard
