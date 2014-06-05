@@ -41,9 +41,9 @@ cyvasse_js_SOURCES = \
 # folder should be removed then.
 cyvasse_js_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I $(top_srcdir)/cyvmath/include \
-	-I $(top_srcdir)/src \
-	-I $(top_srcdir)/lodepng
+	-I$(top_srcdir)/cyvmath/include \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/lodepng
 
 cyvasse_js_CXXFLAGS = \
 	$(AM_CXXFLAGS) \
@@ -51,7 +51,7 @@ cyvasse_js_CXXFLAGS = \
 
 cyvasse_js_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	--embed-file $(top_srcdir)/data@/ \
+	--preload-file $(top_srcdir)/data@/ \
 	-O3
 
 cyvasse_js_LDADD = \
