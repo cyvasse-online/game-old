@@ -16,7 +16,7 @@
 
 #include "ingame_state.hpp"
 
-#include <unordered_map>
+#include <map>
 #include "rule_set.hpp"
 
 #include "rule_sets/mikelepage_rule_set.hpp"
@@ -31,7 +31,7 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 void IngameState::initMatch(const std::string& ruleSetStr, cyvmath::PlayersColor playersColor)
 {
 	// The world needs more crazy C++11 lambda expressions!
-	static std::unordered_map<std::string, std::function<RuleSet*(fea::Renderer2D&, cyvmath::PlayersColor)>>
+	static std::map<std::string, std::function<RuleSet*(fea::Renderer2D&, cyvmath::PlayersColor)>>
 		createRuleSet({{
 				"mikelepage",
 				[](fea::Renderer2D& r, cyvmath::PlayersColor c)

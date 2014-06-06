@@ -20,14 +20,14 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord, PlayersColor color,
-                                                PieceMap& map, Board& board)
+MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord,
+                                                PlayersColor color, PieceMap& map, Board& board)
 	: Piece(color, type, coord, map)
 	, _board(board)
 	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
-	static std::unordered_map<PieceType, std::string> fileNames = {
+	static std::map<PieceType, std::string> fileNames = {
 			{PIECE_MOUNTAIN,    "mountain.png"},
 			{PIECE_RABBLE,      "rabble.png"},
 			{PIECE_CROSSBOWS,   "crossbows.png"},
@@ -268,84 +268,84 @@ void MikelepageRuleSet::processEvent(fea::Event& event)
 
 void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 {
-	// {type, hex-coordinate}
-	static std::vector<std::tuple<PieceType, std::pair<int8_t, int8_t>>> defaultPiecePositions[2] = {
+#define coord(x, y) \
+	Coordinate::create((x), (y))
+
+	static std::vector<std::pair<PieceType, std::shared_ptr<Coordinate>>> defaultPiecePositions[2] {
 		{ // PLAYER_WHITE
-			{PIECE_MOUNTAIN,    std::make_pair(0,10)},
-			{PIECE_MOUNTAIN,    std::make_pair(1,10)},
-			{PIECE_MOUNTAIN,    std::make_pair(2,10)},
-			{PIECE_MOUNTAIN,    std::make_pair(3,10)},
-			{PIECE_MOUNTAIN,    std::make_pair(4,10)},
-			{PIECE_MOUNTAIN,    std::make_pair(5,10)},
+			{PIECE_MOUNTAIN,    coord(0, 10)},
+			{PIECE_MOUNTAIN,    coord(1, 10)},
+			{PIECE_MOUNTAIN,    coord(2, 10)},
+			{PIECE_MOUNTAIN,    coord(3, 10)},
+			{PIECE_MOUNTAIN,    coord(4, 10)},
+			{PIECE_MOUNTAIN,    coord(5, 10)},
 
-			{PIECE_TREBUCHET,   std::make_pair(1,8)},
-			{PIECE_TREBUCHET,   std::make_pair(2,8)},
-			{PIECE_ELEPHANT,    std::make_pair(3,8)},
-			{PIECE_ELEPHANT,    std::make_pair(4,8)},
-			{PIECE_HEAVY_HORSE, std::make_pair(5,8)},
-			{PIECE_HEAVY_HORSE, std::make_pair(6,8)},
+			{PIECE_TREBUCHET,   coord(1, 8)},
+			{PIECE_TREBUCHET,   coord(2, 8)},
+			{PIECE_ELEPHANT,    coord(3, 8)},
+			{PIECE_ELEPHANT,    coord(4, 8)},
+			{PIECE_HEAVY_HORSE, coord(5, 8)},
+			{PIECE_HEAVY_HORSE, coord(6, 8)},
 
-			{PIECE_RABBLE,      std::make_pair(1,7)},
-			{PIECE_RABBLE,      std::make_pair(2,7)},
-			{PIECE_RABBLE,      std::make_pair(3,7)},
-			{PIECE_KING,        std::make_pair(4,7)},
-			{PIECE_RABBLE,      std::make_pair(5,7)},
-			{PIECE_RABBLE,      std::make_pair(6,7)},
-			{PIECE_RABBLE,      std::make_pair(7,7)},
+			{PIECE_RABBLE,      coord(1, 7)},
+			{PIECE_RABBLE,      coord(2, 7)},
+			{PIECE_RABBLE,      coord(3, 7)},
+			{PIECE_KING,        coord(4, 7)},
+			{PIECE_RABBLE,      coord(5, 7)},
+			{PIECE_RABBLE,      coord(6, 7)},
+			{PIECE_RABBLE,      coord(7, 7)},
 
-			{PIECE_CROSSBOWS,   std::make_pair(2,6)},
-			{PIECE_CROSSBOWS,   std::make_pair(3,6)},
-			{PIECE_SPEARS,      std::make_pair(4,6)},
-			{PIECE_SPEARS,      std::make_pair(5,6)},
-			{PIECE_LIGHT_HORSE, std::make_pair(6,6)},
-			{PIECE_LIGHT_HORSE, std::make_pair(7,6)}
-		},
-		{ // PLAYER_BLACK
-			{PIECE_MOUNTAIN,    std::make_pair(10,0)},
-			{PIECE_MOUNTAIN,    std::make_pair( 9,0)},
-			{PIECE_MOUNTAIN,    std::make_pair( 8,0)},
-			{PIECE_MOUNTAIN,    std::make_pair( 7,0)},
-			{PIECE_MOUNTAIN,    std::make_pair( 6,0)},
-			{PIECE_MOUNTAIN,    std::make_pair( 5,0)},
+			{PIECE_CROSSBOWS,   coord(2, 6)},
+			{PIECE_CROSSBOWS,   coord(3, 6)},
+			{PIECE_SPEARS,      coord(4, 6)},
+			{PIECE_SPEARS,      coord(5, 6)},
+			{PIECE_LIGHT_HORSE, coord(6, 6)},
+			{PIECE_LIGHT_HORSE, coord(7, 6)}
+		},		{ // PLAYER_BLACK
+			{PIECE_MOUNTAIN,    coord(10, 0)},
+			{PIECE_MOUNTAIN,    coord(9,  0)},
+			{PIECE_MOUNTAIN,    coord(8,  0)},
+			{PIECE_MOUNTAIN,    coord(7,  0)},
+			{PIECE_MOUNTAIN,    coord(6,  0)},
+			{PIECE_MOUNTAIN,    coord(5,  0)},
 
-			{PIECE_TREBUCHET,   std::make_pair(9,2)},
-			{PIECE_TREBUCHET,   std::make_pair(8,2)},
-			{PIECE_ELEPHANT,    std::make_pair(7,2)},
-			{PIECE_ELEPHANT,    std::make_pair(6,2)},
-			{PIECE_HEAVY_HORSE, std::make_pair(5,2)},
-			{PIECE_HEAVY_HORSE, std::make_pair(4,2)},
+			{PIECE_TREBUCHET,   coord(9, 2)},
+			{PIECE_TREBUCHET,   coord(8, 2)},
+			{PIECE_ELEPHANT,    coord(7, 2)},
+			{PIECE_ELEPHANT,    coord(6, 2)},
+			{PIECE_HEAVY_HORSE, coord(5, 2)},
+			{PIECE_HEAVY_HORSE, coord(4, 2)},
 
-			{PIECE_RABBLE,      std::make_pair(9,3)},
-			{PIECE_RABBLE,      std::make_pair(8,3)},
-			{PIECE_RABBLE,      std::make_pair(7,3)},
-			{PIECE_KING,        std::make_pair(6,3)},
-			{PIECE_RABBLE,      std::make_pair(5,3)},
-			{PIECE_RABBLE,      std::make_pair(4,3)},
-			{PIECE_RABBLE,      std::make_pair(3,3)},
+			{PIECE_RABBLE,      coord(9, 3)},
+			{PIECE_RABBLE,      coord(8, 3)},
+			{PIECE_RABBLE,      coord(7, 3)},
+			{PIECE_KING,        coord(6, 3)},
+			{PIECE_RABBLE,      coord(5, 3)},
+			{PIECE_RABBLE,      coord(4, 3)},
+			{PIECE_RABBLE,      coord(3, 3)},
 
-			{PIECE_CROSSBOWS,   std::make_pair(8,4)},
-			{PIECE_CROSSBOWS,   std::make_pair(7,4)},
-			{PIECE_SPEARS,      std::make_pair(6,4)},
-			{PIECE_SPEARS,      std::make_pair(5,4)},
-			{PIECE_LIGHT_HORSE, std::make_pair(4,4)},
-			{PIECE_LIGHT_HORSE, std::make_pair(3,4)}
+			{PIECE_CROSSBOWS,   coord(8, 4)},
+			{PIECE_CROSSBOWS,   coord(7, 4)},
+			{PIECE_SPEARS,      coord(6, 4)},
+			{PIECE_SPEARS,      coord(5, 4)},
+			{PIECE_LIGHT_HORSE, coord(4, 4)},
+			{PIECE_LIGHT_HORSE, coord(3, 4)}
 		}};
+
+#undef coord
 
 	// TODO: remove the '!' when there is a better
 	// alternative for testing the game without
 	// manually doing the setup over and over again
-	for(auto it : defaultPiecePositions[!playersColor])
+	for(auto& it : defaultPiecePositions[!playersColor])
 	{
-		std::unique_ptr<Coordinate> coord = Coordinate::create(std::get<1>(it));
-		assert(coord); // not null
+		assert(it.second); // not null
+		Coordinate tmpCoord(*it.second); // create a copy
 
-		// Create a copy of coord here to avoid troubles
-		// with the ownership of the real object
-		RenderedPiece* tmpPiece = new RenderedPiece(
-				std::get<0>(it), new Coordinate(*coord), playersColor, _activePieces, _board
-			);
+		RenderedPiece* tmpPiece = new RenderedPiece
+			(it.first, new Coordinate(tmpCoord), playersColor, _activePieces, _board);
 
-		_activePieces.emplace(*coord, tmpPiece);
+		_activePieces.emplace(tmpCoord, tmpPiece);
 		_allPieces[playersColor].push_back(tmpPiece);
 	}
 }

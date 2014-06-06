@@ -18,7 +18,7 @@
 #define _HEXAGON_BOARD_HPP_
 
 #include <algorithm>
-#include <unordered_map>
+#include <map>
 #include <vector>
 #include <cassert>
 #include <cstdlib>
@@ -32,7 +32,7 @@ class HexagonBoard
 	public:
 		typedef typename cyvmath::hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
-		typedef typename std::unordered_map<Coordinate, fea::Quad*> TileMap;
+		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
 		typedef std::vector<fea::Quad*> TileVec;
 
 	private:
