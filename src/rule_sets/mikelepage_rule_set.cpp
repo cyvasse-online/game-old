@@ -25,8 +25,8 @@ using namespace mikelepage;
 MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord,
                                                 PlayersColor color, PieceMap& map, Board& board)
 	: Piece(color, type, coord, map)
+	, fea::Quad({48.0f, 40.0f})
 	, _board(board)
-	, _quad({48.0f, 40.0f})
 {
 	static std::string colorStr[2] = {"white", "black"};
 	static std::map<PieceType, std::string> fileNames = {
@@ -42,15 +42,14 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coor
 			{PIECE_KING,        "king.png"}
 		};
 
-	_texture = makeTexture(("icons/" + colorStr[color] + "/" + fileNames.at(type)), 48, 40);
-	_quad.setTexture(_texture);
+	mTexture = new fea::Texture(makeTexture(("icons/" + colorStr[color] + "/" + fileNames.at(type)), 48, 40));
 
 	glm::vec2 position = _board.getTilePosition(*_coord);
 	// TODO: piece graphics should be scaled, after
 	// that this constant should also be changed
 	position += glm::vec2(8, 4);
 
-	_quad.setPosition(position);
+	setPosition(position);
 }
 
 void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
@@ -77,7 +76,7 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 	glm::vec2 position = _board.getTilePosition(*_coord);
 	position += glm::vec2(8, 4); // TODO
 
-	_quad.setPosition(position);
+	setPosition(position);
 }
 
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
@@ -87,10 +86,14 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 {
 	placePiecesSetup(_playersColor);
 
+	glm::uvec2 boardSize = _board.getSize();
+	glm::uvec2 boardPos = _board.getPosition();
 	// hardcoded for now, can be done properly somewhen else
-	_buttonSetupDoneTexture = makeTexture("setup-done.png", 80, 50);
-	_buttonSetupDone.setPosition({705, 535});
-	_buttonSetupDone.setSize({80, 50});
+	glm::uvec2 buttonSize = {80, 50};
+
+	_buttonSetupDoneTexture = makeTexture("setup-done.png", buttonSize.x, buttonSize.y);
+	_buttonSetupDone.setPosition(boardPos + boardSize - buttonSize);
+	_buttonSetupDone.setSize(buttonSize);
 	_buttonSetupDone.setTexture(_buttonSetupDoneTexture);
 }
 
@@ -303,7 +306,7 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 			{PIECE_LIGHT_HORSE, coord(7, 6)},
 
 			// dragon starts outside the board
-			{PIECE_DRAGON,      coord(0, 0)}
+			{PIECE_DRAGON,      nullptr}
 		},
 		{ // PLAYER_BLACK
 			{PIECE_MOUNTAIN,    coord(10, 0)},
@@ -336,7 +339,7 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 			{PIECE_LIGHT_HORSE, coord(3, 4)},
 
 			// dragon starts outside the board
-			{PIECE_DRAGON,      coord(0, 0)}
+			{PIECE_DRAGON,      nullptr}
 		}};
 
 #undef coord
@@ -346,13 +349,25 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 	// manually doing the setup over and over again
 	for(auto& it : defaultPiecePositions[!playersColor])
 	{
-		assert(it.second); // not null
 		Coordinate tmpCoord(*it.second); // create a copy
 
 		RenderedPiece* tmpPiece = new RenderedPiece
 			(it.first, new Coordinate(tmpCoord), playersColor, _activePieces, _board);
 
-		_activePieces.emplace(tmpCoord, tmpPiece);
+		if(it.second) // not null - one of the first 25 pieces
+		{
+			_activePieces.emplace(tmpCoord, tmpPiece);
+		}
+		else // dragon, 26th piece
+		{
+			glm::uvec2 boardSize = _board.getSize();
+			glm::uvec2 boardPos = _board.getPosition();
+
+			glm::uvec2 dragonPos = {boardPos.x, boardPos.y + boardSize.y - _board.getTileSize().y};
+			dragonPos += glm::vec2(8, 4); // TODO
+
+			tmpPiece->setPosition(dragonPos);
+		}
 		_allPieces[playersColor].push_back(tmpPiece);
 	}
 }

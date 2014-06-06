@@ -43,7 +43,7 @@ class MikelepageRuleSet : public RuleSet, protected cyvmath::mikelepage::Match
 		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
 		const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
 
-		class RenderedPiece : public cyvmath::mikelepage::Piece
+		class RenderedPiece : public cyvmath::mikelepage::Piece, public fea::Quad
 		{
 			public:
 				typedef mikelepage::PieceType PieceType;
@@ -53,16 +53,8 @@ class MikelepageRuleSet : public RuleSet, protected cyvmath::mikelepage::Match
 			private:
 				Board& _board;
 
-				fea::Texture _texture;
-				fea::Quad _quad;
-
 			public:
 				RenderedPiece(PieceType, Coordinate*, PlayersColor, PieceMap&, Board&);
-
-				operator const fea::Quad& () const
-				{
-					return _quad;
-				}
 
 				// If setup is true, all "moves" are valid
 				void moveTo(Coordinate, bool setup);

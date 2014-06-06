@@ -60,6 +60,9 @@ class HexagonBoard
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
 		~HexagonBoard();
 
+		glm::uvec2 getSize();
+		glm::uvec2 getPosition();
+
 		glm::vec2 getTilePosition(Coordinate);
 		const glm::vec2& getTileSize() const;
 		fea::Color getTileColor(Coordinate, bool setup);

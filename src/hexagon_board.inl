@@ -69,6 +69,18 @@ HexagonBoard<l>::~HexagonBoard()
 }
 
 template <int l>
+glm::uvec2 HexagonBoard<l>::getSize()
+{
+	return _size;
+}
+
+template <int l>
+glm::uvec2 HexagonBoard<l>::getPosition()
+{
+	return _position;
+}
+
+template <int l>
 glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c)
 {
 	glm::vec2 ret;
