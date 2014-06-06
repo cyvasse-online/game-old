@@ -20,6 +20,8 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
+using namespace mikelepage;
+
 MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord,
                                                 PlayersColor color, PieceMap& map, Board& board)
 	: Piece(color, type, coord, map)
@@ -81,8 +83,6 @@ void MikelepageRuleSet::RenderedPiece::moveTo(Coordinate coord, bool setup)
 MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor playersColor)
 	: RuleSet(renderer)
 	, Match(playersColor)
-	// PLAYER_WHITE = 0 -> upsideDown = false
-	// PLAYER_BLACK = 1 -> upsideDown = true
 	, _board(renderer, playersColor)
 {
 	placePiecesSetup(_playersColor);
@@ -300,8 +300,12 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 			{PIECE_SPEARS,      coord(4, 6)},
 			{PIECE_SPEARS,      coord(5, 6)},
 			{PIECE_LIGHT_HORSE, coord(6, 6)},
-			{PIECE_LIGHT_HORSE, coord(7, 6)}
-		},		{ // PLAYER_BLACK
+			{PIECE_LIGHT_HORSE, coord(7, 6)},
+
+			// dragon starts outside the board
+			{PIECE_DRAGON,      coord(0, 0)}
+		},
+		{ // PLAYER_BLACK
 			{PIECE_MOUNTAIN,    coord(10, 0)},
 			{PIECE_MOUNTAIN,    coord(9,  0)},
 			{PIECE_MOUNTAIN,    coord(8,  0)},
@@ -329,7 +333,10 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 			{PIECE_SPEARS,      coord(6, 4)},
 			{PIECE_SPEARS,      coord(5, 4)},
 			{PIECE_LIGHT_HORSE, coord(4, 4)},
-			{PIECE_LIGHT_HORSE, coord(3, 4)}
+			{PIECE_LIGHT_HORSE, coord(3, 4)},
+
+			// dragon starts outside the board
+			{PIECE_DRAGON,      coord(0, 0)}
 		}};
 
 #undef coord

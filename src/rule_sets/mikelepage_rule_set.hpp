@@ -25,7 +25,6 @@
 #include "hexagon_board.hpp"
 
 using namespace cyvmath;
-using namespace mikelepage;
 
 /** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 
@@ -34,7 +33,7 @@ using namespace mikelepage;
     This class represents one rendered match, so could be renamed
     MikelepageRuleSetMatch, but the name is long enough as it is
  */
-class MikelepageRuleSet : public RuleSet, protected Match
+class MikelepageRuleSet : public RuleSet, protected cyvmath::mikelepage::Match
 {
 	public:
 		typedef HexagonBoard<6> Board;
@@ -44,9 +43,11 @@ class MikelepageRuleSet : public RuleSet, protected Match
 		MikelepageRuleSet(const MikelepageRuleSet&) = delete;
 		const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
 
-		class RenderedPiece : public Piece
+		class RenderedPiece : public cyvmath::mikelepage::Piece
 		{
 			public:
+				typedef mikelepage::PieceType PieceType;
+				typedef mikelepage::Coordinate Coordinate;
 				typedef std::vector<RenderedPiece*> RenderedPieceVec;
 
 			private:
