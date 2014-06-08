@@ -28,7 +28,6 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coor
 	, fea::Quad({48.0f, 40.0f})
 	, _board(board)
 {
-	static std::string colorStr[2] = {"white", "black"};
 	static std::map<PieceType, std::string> fileNames = {
 			{PIECE_MOUNTAIN,    "mountain.png"},
 			{PIECE_RABBLE,      "rabble.png"},
@@ -42,7 +41,8 @@ MikelepageRuleSet::RenderedPiece::RenderedPiece(PieceType type, Coordinate* coor
 			{PIECE_KING,        "king.png"}
 		};
 
-	mTexture = new fea::Texture(makeTexture(("icons/" + colorStr[color] + "/" + fileNames.at(type)), 48, 40));
+	std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
+	mTexture = new fea::Texture(makeTexture(texturePath, 48, 40));
 
 	glm::vec2 position = _board.getTilePosition(*_coord);
 	// TODO: piece graphics should be scaled, after
@@ -83,6 +83,7 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 	: RuleSet(renderer)
 	, Match(playersColor)
 	, _board(renderer, playersColor)
+	, _ownPieces(playersColor == PLAYER_WHITE ? _allPiecesWhitePlayer : _allPiecesBlackPlayer)
 {
 	placePiecesSetup(_playersColor);
 
@@ -99,10 +100,10 @@ MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor pla
 
 MikelepageRuleSet::~MikelepageRuleSet()
 {
-	for(RenderedPiece* it : _allPieces[PLAYER_WHITE])
+	for(RenderedPiece* it : _allPiecesWhitePlayer)
 		delete it;
 
-	for(RenderedPiece* it : _allPieces[PLAYER_BLACK])
+	for(RenderedPiece* it : _allPiecesBlackPlayer)
 		delete it;
 }
 
@@ -112,7 +113,7 @@ void MikelepageRuleSet::tick()
 
 	if(_setup)
 	{
-		for(RenderedPiece* it : _allPieces[_playersColor])
+		for(RenderedPiece* it : _ownPieces)
 			_renderer.queue(*it);
 
 		if(_setupComplete)
@@ -120,10 +121,10 @@ void MikelepageRuleSet::tick()
 	}
 	else
 	{
-		for(RenderedPiece* it : _allPieces[PLAYER_WHITE])
+		for(RenderedPiece* it : _allPiecesWhitePlayer)
 			_renderer.queue(*it);
 
-		for(RenderedPiece* it : _allPieces[PLAYER_BLACK])
+		for(RenderedPiece* it : _allPiecesBlackPlayer)
 			_renderer.queue(*it);
 	}
 }
@@ -274,80 +275,83 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 #define coord(x, y) \
 	Coordinate::create((x), (y))
 
-	static std::vector<std::pair<PieceType, std::shared_ptr<Coordinate>>> defaultPiecePositions[2] {
-		{ // PLAYER_WHITE
-			{PIECE_MOUNTAIN,    coord(0, 10)},
-			{PIECE_MOUNTAIN,    coord(1, 10)},
-			{PIECE_MOUNTAIN,    coord(2, 10)},
-			{PIECE_MOUNTAIN,    coord(3, 10)},
-			{PIECE_MOUNTAIN,    coord(4, 10)},
-			{PIECE_MOUNTAIN,    coord(5, 10)},
+	typedef std::pair<PieceType, std::shared_ptr<Coordinate>> Position;
 
-			{PIECE_TREBUCHET,   coord(1, 8)},
-			{PIECE_TREBUCHET,   coord(2, 8)},
-			{PIECE_ELEPHANT,    coord(3, 8)},
-			{PIECE_ELEPHANT,    coord(4, 8)},
-			{PIECE_HEAVY_HORSE, coord(5, 8)},
-			{PIECE_HEAVY_HORSE, coord(6, 8)},
+	static std::map<PlayersColor, std::vector<Position>> defaultPiecePositions {
+		{
+			PLAYER_WHITE, {
+				{PIECE_MOUNTAIN,    coord(0, 10)},
+				{PIECE_MOUNTAIN,    coord(1, 10)},
+				{PIECE_MOUNTAIN,    coord(2, 10)},
+				{PIECE_MOUNTAIN,    coord(3, 10)},
+				{PIECE_MOUNTAIN,    coord(4, 10)},
+				{PIECE_MOUNTAIN,    coord(5, 10)},
 
-			{PIECE_RABBLE,      coord(1, 7)},
-			{PIECE_RABBLE,      coord(2, 7)},
-			{PIECE_RABBLE,      coord(3, 7)},
-			{PIECE_KING,        coord(4, 7)},
-			{PIECE_RABBLE,      coord(5, 7)},
-			{PIECE_RABBLE,      coord(6, 7)},
-			{PIECE_RABBLE,      coord(7, 7)},
+				{PIECE_TREBUCHET,   coord(1, 8)},
+				{PIECE_TREBUCHET,   coord(2, 8)},
+				{PIECE_ELEPHANT,    coord(3, 8)},
+				{PIECE_ELEPHANT,    coord(4, 8)},
+				{PIECE_HEAVY_HORSE, coord(5, 8)},
+				{PIECE_HEAVY_HORSE, coord(6, 8)},
 
-			{PIECE_CROSSBOWS,   coord(2, 6)},
-			{PIECE_CROSSBOWS,   coord(3, 6)},
-			{PIECE_SPEARS,      coord(4, 6)},
-			{PIECE_SPEARS,      coord(5, 6)},
-			{PIECE_LIGHT_HORSE, coord(6, 6)},
-			{PIECE_LIGHT_HORSE, coord(7, 6)},
+				{PIECE_RABBLE,      coord(1, 7)},
+				{PIECE_RABBLE,      coord(2, 7)},
+				{PIECE_RABBLE,      coord(3, 7)},
+				{PIECE_KING,        coord(4, 7)},
+				{PIECE_RABBLE,      coord(5, 7)},
+				{PIECE_RABBLE,      coord(6, 7)},
+				{PIECE_RABBLE,      coord(7, 7)},
 
-			// dragon starts outside the board
-			{PIECE_DRAGON,      nullptr}
+				{PIECE_CROSSBOWS,   coord(2, 6)},
+				{PIECE_CROSSBOWS,   coord(3, 6)},
+				{PIECE_SPEARS,      coord(4, 6)},
+				{PIECE_SPEARS,      coord(5, 6)},
+				{PIECE_LIGHT_HORSE, coord(6, 6)},
+				{PIECE_LIGHT_HORSE, coord(7, 6)},
+
+				// dragon starts outside the board
+				{PIECE_DRAGON,      nullptr}
+			}
 		},
-		{ // PLAYER_BLACK
-			{PIECE_MOUNTAIN,    coord(10, 0)},
-			{PIECE_MOUNTAIN,    coord(9,  0)},
-			{PIECE_MOUNTAIN,    coord(8,  0)},
-			{PIECE_MOUNTAIN,    coord(7,  0)},
-			{PIECE_MOUNTAIN,    coord(6,  0)},
-			{PIECE_MOUNTAIN,    coord(5,  0)},
+		{
+			PLAYER_BLACK, {
+				{PIECE_MOUNTAIN,    coord(10, 0)},
+				{PIECE_MOUNTAIN,    coord(9,  0)},
+				{PIECE_MOUNTAIN,    coord(8,  0)},
+				{PIECE_MOUNTAIN,    coord(7,  0)},
+				{PIECE_MOUNTAIN,    coord(6,  0)},
+				{PIECE_MOUNTAIN,    coord(5,  0)},
 
-			{PIECE_TREBUCHET,   coord(9, 2)},
-			{PIECE_TREBUCHET,   coord(8, 2)},
-			{PIECE_ELEPHANT,    coord(7, 2)},
-			{PIECE_ELEPHANT,    coord(6, 2)},
-			{PIECE_HEAVY_HORSE, coord(5, 2)},
-			{PIECE_HEAVY_HORSE, coord(4, 2)},
+				{PIECE_TREBUCHET,   coord(9, 2)},
+				{PIECE_TREBUCHET,   coord(8, 2)},
+				{PIECE_ELEPHANT,    coord(7, 2)},
+				{PIECE_ELEPHANT,    coord(6, 2)},
+				{PIECE_HEAVY_HORSE, coord(5, 2)},
+				{PIECE_HEAVY_HORSE, coord(4, 2)},
 
-			{PIECE_RABBLE,      coord(9, 3)},
-			{PIECE_RABBLE,      coord(8, 3)},
-			{PIECE_RABBLE,      coord(7, 3)},
-			{PIECE_KING,        coord(6, 3)},
-			{PIECE_RABBLE,      coord(5, 3)},
-			{PIECE_RABBLE,      coord(4, 3)},
-			{PIECE_RABBLE,      coord(3, 3)},
+				{PIECE_RABBLE,      coord(9, 3)},
+				{PIECE_RABBLE,      coord(8, 3)},
+				{PIECE_RABBLE,      coord(7, 3)},
+				{PIECE_KING,        coord(6, 3)},
+				{PIECE_RABBLE,      coord(5, 3)},
+				{PIECE_RABBLE,      coord(4, 3)},
+				{PIECE_RABBLE,      coord(3, 3)},
 
-			{PIECE_CROSSBOWS,   coord(8, 4)},
-			{PIECE_CROSSBOWS,   coord(7, 4)},
-			{PIECE_SPEARS,      coord(6, 4)},
-			{PIECE_SPEARS,      coord(5, 4)},
-			{PIECE_LIGHT_HORSE, coord(4, 4)},
-			{PIECE_LIGHT_HORSE, coord(3, 4)},
+				{PIECE_CROSSBOWS,   coord(8, 4)},
+				{PIECE_CROSSBOWS,   coord(7, 4)},
+				{PIECE_SPEARS,      coord(6, 4)},
+				{PIECE_SPEARS,      coord(5, 4)},
+				{PIECE_LIGHT_HORSE, coord(4, 4)},
+				{PIECE_LIGHT_HORSE, coord(3, 4)},
 
-			// dragon starts outside the board
-			{PIECE_DRAGON,      nullptr}
+				// dragon starts outside the board
+				{PIECE_DRAGON,      nullptr}
+			}
 		}};
 
 #undef coord
 
-	// TODO: remove the '!' when there is a better
-	// alternative for testing the game without
-	// manually doing the setup over and over again
-	for(auto& it : defaultPiecePositions[!playersColor])
+	for(auto& it : defaultPiecePositions[playersColor])
 	{
 		Coordinate tmpCoord(*it.second); // create a copy
 
@@ -368,7 +372,7 @@ void MikelepageRuleSet::placePiecesSetup(PlayersColor playersColor)
 
 			tmpPiece->setPosition(dragonPos);
 		}
-		_allPieces[playersColor].push_back(tmpPiece);
+		_ownPieces.push_back(tmpPiece);
 	}
 }
 

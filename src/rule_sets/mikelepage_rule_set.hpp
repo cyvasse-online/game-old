@@ -64,8 +64,11 @@ class MikelepageRuleSet : public RuleSet, protected cyvmath::mikelepage::Match
 
 		Board _board;
 
-		// for rendering
-		RenderedPieceVec _allPieces[2];
+		// don't use a map here because it's performance relevant (used for rendering)
+		// there are only two usages of this: render all ownPieces or render all pieces
+		RenderedPieceVec _allPiecesWhitePlayer;
+		RenderedPieceVec _allPiecesBlackPlayer;
+		RenderedPieceVec& _ownPieces;
 
 		fea::Texture _buttonSetupDoneTexture;
 		fea::Quad _buttonSetupDone;
