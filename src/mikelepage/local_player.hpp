@@ -14,34 +14,36 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _RULE_SET_HPP_
-#define _RULE_SET_HPP_
+#ifndef _MIKELEPAGE_LOCAL_PLAYER_HPP_
+#define _MIKELEPAGE_LOCAL_PLAYER_HPP_
+
+#include <cyvmath/mikelepage/player.hpp>
 
 #include <fea/rendering/renderer2d.hpp>
-#include <fea/ui/event.hpp>
+#include <cyvmath/mikelepage/piece.hpp>
+#include "hexagon_board.hpp"
+#include "rendered_piece.hpp"
 
-class RuleSet
+namespace mikelepage
 {
-	private:
-		// non-copyable
-		RuleSet(const RuleSet&) = delete;
-		const RuleSet& operator= (const RuleSet&) = delete;
+	class MikelepageRuleSet;
 
-	protected:
-		fea::Renderer2D& _renderer;
+	class LocalPlayer : public cyvmath::mikelepage::Player
+	{
+		friend MikelepageRuleSet;
+		private:
+			bool _setupComplete;
 
-	public:
-		RuleSet(fea::Renderer2D& renderer)
-			: _renderer(renderer)
-		{
-		}
+		public:
+			LocalPlayer(cyvmath::PlayersColor color);
 
-		virtual ~RuleSet()
-		{
-		}
+			bool setupComplete() override
+			{
+				return _setupComplete;
+			}
 
-		virtual void tick() = 0;
-		virtual void processEvent(fea::Event&) = 0;
-};
+			void checkSetupComplete();
+	};
+}
 
-#endif // _RULE_SET_HPP_
+#endif // _MIKELEPAGE_LOCAL_PLAYER_HPP_

@@ -29,9 +29,13 @@ cyvasse_js_SOURCES = \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
 	src/main.cpp \
-	src/rule_set.hpp \
-	src/rule_sets/mikelepage_rule_set.cpp \
-	src/rule_sets/mikelepage_rule_set.hpp
+	src/rule_set_base.hpp \
+	src/mikelepage/local_player.cpp \
+	src/mikelepage/local_player.hpp \
+	src/mikelepage/mikelepage_rule_set.cpp \
+	src/mikelepage/mikelepage_rule_set.hpp \
+	src/mikelepage/rendered_piece.cpp \
+	src/mikelepage/rendered_piece.hpp
 
 # The last include directory contains lodepng,
 # which loads png files, plus texturemaker.hpp

@@ -17,9 +17,7 @@
 template <int l>
 HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
 	: _renderer(renderer)
-	// PLAYER_WHITE = 0 -> false
-	// PLAYER_BLACK = 1 -> true
-	, _upsideDown(static_cast<bool>(color))
+	, _upsideDown(color == cyvmath::PLAYER_WHITE ? false : true)
 {
 	const glm::uvec2 windowSize = renderer.getViewport().getSize();
 

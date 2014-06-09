@@ -17,9 +17,11 @@
 #include "ingame_state.hpp"
 
 #include <map>
-#include "rule_set.hpp"
+#include <fea/ui/inputbackend.hpp>
 
-#include "rule_sets/mikelepage_rule_set.hpp"
+#include "mikelepage/mikelepage_rule_set.hpp"
+
+using namespace cyvmath;
 
 IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& renderer)
 	: _input(inputHandler)
@@ -28,26 +30,26 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 {
 }
 
-void IngameState::initMatch(const std::string& ruleSetStr, cyvmath::PlayersColor playersColor)
+void IngameState::initMatch(cyvmath::RuleSet ruleSet, cyvmath::PlayersColor playersColor)
 {
 	// The world needs more crazy C++11 lambda expressions!
-	static std::map<std::string, std::function<RuleSet*(fea::Renderer2D&, cyvmath::PlayersColor)>>
-		createRuleSet({{
-				"mikelepage",
+	static std::map<cyvmath::RuleSet, std::function<RuleSetBase*(fea::Renderer2D&, cyvmath::PlayersColor)>>
+		createRuleSet{{
+				RULESET_MIKELEPAGE,
 				[](fea::Renderer2D& r, cyvmath::PlayersColor c)
-					{ return new MikelepageRuleSet(r, c); }
+					{ return new ::mikelepage::MikelepageRuleSet(r, c); }
 			}/*, {
-				"nextruleset",
+				RULESET_WHATEVER,
 				[](fea::Renderer2D& r, cyvmath::PlayersColor c)
-					{ return new NextRuleSet(r, c); }
+					{ return new WhateverRuleSet(r, c); }
 			}*/
-		});
+		};
 
-	auto it = createRuleSet.find(ruleSetStr);
+	auto it = createRuleSet.find(ruleSet);
 	if(it == createRuleSet.end())
 		return;
 
-	_ruleSet = std::unique_ptr<RuleSet>(it->second(_renderer, playersColor));
+	_ruleSet = std::unique_ptr<RuleSetBase>(it->second(_renderer, playersColor));
 }
 
 void IngameState::setup()

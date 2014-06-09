@@ -14,40 +14,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _INGAME_STATE_HPP_
-#define _INGAME_STATE_HPP_
+#ifndef _RULE_SET_BASE_HPP_
+#define _RULE_SET_BASE_HPP_
 
-#include <fea/structure/gamestate.hpp>
-
-#include <memory>
-#include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
-#include <fea/ui/inputhandler.hpp>
-#include <cyvmath/common.hpp>
-#include <cyvmath/rule_sets.hpp>
-#include "rule_set_base.hpp"
+#include <fea/ui/event.hpp>
 
-class IngameState : public fea::GameState
+class RuleSetBase
 {
 	private:
-		fea::InputHandler& _input;
+		// non-copyable
+		RuleSetBase(const RuleSetBase&) = delete;
+		const RuleSetBase& operator= (const RuleSetBase&) = delete;
+
+	protected:
 		fea::Renderer2D& _renderer;
 
-		fea::Quad _background;
-
-		std::unique_ptr<RuleSetBase> _ruleSet;
-
 	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
+		RuleSetBase(fea::Renderer2D& renderer)
+			: _renderer(renderer)
+		{
+		}
 
-		// non-copyable
-		IngameState(const RuleSetBase&) = delete;
-		const IngameState& operator= (const IngameState&) = delete;
+		virtual ~RuleSetBase() = default;
 
-		void initMatch(cyvmath::RuleSet, cyvmath::PlayersColor);
-
-		void setup() override;
-		std::string run() override;
+		virtual void tick() = 0;
+		virtual void processEvent(fea::Event&) = 0;
 };
 
-#endif // _INGAME_STATE_HPP_
+#endif // _RULE_SET_BASE_HPP_

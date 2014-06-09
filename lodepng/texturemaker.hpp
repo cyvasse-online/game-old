@@ -7,7 +7,7 @@
 #include <fea/render2d.hpp>
 #include "lodepng.h"
 
-fea::Texture makeTexture(std::string path, uint32_t width, uint32_t height)
+inline fea::Texture makeTexture(std::string path, uint32_t width, uint32_t height)
 {
     std::vector<unsigned char> image; //the raw pixels
 

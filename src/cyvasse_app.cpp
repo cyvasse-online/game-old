@@ -29,7 +29,7 @@ void CyvasseApp::setup(const std::vector<std::string>& args)
 
 	IngameState* ingameState = new IngameState(_input, _renderer);
 	// --- test ---
-	ingameState->initMatch("mikelepage", cyvmath::PLAYER_WHITE);
+	ingameState->initMatch(cyvmath::RULESET_MIKELEPAGE, cyvmath::PLAYER_WHITE);
 
 	_stateMachine.addGameState("ingame", std::unique_ptr<IngameState>(ingameState));
 #ifdef EMSCRIPTEN
