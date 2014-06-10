@@ -54,31 +54,16 @@ namespace mikelepage
 		setPosition(position);
 	}
 
-	void RenderedPiece::moveTo(Coordinate coord, bool setup)
+	bool RenderedPiece::moveTo(Coordinate coord, bool checkMoveValidity)
 	{
-		if(!setup)
-		{
-			// Check if the movement is legal
-			// (Use assert for the check or return if the check fails)
-			// TODO
-		}
-
-		PieceMap::iterator it = _map.find(*_coord);
-		assert(it != _map.end());
-
-		_coord = std::unique_ptr<Coordinate>(new Coordinate(coord));
-
-		assert(&*it->second == this);
-		std::pair<PieceMap::iterator, bool> res = _map.emplace(*_coord, it->second);
-		_map.erase(it);
-		// assert there is no other piece already on coord.
-		// the check for that is probably better to do outside this
-		// functions, but this check may be removed in the future.
-		assert(res.second);
+		if(!Piece::moveTo(coord, checkMoveValidity))
+			return false;
 
 		glm::vec2 position = _board.getTilePosition(*_coord);
 		position += glm::vec2(8, 4); // TODO
 
 		setPosition(position);
+
+		return true;
 	}
 }

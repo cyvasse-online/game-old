@@ -36,8 +36,7 @@ namespace mikelepage
 			RenderedPiece(cyvmath::mikelepage::PieceType, cyvmath::mikelepage::Coordinate*,
 			              cyvmath::PlayersColor, PieceMap&, Board&);
 
-			// If setup is true, all "moves" are valid
-			void moveTo(cyvmath::mikelepage::Coordinate, bool setup);
+			bool moveTo(cyvmath::mikelepage::Coordinate, bool checkMoveValidity) override;
 	};
 
 	typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;

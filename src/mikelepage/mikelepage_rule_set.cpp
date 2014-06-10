@@ -93,6 +93,9 @@ namespace mikelepage
 		static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> selectedTile
 			= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
 
+		static auto resetTile = [](std::pair<std::unique_ptr<Coordinate>, fea::Quad*>& tile)
+			{ tile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr); };
+
 		std::unique_ptr<Coordinate> pCoord = _board.getCoordinate({mX, mY});
 		fea::Quad* quad = _board.getTileAt(*pCoord);
 
@@ -121,7 +124,7 @@ namespace mikelepage
 				{
 					// mouse is outside the board and one tile is still marked with the hover effect
 					lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
-					lastTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+					resetTile(lastTile);
 				}
 				break;
 			case fea::Event::MOUSEBUTTONPRESSED:
@@ -152,17 +155,14 @@ namespace mikelepage
 								   itTarget[1] == _players[colorOp]->getActivePieces().end())
 								{
 									// try to move the piece from selected piece to clicked piece
-									std::shared_ptr<RenderedPiece> tmpPiece =
-										std::dynamic_pointer_cast<RenderedPiece>(itStart->second);
-									assert(tmpPiece);
-									tmpPiece->moveTo(*pCoord, _setup);
+									itStart->second->moveTo(*pCoord, !_setup);
 
 									if(_setup)
 										_self->checkSetupComplete();
 
 									selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
 
-									selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+									resetTile(selectedTile);
 									return;
 								}
 								// the clicked piece has an opponents piece on it
@@ -171,7 +171,7 @@ namespace mikelepage
 									// TODO: ATTACK!
 									selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
 
-									selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+									resetTile(selectedTile);
 									return;
 								}
 							}
@@ -202,7 +202,7 @@ namespace mikelepage
 						// don't access pCoord in this function after it was moved!
 						lastTile = std::make_pair(std::move(pCoord), quad);
 
-						selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+						resetTile(selectedTile);
 					}
 				}
 				else // clicked outside the board
@@ -211,7 +211,7 @@ namespace mikelepage
 					if(selectedTile.first)
 					{
 						selectedTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
-						selectedTile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+						resetTile(selectedTile);
 					}
 
 					// 'Setup done' button pressed (while being visible)
