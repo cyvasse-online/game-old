@@ -26,6 +26,8 @@
 
 namespace mikelepage
 {
+	typedef HexagonBoard<6>::Hexagon Hexagon;
+
 	class MikelepageRuleSet;
 
 	class LocalPlayer : public cyvmath::mikelepage::Player

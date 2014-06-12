@@ -24,14 +24,13 @@
 #include <cstdlib>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/rendering/quad.hpp>
-#include <cyvmath/common.hpp>
 #include <cyvmath/hexagon.hpp>
 
 template<int l>
 class HexagonBoard
 {
 	public:
-		typedef typename cyvmath::hexagon<l> Hexagon;
+		typedef typename cyvmath::Hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
 		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
 		typedef std::vector<fea::Quad*> TileVec;
@@ -64,11 +63,26 @@ class HexagonBoard
 		glm::uvec2 getPosition();
 
 		glm::vec2 getTilePosition(Coordinate);
+		glm::vec2 getTilePosition(const dc::unique_ptr<Coordinate>& c)
+		{
+			return getTilePosition(*c);
+		}
+
 		const glm::vec2& getTileSize() const;
+
 		fea::Color getTileColor(Coordinate, bool setup);
+		fea::Color getTileColor(const dc::unique_ptr<Coordinate>& c, bool setup)
+		{
+			return getTileColor(*c, setup);
+		}
 
 		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition);
+
 		fea::Quad* getTileAt(Coordinate);
+		fea::Quad* getTileAt(const dc::unique_ptr<Coordinate>& c)
+		{
+			return getTileAt(*c);
+		}
 
 		void updateTileColors(int8_t fromRow, int8_t toRow, bool setup = false);
 

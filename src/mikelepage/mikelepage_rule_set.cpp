@@ -20,7 +20,6 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-using namespace cyvmath;
 using namespace cyvmath::mikelepage;
 
 namespace mikelepage
@@ -56,7 +55,7 @@ namespace mikelepage
 
 		if(_setup)
 		{
-			for(std::shared_ptr<Piece> it : _self->_allPieces)
+			for(std::shared_ptr<cyvmath::Piece>& it : _self->_allPieces)
 			{
 				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
 				assert(tmp);
@@ -88,52 +87,52 @@ namespace mikelepage
 			mY = event.mouseButton.y;
 		}
 
-		static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> lastTile
-			= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
-		static std::pair<std::unique_ptr<Coordinate>, fea::Quad*> selectedTile
-			= std::make_pair(std::unique_ptr<Coordinate>(), nullptr);
+		static std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> lastTile
+			= std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
+		static std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> selectedTile
+			= std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
 
-		static auto resetTile = [](std::pair<std::unique_ptr<Coordinate>, fea::Quad*>& tile)
-			{ tile = std::make_pair(std::unique_ptr<Coordinate>(), nullptr); };
+		static auto resetTile = [](std::pair<dc::unique_ptr<Coordinate>, fea::Quad*>& tile)
+			{ tile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr); };
 
-		std::unique_ptr<Coordinate> pCoord = _board.getCoordinate({mX, mY});
-		fea::Quad* quad = _board.getTileAt(*pCoord);
+		dc::unique_ptr<Coordinate> coord = _board.getCoordinate({mX, mY});
+		fea::Quad* quad = _board.getTileAt(coord);
 
 		switch(event.type)
 		{
 			case fea::Event::MOUSEMOVED:
-				if(pCoord) // mouse hovered on tile (*pCoord)
+				if(coord) // mouse hovered on tile (*coord)
 				{
-					if(*pCoord != *lastTile.first)
+					if(*coord != *lastTile.first)
 					{
 						// reset color of old highlighted tile
 						if(lastTile.first && *lastTile.first != *selectedTile.first)
-							lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+							lastTile.second->setColor(_board.getTileColor(lastTile.first, _setup));
 
-						if(*pCoord != *selectedTile.first)
+						if(*coord != *selectedTile.first)
 						{
-							quad->setColor((_board.getTileColor(*pCoord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
+							quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
 								- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
 
-							// don't access pCoord in this function after it was moved!
-							lastTile = std::make_pair(std::move(pCoord), quad);
+							// don't access coord in this function after it was moved!
+							lastTile = std::make_pair(std::move(coord), quad);
 						}
 					}
 				}
 				else if(lastTile.first && *lastTile.first != *selectedTile.first)
 				{
 					// mouse is outside the board and one tile is still marked with the hover effect
-					lastTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+					lastTile.second->setColor(_board.getTileColor(lastTile.first, _setup));
 					resetTile(lastTile);
 				}
 				break;
 			case fea::Event::MOUSEBUTTONPRESSED:
 				// this stuff should be moved to MOUSEBUTTONRELEASED when
 				// we check if the mouse is still on the same tile there
-				if(pCoord) // clicked on the tile *pCoord
+				if(coord) // clicked on the tile *coord
 				{
 					// a non-selected tile was clicked
-					if(!selectedTile.first || *pCoord != *selectedTile.first)
+					if(!selectedTile.first || *coord != *selectedTile.first)
 					{
 						// there already was a tile selected
 						if(selectedTile.first)
@@ -141,10 +140,10 @@ namespace mikelepage
 							PlayersColor colorSelf = _self->_color;
 							PlayersColor colorOp = (colorSelf == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
-							PieceMap::iterator itStart = _self->_activePieces.find(*selectedTile.first);
+							PieceMap::iterator itStart = _self->_activePieces.find(selectedTile.first.clone());
 							PieceMap::const_iterator itTarget[2] {
-									_players[colorSelf]->getActivePieces().find(*pCoord),
-									_players[colorOp]->getActivePieces().find(*pCoord)
+									_players[colorSelf]->getActivePieces().find(coord.clone()),
+									_players[colorOp]->getActivePieces().find(coord.clone())
 								};
 
 							// the selected tile has a piece of the player on it
@@ -155,12 +154,13 @@ namespace mikelepage
 								   itTarget[1] == _players[colorOp]->getActivePieces().end())
 								{
 									// try to move the piece from selected piece to clicked piece
-									itStart->second->moveTo(*pCoord, !_setup);
+									// this doesn't work without clone(), though I don't know why
+									itStart->second->moveTo(coord.clone(), !_setup);
 
 									if(_setup)
 										_self->checkSetupComplete();
 
-									selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+									selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
 
 									resetTile(selectedTile);
 									return;
@@ -169,7 +169,7 @@ namespace mikelepage
 								else if(itTarget[1] != _players[colorOp]->getActivePieces().end())
 								{
 									// TODO: ATTACK!
-									selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+									selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
 
 									resetTile(selectedTile);
 									return;
@@ -184,23 +184,23 @@ namespace mikelepage
 
 						// reset color of old highlighted tile
 						if(selectedTile.first)
-							selectedTile.second->setColor(_board.getTileColor(*selectedTile.first, _setup));
+							selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
 
-						quad->setColor((_board.getTileColor(*pCoord, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
+						quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
 							- fea::Color(0.0f, 0.3f, 0.3f, 0.0f));
 
-						// don't access pCoord in this function after it was moved!
-						selectedTile = std::make_pair(std::move(pCoord), quad);
+						// don't access coord in this function after it was moved!
+						selectedTile = std::make_pair(std::move(coord), quad);
 					}
 					else // selected tile was clicked again - unselect it
 					{
 						// giving it the hovered color may be weird on
 						// touch screens, this should be fixed somewhen
-						quad->setColor((_board.getTileColor(*pCoord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
+						quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
 								- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
 
-						// don't access pCoord in this function after it was moved!
-						lastTile = std::make_pair(std::move(pCoord), quad);
+						// don't access coord in this function after it was moved!
+						lastTile = std::make_pair(std::move(coord), quad);
 
 						resetTile(selectedTile);
 					}
@@ -210,7 +210,7 @@ namespace mikelepage
 					// a tile is selected
 					if(selectedTile.first)
 					{
-						selectedTile.second->setColor(_board.getTileColor(*lastTile.first, _setup));
+						selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
 						resetTile(selectedTile);
 					}
 
@@ -307,14 +307,14 @@ namespace mikelepage
 
 		for(auto& it : defaultPiecePositions[color])
 		{
-			Coordinate tmpCoord(*it.second); // create a copy
+			dc::unique_ptr<Coordinate> tmpCoord = dc::make_unique<Coordinate>(*it.second);
 
 			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece
-				(it.first, new Coordinate(tmpCoord), color, _self->_activePieces, _board));
+				(it.first, tmpCoord.clone(), color, _self->_activePieces, _board));
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
-				_self->_activePieces.emplace(tmpCoord, tmpPiece);
+				_self->_activePieces.emplace(std::move(tmpCoord), tmpPiece);
 			}
 			else // dragon, 26th piece
 			{

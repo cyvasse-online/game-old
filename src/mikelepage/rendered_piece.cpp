@@ -19,14 +19,13 @@
 // lodepng helper function
 #include "texturemaker.hpp"
 
-using namespace cyvmath;
 using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
-	RenderedPiece::RenderedPiece(PieceType type, Coordinate* coord,
+	RenderedPiece::RenderedPiece(PieceType type, dc::unique_ptr<Coordinate>&& coord,
 	                             PlayersColor color, PieceMap& map, Board& board)
-		: Piece(color, type, coord, map)
+		: Piece(color, type, std::move(coord), map)
 		, fea::Quad({48.0f, 40.0f})
 		, _board(board)
 	{
@@ -46,7 +45,7 @@ namespace mikelepage
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
 		mTexture = new fea::Texture(makeTexture(texturePath, 48, 40));
 
-		glm::vec2 position = _board.getTilePosition(*_coord);
+		glm::vec2 position = _board.getTilePosition(*dynamic_cast<Coordinate*>(_coord.get()));
 		// TODO: piece graphics should be scaled, after
 		// that this constant should also be changed
 		position += glm::vec2(8, 4);
@@ -54,12 +53,12 @@ namespace mikelepage
 		setPosition(position);
 	}
 
-	bool RenderedPiece::moveTo(Coordinate coord, bool checkMoveValidity)
+	bool RenderedPiece::moveTo(const cyvmath::CoordinateDcUqP& coord, bool checkMoveValidity)
 	{
-		if(!Piece::moveTo(coord, checkMoveValidity))
+		if(!Piece::moveTo(std::move(coord), checkMoveValidity))
 			return false;
 
-		glm::vec2 position = _board.getTilePosition(*_coord);
+		glm::vec2 position = _board.getTilePosition(*dynamic_cast<Coordinate*>(_coord.get()));
 		position += glm::vec2(8, 4); // TODO
 
 		setPosition(position);

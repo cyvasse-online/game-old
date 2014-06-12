@@ -184,9 +184,7 @@ std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordi
 	if(x < 0.0f || y < 0.0f)
 		return nullptr;
 
-	return std::unique_ptr<Coordinate>(
-			Coordinate::create(static_cast<int>(x), static_cast<int>(y))
-		);
+	return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
 }
 
 template <int l>

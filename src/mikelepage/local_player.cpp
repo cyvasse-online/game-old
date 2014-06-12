@@ -16,7 +16,6 @@
 
 #include "local_player.hpp"
 
-using namespace cyvmath;
 using namespace cyvmath::mikelepage;
 
 namespace mikelepage
@@ -32,9 +31,9 @@ namespace mikelepage
 		auto outsideOwnSide = (_color == PLAYER_WHITE) ? [](int8_t y) { return y >= (Hexagon::edgeLength - 1); }
 		                                               : [](int8_t y) { return y <= (Hexagon::edgeLength - 1); };
 
-		for(auto it : _activePieces)
+		for(auto& it : _activePieces)
 		{
-			if(outsideOwnSide(it.first.y()))
+			if(outsideOwnSide(it.first->y()))
 			{
 				_setupComplete = false;
 				return;
