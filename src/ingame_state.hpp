@@ -23,7 +23,7 @@
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/ui/inputhandler.hpp>
-#include <cyvmath/player.hpp>
+#include <cyvmath/players_color.hpp>
 #include <cyvmath/rule_sets.hpp>
 #include "rule_set_base.hpp"
 

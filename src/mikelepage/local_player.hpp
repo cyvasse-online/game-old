@@ -19,10 +19,7 @@
 
 #include <cyvmath/mikelepage/player.hpp>
 
-#include <fea/rendering/renderer2d.hpp>
-#include <cyvmath/mikelepage/piece.hpp>
 #include "hexagon_board.hpp"
-#include "rendered_piece.hpp"
 
 namespace mikelepage
 {
@@ -37,7 +34,11 @@ namespace mikelepage
 			bool _setupComplete;
 
 		public:
-			LocalPlayer(cyvmath::PlayersColor color);
+			LocalPlayer(cyvmath::PlayersColor color)
+				: Player(color)
+				, _setupComplete(false)
+			{
+			}
 
 			bool setupComplete() override
 			{

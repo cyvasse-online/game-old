@@ -17,6 +17,7 @@
 #include "mikelepage_rule_set.hpp"
 
 #include "common.hpp"
+#include "remote_player.hpp"
 // lodepng helper function
 #include "texturemaker.hpp"
 
@@ -32,7 +33,7 @@ namespace mikelepage
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
 		_players.emplace(color, std::make_shared<LocalPlayer>(color));
-		//_players.emplace(opColor, std::make_shared<Bot>(opColor));
+		_players.emplace(opColor, std::make_shared<RemotePlayer>(opColor));
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[color]);
 		assert(_self);
 

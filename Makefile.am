@@ -34,6 +34,8 @@ cyvasse_js_SOURCES = \
 	src/mikelepage/local_player.hpp \
 	src/mikelepage/mikelepage_rule_set.cpp \
 	src/mikelepage/mikelepage_rule_set.hpp \
+	src/mikelepage/remote_player.cpp \
+	src/mikelepage/remote_player.hpp \
 	src/mikelepage/rendered_piece.cpp \
 	src/mikelepage/rendered_piece.hpp
 

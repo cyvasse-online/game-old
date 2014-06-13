@@ -14,26 +14,22 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "local_player.hpp"
+#include "remote_player.hpp"
 
-using namespace cyvmath::mikelepage;
+#ifdef EMSCRIPTEN
+	#include <emscripten.h>
+#endif
 
 namespace mikelepage
 {
-	void LocalPlayer::checkSetupComplete()
+	RemotePlayer::RemotePlayer(cyvmath::PlayersColor color)
+		: Player(color)
+		, _setupComplete(false)
 	{
-		auto outsideOwnSide = (_color == PLAYER_WHITE) ? [](int8_t y) { return y >= (Hexagon::edgeLength - 1); }
-		                                               : [](int8_t y) { return y <= (Hexagon::edgeLength - 1); };
-
-		for(auto& it : _activePieces)
-		{
-			if(outsideOwnSide(it.first->y()))
-			{
-				_setupComplete = false;
-				return;
-			}
-		}
-
-		_setupComplete = true;
+	#ifdef EMSCRIPTEN
+		EM_ASM(
+			alert('it works!');
+		);
+	#endif
 	}
 }

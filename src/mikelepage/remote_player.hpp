@@ -14,26 +14,33 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "local_player.hpp"
+#ifndef _MIKELEPAGE_REMOTE_PLAYER_HPP_
+#define _MIKELEPAGE_REMOTE_PLAYER_HPP_
 
-using namespace cyvmath::mikelepage;
+#include <cyvmath/mikelepage/player.hpp>
+
+#include "hexagon_board.hpp"
 
 namespace mikelepage
 {
-	void LocalPlayer::checkSetupComplete()
+	typedef HexagonBoard<6>::Hexagon Hexagon;
+
+	class MikelepageRuleSet;
+
+	class RemotePlayer : public cyvmath::mikelepage::Player
 	{
-		auto outsideOwnSide = (_color == PLAYER_WHITE) ? [](int8_t y) { return y >= (Hexagon::edgeLength - 1); }
-		                                               : [](int8_t y) { return y <= (Hexagon::edgeLength - 1); };
+		friend MikelepageRuleSet;
+		private:
+			bool _setupComplete;
 
-		for(auto& it : _activePieces)
-		{
-			if(outsideOwnSide(it.first->y()))
+		public:
+			RemotePlayer(cyvmath::PlayersColor color);
+
+			bool setupComplete() override
 			{
-				_setupComplete = false;
-				return;
+				return _setupComplete;
 			}
-		}
-
-		_setupComplete = true;
-	}
+	};
 }
+
+#endif // _MIKELEPAGE_REMOTE_PLAYER_HPP_

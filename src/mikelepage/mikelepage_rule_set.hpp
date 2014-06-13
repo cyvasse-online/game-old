@@ -25,6 +25,7 @@
 #include <cyvmath/mikelepage/piece.hpp>
 #include "hexagon_board.hpp"
 #include "local_player.hpp"
+#include "rendered_piece.hpp"
 
 namespace mikelepage
 {
