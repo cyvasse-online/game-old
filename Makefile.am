@@ -1,24 +1,8 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-SUBDIRS = cyvmath
+SUBDIRS = cyvmath .
 
-## probably not the best way to do this, but until we
-## create a native program from this source it's okay
-CXX = emcc
-
-AM_CPPFLAGS = -I$(EMSCRIPTEN_PREFIX)/include
-AM_LDFLAGS  = -L$(EMSCRIPTEN_PREFIX)/lib
-
-# Second option is necessary for Feather Kit to work with emscripten
-# Third option disables warnings one gets when EMSCRIPTEN_PREFIX is an absolute path
-AM_CXXFLAGS = \
-	-std=c++11 \
-	-s FULL_ES2=1 \
-	-Wno-warn-absolute-paths
-
-bin_PROGRAMS = cyvasse.js
-
-cyvasse_js_SOURCES = \
+game_sources = \
 	lodepng/lodepng.cpp \
 	lodepng/lodepng.h \
 	lodepng/texturemaker.hpp \
@@ -30,7 +14,6 @@ cyvasse_js_SOURCES = \
 	src/ingame_state.hpp \
 	src/main.cpp \
 	src/rule_set_base.hpp \
-	src/mikelepage/local_player.cpp \
 	src/mikelepage/local_player.hpp \
 	src/mikelepage/mikelepage_rule_set.cpp \
 	src/mikelepage/mikelepage_rule_set.hpp \
@@ -45,23 +28,51 @@ cyvasse_js_SOURCES = \
 # This functionality will probably be included
 # in Feather Kit in the future, so [TODO] this
 # folder should be removed then.
-cyvasse_js_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
+game_cppflags = \
 	-I$(top_srcdir)/cyvmath/include \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/lodepng
 
-cyvasse_js_CXXFLAGS = \
-	$(AM_CXXFLAGS) \
-	-O3
+game_cxxflags = \
+	-std=c++11
 
-cyvasse_js_LDFLAGS = \
-	$(AM_LDFLAGS) \
-	--preload-file $(top_srcdir)/data@/ \
-	-O3
-
-cyvasse_js_LDADD = \
+game_ldadd = \
+	$(top_builddir)/cyvmath/libcyvmath.a \
 	-lfea-structure \
 	-lfea-ui \
 	-lfea-rendering \
 	-lfea-sdl
+
+if !USING_EMSCRIPTEN # native
+
+bin_PROGRAMS = cyvasse-game
+
+cyvasse_game_SOURCES = $(game_sources)
+
+cyvasse_game_CPPFLAGS = $(game_cppflags)
+cyvasse_game_CXXFLAGS = $(game_cxxflags)
+
+cyvasse_game_LDADD = $(game_ldadd)
+
+else USING_EMSCRIPTEN # cross-compiling to js
+
+bin_PROGRAMS = cyvasse.js
+
+cyvasse_js_SOURCES = $(game_sources)
+
+cyvasse_js_CXXFLAGS = \
+	$(game_cppflags) \
+	$(game_cxxflags) \
+	-I$(EMSCRIPTEN_PREFIX)/include \
+	-s FULL_ES2=1 \
+	-Wno-warn-absolute-paths \
+	-O2
+
+cyvasse_js_LDFLAGS = \
+	-L$(EMSCRIPTEN_PREFIX)/lib \
+	--preload-file $(top_srcdir)/data@/ \
+	-O3
+
+cyvasse_js_LDADD = $(game_ldadd)
+
+endif

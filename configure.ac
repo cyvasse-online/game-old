@@ -4,7 +4,8 @@ AM_INIT_AUTOMAKE([1.11 foreign])
 AM_SILENT_RULES([yes])
 AC_PROG_CXX
 
-AC_CHECK_PROG([emcc])
+## This is probably not the best way to check whether emconfigure is used
+AM_CONDITIONAL([USING_EMSCRIPTEN], [test -n "$EMSCRIPTEN"])
 
 AC_ARG_VAR([EMSCRIPTEN_PREFIX], [prefix in which to search for library bitcode for emscripten])
 

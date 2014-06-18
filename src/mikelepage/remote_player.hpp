@@ -36,7 +36,7 @@ namespace mikelepage
 		public:
 			RemotePlayer(cyvmath::PlayersColor color);
 
-			bool setupComplete() override
+			bool setupComplete() final override
 			{
 				return _setupComplete;
 			}

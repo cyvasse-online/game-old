@@ -40,12 +40,15 @@ namespace mikelepage
 			{
 			}
 
-			bool setupComplete() override
+			bool setupComplete() final override
 			{
 				return _setupComplete;
 			}
 
-			void checkSetupComplete();
+			void checkSetupComplete()
+			{
+				_setupComplete = Player::setupComplete();
+			}
 	};
 }
 

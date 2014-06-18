@@ -32,12 +32,12 @@ void CyvasseApp::setup(const std::vector<std::string>& args)
 	ingameState->initMatch(cyvmath::RULESET_MIKELEPAGE, cyvmath::PLAYER_WHITE);
 
 	_stateMachine.addGameState("ingame", std::unique_ptr<IngameState>(ingameState));
-#ifdef EMSCRIPTEN
+//#ifdef EMSCRIPTEN
 	_stateMachine.setCurrentState("ingame");
-#else
-	_stateMachine.addGameState("startpage", /* ... */);
-	_stateMachine.setCurrentState("startpage");
-#endif
+//#else
+	//_stateMachine.addGameState("startpage", /* ... */);
+	//_stateMachine.setCurrentState("startpage");
+//#endif
 }
 
 void CyvasseApp::loop()

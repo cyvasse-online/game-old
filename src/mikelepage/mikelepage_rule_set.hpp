@@ -18,7 +18,7 @@
 #define _MIKELEPAGE_RULESET_HPP_
 
 #include "rule_set_base.hpp"
-#include <cyvmath/mikelepage/match.hpp>
+#include <cyvmath/match.hpp>
 
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
@@ -33,7 +33,7 @@ namespace mikelepage
 
 		See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
 	 */
-	class MikelepageRuleSet : public RuleSetBase, protected cyvmath::mikelepage::Match
+	class MikelepageRuleSet : public RuleSetBase, protected cyvmath::Match
 	{
 		public:
 			typedef HexagonBoard<6> Board;
@@ -50,16 +50,16 @@ namespace mikelepage
 			fea::Quad _buttonSetupDone;
 
 		public:
-			MikelepageRuleSet(fea::Renderer2D&, cyvmath::PlayersColor);
+			MikelepageRuleSet(fea::Renderer2D&, cyvmath::PlayersColor firstPlayer);
 			~MikelepageRuleSet() = default;
 
 			// non-copyable
 			MikelepageRuleSet(const MikelepageRuleSet&) = delete;
 			const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
 
-			void tick() override;
+			void tick() final override;
 
-			void processEvent(fea::Event&) override;
+			void processEvent(fea::Event&) final override;
 
 			void placePiecesSetup();
 			void exitSetup();
