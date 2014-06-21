@@ -81,6 +81,7 @@ class HexagonBoard
 		fea::Quad* getTileAt(Coordinate);
 		fea::Quad* getTileAt(const dc::unique_ptr<Coordinate>& c)
 		{
+			assert(c);
 			return getTileAt(*c);
 		}
 

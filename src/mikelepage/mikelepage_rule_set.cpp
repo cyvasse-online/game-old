@@ -97,20 +97,22 @@ namespace mikelepage
 			{ tile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr); };
 
 		dc::unique_ptr<Coordinate> coord = _board.getCoordinate({mX, mY});
-		fea::Quad* quad = _board.getTileAt(coord);
+		fea::Quad* quad = nullptr;
+		if(coord)
+			quad = _board.getTileAt(coord);
 
 		switch(event.type)
 		{
 			case fea::Event::MOUSEMOVED:
 				if(coord) // mouse hovered on tile (*coord)
 				{
-					if(*coord != *lastTile.first)
+					if(!lastTile.first || *coord != *lastTile.first)
 					{
 						// reset color of old highlighted tile
-						if(lastTile.first && *lastTile.first != *selectedTile.first)
+						if(lastTile.first && (!selectedTile.first || *lastTile.first != *selectedTile.first))
 							lastTile.second->setColor(_board.getTileColor(lastTile.first, _setup));
 
-						if(*coord != *selectedTile.first)
+						if(!selectedTile.first || *coord != *selectedTile.first)
 						{
 							quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
 								- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
@@ -120,7 +122,7 @@ namespace mikelepage
 						}
 					}
 				}
-				else if(lastTile.first && *lastTile.first != *selectedTile.first)
+				else if(lastTile.first && (!selectedTile.first || *lastTile.first != *selectedTile.first))
 				{
 					// mouse is outside the board and one tile is still marked with the hover effect
 					lastTile.second->setColor(_board.getTileColor(lastTile.first, _setup));
@@ -308,7 +310,9 @@ namespace mikelepage
 
 		for(auto& it : defaultPiecePositions[color])
 		{
-			dc::unique_ptr<Coordinate> tmpCoord = dc::make_unique<Coordinate>(*it.second);
+			dc::unique_ptr<Coordinate> tmpCoord;
+			if(it.second)
+				tmpCoord = dc::make_unique<Coordinate>(*it.second);
 
 			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece
 				(it.first, tmpCoord.clone(), color, _self->_activePieces, _board));

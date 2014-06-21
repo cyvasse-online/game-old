@@ -45,12 +45,15 @@ namespace mikelepage
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
 		mTexture = new fea::Texture(makeTexture(texturePath, 48, 40));
 
-		glm::vec2 position = _board.getTilePosition(*dynamic_cast<Coordinate*>(_coord.get()));
-		// TODO: piece graphics should be scaled, after
-		// that this constant should also be changed
-		position += glm::vec2(8, 4);
+		if(_coord)
+		{
+			glm::vec2 position = _board.getTilePosition(*dynamic_cast<Coordinate*>(_coord.get()));
+			// TODO: piece graphics should be scaled, after
+			// that this constant should also be changed
+			position += glm::vec2(8, 4);
 
-		setPosition(position);
+			setPosition(position);
+		}
 	}
 
 	bool RenderedPiece::moveTo(const cyvmath::CoordinateDcUqP& coord, bool checkMoveValidity)
