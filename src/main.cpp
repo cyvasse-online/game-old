@@ -14,14 +14,67 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <exception>
+#include <iostream>
+#include <csignal>
 #include "cyvasse_app.hpp"
+
+CyvasseApp* app = nullptr;
+
+extern "C"
+{
+	void stopGame(int /* signal */)
+	{
+		if(app) app->quit();
+		exit(0);
+	}
+}
 
 int main()
 {
-	// instantiate the game class
-	CyvasseApp app;
-	// start the main loop
-	app.run();
+#ifdef HAVE_SIGACTION
+	struct sigaction newAction, oldAction;
+
+	// setup sigaction struct for stopGame
+	newAction.sa_handler = stopGame;
+	sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = 0;
+
+	sigaction(SIGHUP, nullptr, &oldAction);
+	if(oldAction.sa_handler != SIG_IGN)
+		sigaction(SIGHUP, &newAction, nullptr);
+
+	sigaction(SIGINT, nullptr, &oldAction);
+	if(oldAction.sa_handler != SIG_IGN)
+		sigaction(SIGINT, &newAction, nullptr);
+
+	sigaction(SIGTERM, nullptr, &oldAction);
+	if(oldAction.sa_handler != SIG_IGN)
+		sigaction(SIGTERM, &newAction, nullptr);
+#else
+	if(signal(SIGHUP, stopGame) == SIG_IGN)
+		signal(SIGHUP, SIG_IGN);
+
+	if(signal(SIGINT, stopGame) == SIG_IGN)
+		signal(SIGINT, SIG_IGN);
+
+	if(signal(SIGTERM, stopGame) == SIG_IGN)
+		signal(SIGTERM, SIG_IGN);
+#endif
+
+	try
+	{
+		// instantiate the game class
+		app = new CyvasseApp();
+		// start the main loop
+		app->run();
+	}
+	catch(std::exception& e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+
+	if(app) delete app;
 
 	return 0;
 }

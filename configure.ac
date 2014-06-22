@@ -4,6 +4,8 @@ AM_INIT_AUTOMAKE([1.11 foreign])
 AM_SILENT_RULES([yes])
 AC_PROG_CXX
 
+AC_CHECK_FUNCS([sigaction])
+
 ## This is probably not the best way to check whether emconfigure is used
 AM_CONDITIONAL([USING_EMSCRIPTEN], [test -n "$EMSCRIPTEN"])
 

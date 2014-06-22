@@ -65,6 +65,7 @@ class HexagonBoard
 		glm::vec2 getTilePosition(Coordinate);
 		glm::vec2 getTilePosition(const dc::unique_ptr<Coordinate>& c)
 		{
+			assert(c);
 			return getTilePosition(*c);
 		}
 
@@ -73,6 +74,7 @@ class HexagonBoard
 		fea::Color getTileColor(Coordinate, bool setup);
 		fea::Color getTileColor(const dc::unique_ptr<Coordinate>& c, bool setup)
 		{
+			assert(c);
 			return getTileColor(*c, setup);
 		}
 

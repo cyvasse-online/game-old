@@ -26,10 +26,5 @@ namespace mikelepage
 		: Player(color)
 		, _setupComplete(false)
 	{
-	#ifdef EMSCRIPTEN
-		EM_ASM(
-			alert('it works!');
-		);
-	#endif
 	}
 }

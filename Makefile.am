@@ -65,13 +65,11 @@ cyvasse_js_CXXFLAGS = \
 	$(game_cxxflags) \
 	-I$(EMSCRIPTEN_PREFIX)/include \
 	-s FULL_ES2=1 \
-	-Wno-warn-absolute-paths \
-	-O2
+	-Wno-warn-absolute-paths
 
 cyvasse_js_LDFLAGS = \
 	-L$(EMSCRIPTEN_PREFIX)/lib \
-	--preload-file $(top_srcdir)/data@/ \
-	-O3
+	--preload-file $(top_srcdir)/data@/
 
 cyvasse_js_LDADD = $(game_ldadd)
 

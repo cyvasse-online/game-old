@@ -47,7 +47,10 @@ namespace mikelepage
 
 		if(_coord)
 		{
-			glm::vec2 position = _board.getTilePosition(*dynamic_cast<Coordinate*>(_coord.get()));
+			Coordinate* c = dynamic_cast<Coordinate*>(_coord.get());
+			assert(c);
+
+			glm::vec2 position = _board.getTilePosition(*c);
 			// TODO: piece graphics should be scaled, after
 			// that this constant should also be changed
 			position += glm::vec2(8, 4);
@@ -61,7 +64,10 @@ namespace mikelepage
 		if(!Piece::moveTo(std::move(coord), checkMoveValidity))
 			return false;
 
-		glm::vec2 position = _board.getTilePosition(*dynamic_cast<Coordinate*>(_coord.get()));
+		Coordinate* c = dynamic_cast<Coordinate*>(_coord.get());
+		assert(c);
+
+		glm::vec2 position = _board.getTilePosition(*c);
 		position += glm::vec2(8, 4); // TODO
 
 		setPosition(position);
