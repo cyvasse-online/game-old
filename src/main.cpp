@@ -21,6 +21,7 @@
 
 CyvasseApp* app = nullptr;
 
+#ifndef EMSCRIPTEN
 extern "C"
 {
 	void stopGame(int /* signal */)
@@ -29,9 +30,11 @@ extern "C"
 		exit(0);
 	}
 }
+#endif
 
 int main()
 {
+#ifndef EMSCRIPTEN
 #ifdef HAVE_SIGACTION
 	struct sigaction newAction, oldAction;
 
@@ -60,6 +63,7 @@ int main()
 
 	if(signal(SIGTERM, stopGame) == SIG_IGN)
 		signal(SIGTERM, SIG_IGN);
+#endif
 #endif
 
 	try
