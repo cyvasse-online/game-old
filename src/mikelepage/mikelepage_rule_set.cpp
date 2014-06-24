@@ -200,14 +200,17 @@ namespace mikelepage
 							- fea::Color(0.0f, 0.3f, 0.3f, 0.0f));
 
 						// if the new selected tile has a piece on it and we are no
-						// more in the setup, display all possible target pieces
+						// more in the setup, display all possible target tiles
 						if(!_setup)
 						{
 							auto& pieces = _self->getActivePieces();
 							auto it = pieces.find(coord.clone());
 							if(it != pieces.end()) // the tile clicked on holds an own piece
 							{
-								for(auto targetC : coord->getCoordinates(it->second->getMovementScope()))
+								auto piece = std::dynamic_pointer_cast<cyvmath::mikelepage::Piece>(it->second);
+								assert(piece);
+
+								for(auto targetC : piece->getPossibleTargetTiles())
 								{
 									fea::Quad* targetQ = _board.getTileAt(targetC);
 									targetQ->setColor((_board.getTileColor(targetC, false)
