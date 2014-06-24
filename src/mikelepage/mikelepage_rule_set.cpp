@@ -75,6 +75,8 @@ namespace mikelepage
 
 	void MikelepageRuleSet::processEvent(fea::Event& event)
 	{
+		// TODO: Clean up this function and move code out of it
+
 		// assert that we are processing a mouse event (for now)
 		int mX, mY; // mouse x and y coordinates
 		if(event.type == fea::Event::MOUSEMOVED)
@@ -88,12 +90,14 @@ namespace mikelepage
 			mY = event.mouseButton.y;
 		}
 
-		static std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> lastTile
-			= std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
-		static std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> selectedTile
-			= std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
+		typedef std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> Tile;
+		typedef std::map<dc::unique_ptr<Coordinate>, fea::Quad*, dc::managed_less<dc::unique_ptr<Coordinate>>> TileMap;
 
-		static auto resetTile = [](std::pair<dc::unique_ptr<Coordinate>, fea::Quad*>& tile)
+		static Tile lastTile     = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
+		static Tile selectedTile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
+		static TileMap possibleTargets;
+
+		static auto resetTile = [](Tile& tile)
 			{ tile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr); };
 
 		dc::unique_ptr<Coordinate> coord = _board.getCoordinate({mX, mY});
@@ -109,23 +113,19 @@ namespace mikelepage
 					if(!lastTile.first || *coord != *lastTile.first)
 					{
 						// reset color of old highlighted tile
-						if(lastTile.first && (!selectedTile.first || *lastTile.first != *selectedTile.first))
-							lastTile.second->setColor(_board.getTileColor(lastTile.first, _setup));
+						if(lastTile.first)
+							lastTile.second->setColor(lastTile.second->getColor() - fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
 
-						if(!selectedTile.first || *coord != *selectedTile.first)
-						{
-							quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.0f, 0.7f, 0.0f))
-								- fea::Color(0.3f, 0.0f, 0.3f, 0.0f));
+						quad->setColor(quad->getColor() + fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
 
-							// don't access coord in this function after it was moved!
-							lastTile = std::make_pair(std::move(coord), quad);
-						}
+						// don't access coord in this function after it was moved!
+						lastTile = std::make_pair(std::move(coord), quad);
 					}
 				}
 				else if(lastTile.first && (!selectedTile.first || *lastTile.first != *selectedTile.first))
 				{
 					// mouse is outside the board and one tile is still marked with the hover effect
-					lastTile.second->setColor(_board.getTileColor(lastTile.first, _setup));
+					lastTile.second->setColor(lastTile.second->getColor() - fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
 					resetTile(lastTile);
 				}
 				break;
@@ -134,6 +134,11 @@ namespace mikelepage
 				// we check if the mouse is still on the same tile there
 				if(coord) // clicked on the tile *coord
 				{
+					for(auto& it : possibleTargets)
+						it.second->setColor(_board.getTileColor(it.first, _setup));
+
+					possibleTargets.clear();
+
 					// a non-selected tile was clicked
 					if(!selectedTile.first || *coord != *selectedTile.first)
 					{
@@ -191,6 +196,25 @@ namespace mikelepage
 
 						quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
 							- fea::Color(0.0f, 0.3f, 0.3f, 0.0f));
+
+						// if the new selected tile has a piece on it and we are no
+						// more in the setup, display all possible target pieces
+						if(!_setup)
+						{
+							auto& pieces = _self->getActivePieces();
+							auto it = pieces.find(coord.clone());
+							if(it != pieces.end()) // the tile clicked on holds an own piece
+							{
+								for(auto targetC : coord->getCoordinates(it->second->getMovementScope()))
+								{
+									fea::Quad* targetQ = _board.getTileAt(targetC);
+									targetQ->setColor((_board.getTileColor(targetC, true)
+										+ fea::Color(0.0f, 0.0f, 0.7f)) - fea::Color(0.3f, 0.3f, 0.0f, 0.0f));
+
+									possibleTargets.emplace(dc::make_unique<Coordinate>(targetC), targetQ);
+								}
+							}
+						}
 
 						// don't access coord in this function after it was moved!
 						selectedTile = std::make_pair(std::move(coord), quad);
