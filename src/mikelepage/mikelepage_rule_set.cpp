@@ -114,9 +114,9 @@ namespace mikelepage
 					{
 						// reset color of old highlighted tile
 						if(lastTile.first)
-							lastTile.second->setColor(lastTile.second->getColor() - fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
+							lastTile.second->setColor(lastTile.second->getColor() - fea::Color(48, 48, 48, 0));
 
-						quad->setColor(quad->getColor() + fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
+						quad->setColor(quad->getColor() + fea::Color(48, 48, 48, 0));
 
 						// don't access coord in this function after it was moved!
 						lastTile = std::make_pair(std::move(coord), quad);
@@ -125,7 +125,7 @@ namespace mikelepage
 				else if(lastTile.first && (!selectedTile.first || *lastTile.first != *selectedTile.first))
 				{
 					// mouse is outside the board and one tile is still marked with the hover effect
-					lastTile.second->setColor(lastTile.second->getColor() - fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
+					lastTile.second->setColor(lastTile.second->getColor() - fea::Color(48, 48, 48, 0));
 					resetTile(lastTile);
 				}
 				break;
@@ -170,7 +170,7 @@ namespace mikelepage
 
 									selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
 
-									quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(0.2f, 0.2f, 0.2f));
+									quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(48, 48, 48));
 
 									resetTile(selectedTile);
 									return;
@@ -196,8 +196,8 @@ namespace mikelepage
 						if(selectedTile.first)
 							selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
 
-						quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(0.7f, 0.0f, 0.0f))
-							- fea::Color(0.0f, 0.3f, 0.3f, 0.0f));
+						quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(192, 0, 0))
+							- fea::Color(0, 64, 64, 0));
 
 						// if the new selected tile has a piece on it and we are no
 						// more in the setup, display all possible target tiles
@@ -214,7 +214,7 @@ namespace mikelepage
 								{
 									fea::Quad* targetQ = _board.getTileAt(targetC);
 									targetQ->setColor((_board.getTileColor(targetC, false)
-										+ fea::Color(0.0f, 0.0f, 0.7f)) - fea::Color(0.3f, 0.3f, 0.0f, 0.0f));
+										+ fea::Color(0, 0, 192)) - fea::Color(64, 64, 0, 0));
 
 									possibleTargets.emplace(dc::make_unique<Coordinate>(targetC), targetQ);
 								}
@@ -228,7 +228,7 @@ namespace mikelepage
 					{
 						// giving it the hovered color may be weird on
 						// touch screens, this should be fixed somewhen
-						quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(0.2f, 0.2f, 0.2f, 0.0f));
+						quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(48, 48, 48, 0));
 
 						// don't access coord in this function after it was moved!
 						lastTile = std::make_pair(std::move(coord), quad);
