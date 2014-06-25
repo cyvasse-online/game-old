@@ -9,6 +9,12 @@ AX_CXX_COMPILE_STDCXX_11(noext, mandatory)
 
 AC_CHECK_FUNCS([sigaction])
 
+PKG_CHECK_MODULES([FEA_STRUCTURE], [fea-structure])
+PKG_CHECK_MODULES([FEA_UI], [fea-ui])
+PKG_CHECK_MODULES([FEA_RENDERING], [fea-rendering])
+PKG_CHECK_MODULES([FEA_SDL], [fea-sdl])
+PKG_CHECK_MODULES([JSONCPP], [jsoncpp])
+
 ## This is probably not the best way to check whether emconfigure is used
 AM_CONDITIONAL([USING_EMSCRIPTEN], [test -n "$EMMAKEN_JUST_CONFIGURE"])
 

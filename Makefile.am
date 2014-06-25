@@ -4,29 +4,16 @@ SUBDIRS = cyvasse-common .
 
 game_sources = \
 	lodepng/lodepng.cpp \
-	lodepng/lodepng.h \
-	lodepng/texturemaker.hpp \
-	src/common.hpp \
 	src/cyvasse_app.cpp \
-	src/cyvasse_app.hpp \
 	src/cyvasse_ws_client.cpp \
-	src/cyvasse_ws_client.hpp \
-	src/hexagon_board.hpp \
 	src/ingame_state.cpp \
-	src/ingame_state.hpp \
 	src/main.cpp \
 	src/mikelepage/local_player.cpp \
-	src/mikelepage/local_player.hpp \
 	src/mikelepage/remote_player.cpp \
-	src/mikelepage/remote_player.hpp \
 	src/mikelepage/rendered_fortress.cpp \
-	src/mikelepage/rendered_fortress.hpp \
 	src/mikelepage/rendered_match.cpp \
-	src/mikelepage/rendered_match.hpp \
 	src/mikelepage/rendered_piece.cpp \
-	src/mikelepage/rendered_piece.hpp \
-	src/mikelepage/rendered_terrain.cpp \
-	src/mikelepage/rendered_terrain.hpp
+	src/mikelepage/rendered_terrain.cpp
 
 # The last include directory contains lodepng,
 # which loads png files, plus texturemaker.hpp
@@ -39,14 +26,21 @@ game_cppflags = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/lodepng
 
+game_cxxflags = \
+	$(FEA_STRUCTURE_CFLAGS) \
+	$(FEA_UI_CFLAGS) \
+	$(FEA_RENDERING_CFLAGS) \
+	$(FEA_SDL_CFLAGS) \
+	$(JSONCPP_CFLAGS)
+
 game_ldadd = \
 	$(top_builddir)/cyvasse-common/libcyvmath.a \
 	$(top_builddir)/cyvasse-common/libcyvws.a \
-	-lfea-structure \
-	-lfea-ui \
-	-lfea-rendering \
-	-lfea-sdl \
-	-ljsoncpp
+	$(FEA_STRUCTURE_LIBS) \
+	$(FEA_UI_LIBS) \
+	$(FEA_RENDERING_LIBS) \
+	$(FEA_SDL_LIBS) \
+	$(JSONCPP_LIBS)
 
 if !USING_EMSCRIPTEN # native
 
@@ -54,11 +48,8 @@ bin_PROGRAMS = cyvasse-game
 
 cyvasse_game_SOURCES = $(game_sources)
 
-# work around differing jsoncpp include dir
 cyvasse_game_CPPFLAGS = \
-	$(game_cppflags) \
-	-I/usr/include/jsoncpp \
-	-I/usr/local/include/jsoncpp
+	$(game_cppflags)
 
 cyvasse_game_CXXFLAGS = \
 	$(game_cxxflags) \
@@ -87,6 +78,7 @@ cyvasse_js_LDFLAGS = \
 	-L$(EMSCRIPTEN_PREFIX)/lib \
 	-s EXPORTED_FUNCTIONS="['_main', '_game_handlemessage']" \
 	-s FULL_ES2=1 \
+	-s DISABLE_EXCEPTION_CATCHING=0 \
 	--embed-file $(top_srcdir)/data@/
 
 cyvasse_js_LDADD = $(game_ldadd)
