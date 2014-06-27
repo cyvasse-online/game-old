@@ -40,6 +40,7 @@ class CyvasseApp : public fea::Application
 
 	public:
 		CyvasseApp();
+		virtual ~CyvasseApp() = default;
 };
 
 #endif // _CYVASSE_APP_HPP_

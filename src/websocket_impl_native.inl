@@ -14,8 +14,10 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <websocketpp/config/asio_client.hpp>
+#define _WEBSOCKETPP_CPP11_STL_
+#include <websocketpp/config/asio_no_tls_client.hpp>
 #include <websocketpp/client.hpp>
+#undef _WEBSOCKETPP_CPP11_STL
 
 class WebsocketImpl
 {

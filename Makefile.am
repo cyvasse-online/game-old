@@ -9,6 +9,8 @@ game_sources = \
 	src/common.hpp \
 	src/cyvasse_app.cpp \
 	src/cyvasse_app.hpp \
+	src/cyvasse_ws_client.cpp \
+	src/cyvasse_ws_client.hpp \
 	src/hexagon_board.hpp \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
@@ -49,10 +51,19 @@ bin_PROGRAMS = cyvasse-game
 
 cyvasse_game_SOURCES = $(game_sources)
 
-cyvasse_game_CPPFLAGS = $(game_cppflags)
-cyvasse_game_CXXFLAGS = $(game_cxxflags)
+cyvasse_game_CPPFLAGS = \
+	$(game_cppflags)
 
-cyvasse_game_LDADD = $(game_ldadd)
+cyvasse_game_CXXFLAGS = \
+	$(game_cxxflags) \
+	-pthread
+
+cyvasse_game_LDFLAGS = \
+	-pthread
+
+cyvasse_game_LDADD = \
+	$(game_ldadd) \
+	-lboost_system
 
 else USING_EMSCRIPTEN # cross-compiling to js
 
@@ -64,11 +75,12 @@ cyvasse_js_CXXFLAGS = \
 	$(game_cppflags) \
 	$(game_cxxflags) \
 	-I$(EMSCRIPTEN_PREFIX)/include \
-	-s FULL_ES2=1 \
 	-Wno-warn-absolute-paths
 
 cyvasse_js_LDFLAGS = \
 	-L$(EMSCRIPTEN_PREFIX)/lib \
+	-s EXPORTED_FUNCTIONS="['_main', '_game_handlemessage']" \
+	-s FULL_ES2=1 \
 	--preload-file $(top_srcdir)/data@/
 
 cyvasse_js_LDADD = $(game_ldadd)
