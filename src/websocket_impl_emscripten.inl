@@ -14,17 +14,32 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <functional>
 #include <emscripten.h>
+#include <jsoncpp/json/reader.h>
 
 class WebsocketImpl
 {
-	// TODO
+	public:
+		// TODO
 };
 
 extern "C"
 {
 	void game_handlemessage(const char* msgData)
 	{
-		
+		if(!CyvasseWSClient::instance())
+		{
+			EM_ASM(
+				throw new Error('game_handlemessage called without CyvasseWSClient being initialized!\n');
+			);
+		}
+
+		if(CyvasseWSClient::instance()->handleMessage) // if std::function object holds a callable
+		{
+			Json::Value val;
+			if((Json::Reader()).parse(std::string(msgData), val, false))
+				CyvasseWSClient::instance()->handleMessage(val);
+		}
 	}
 }

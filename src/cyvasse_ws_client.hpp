@@ -17,6 +17,9 @@
 #ifndef _CYVASSE_WS_CLIENT_HPP_
 #define _CYVASSE_WS_CLIENT_HPP_
 
+#include <functional>
+#include <jsoncpp/json/value.h>
+
 class WebsocketImpl;
 
 class CyvasseWSClient
@@ -24,9 +27,18 @@ class CyvasseWSClient
 	private:
 		WebsocketImpl* wsImpl;
 
+		// implemented as singleton because one game can only
+		// be connected to one websocket remote end at once
+		static CyvasseWSClient* _instance;
+
 	public:
 		CyvasseWSClient();
 		~CyvasseWSClient();
+
+		std::function<void(const Json::Value&)> handleMessage;
+
+		static CyvasseWSClient* instance()
+		{ return _instance; }
 };
 
 #endif // _CYVASSE_WS_CLIENT_HPP_
