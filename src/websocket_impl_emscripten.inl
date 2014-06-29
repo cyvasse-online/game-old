@@ -24,7 +24,7 @@ class WebsocketImpl
 		void send(const std::string& msgData);
 };
 
-void WebsocketImpl::send(std::string& msgData)
+void WebsocketImpl::send(const std::string& msgData)
 {
 	EM_ASM_({
 		var jsWSClient = Module.wsClient;
@@ -35,7 +35,7 @@ void WebsocketImpl::send(std::string& msgData)
 	    }
 
 		jsWSClient.conn.send($0);
-	}, msgData);
+	}, msgData.c_str());
 }
 
 extern "C"
