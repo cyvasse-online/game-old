@@ -22,7 +22,7 @@
 	#include "websocket_impl_native.inl"
 #endif
 
-CyvasseWSClient* CyvasseWSClient::instance = nullptr;
+CyvasseWSClient* CyvasseWSClient::_instance = nullptr;
 
 CyvasseWSClient::CyvasseWSClient()
 	: wsImpl(new WebsocketImpl())

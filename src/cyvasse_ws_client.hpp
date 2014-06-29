@@ -18,7 +18,7 @@
 #define _CYVASSE_WS_CLIENT_HPP_
 
 #include <functional>
-#include <jsoncpp/json/value.h>
+#include <json/value.h>
 
 class WebsocketImpl;
 

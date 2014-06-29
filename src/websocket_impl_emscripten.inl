@@ -16,13 +16,27 @@
 
 #include <functional>
 #include <emscripten.h>
-#include <jsoncpp/json/reader.h>
+#include <json/reader.h>
 
 class WebsocketImpl
 {
 	public:
-		// TODO
+		void send(const std::string& msgData);
 };
+
+void WebsocketImpl::send(std::string& msgData)
+{
+	EM_ASM_({
+		var jsWSClient = Module.wsClient;
+
+		if(jsWSClient.debug === true) {
+	        console.log('[send]');
+	        console.log($0);
+	    }
+
+		jsWSClient.conn.send($0);
+	}, msgData);
+}
 
 extern "C"
 {

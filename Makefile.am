@@ -43,7 +43,8 @@ game_ldadd = \
 	-lfea-structure \
 	-lfea-ui \
 	-lfea-rendering \
-	-lfea-sdl
+	-lfea-sdl \
+	-ljsoncpp
 
 if !USING_EMSCRIPTEN # native
 
