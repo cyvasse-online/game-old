@@ -18,7 +18,13 @@
 #define _CYVASSE_WS_CLIENT_HPP_
 
 #include <functional>
+
+// Only a workaround...
+#ifdef EMSCRIPTEN
 #include <json/value.h>
+#else
+#include <jsoncpp/json/value.h>
+#endif
 
 class WebsocketImpl;
 

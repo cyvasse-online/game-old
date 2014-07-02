@@ -16,22 +16,41 @@
 
 #include "cyvasse_app.hpp"
 
+#include <map>
 #include <fea/ui/sdlwindowbackend.hpp>
 #include <fea/ui/sdlinputbackend.hpp>
+#include <cyvmath/rule_sets.hpp>
+// for make_unique (use this until std::make_unique has enough compiler support)
+#include <deepcopy_smart_ptr/unique_ptr.hpp>
 #include "ingame_state.hpp"
+
+#include "mikelepage/mikelepage_rule_set.hpp"
+
+using namespace cyvmath;
 
 void CyvasseApp::setup(const std::vector<std::string>& args)
 {
+	static std::map<RuleSet, std::function<std::unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
+		createRuleSet {{
+			RULESET_MIKELEPAGE, [](IngameState& st, fea::Renderer2D& r, PlayersColor c)
+				{ return std::unique_ptr<Match>(new ::mikelepage::MikelepageRuleSet(st, r, c)); }
+		}};
+
 	_window.create(fea::VideoMode(800, 600, 32), "Cyvasse");
 	_window.setFramerateLimit(60);
 
 	_renderer.setup();
 
-	IngameState* ingameState = new IngameState(_input, _renderer);
-	// --- test ---
-	ingameState->initMatch(cyvmath::RULESET_MIKELEPAGE, cyvmath::PLAYER_WHITE);
+	auto ingameState = make_unique<IngameState>(_input, _renderer);
 
-	_stateMachine.addGameState("ingame", std::unique_ptr<IngameState>(ingameState));
+	// --- hardcoded only until game init code is written ---
+	auto ruleSet = RULESET_MIKELEPAGE;
+	auto color = PLAYER_WHITE;
+
+
+	_ruleSet = createRuleSet[ruleSet](*ingameState, _renderer, color);
+
+	_stateMachine.addGameState("ingame", std::move(ingameState));
 //#ifdef EMSCRIPTEN
 	_stateMachine.setCurrentState("ingame");
 //#else
@@ -48,8 +67,7 @@ void CyvasseApp::loop()
 	// display whatever the current game state rendered
 	_window.swapBuffers();
 
-	// exit the program when the state machine is finished, which never happens
-	// with the current code because no game state ever returns "NONE"
+	// exit the program when the state machine is finished
 	if(_stateMachine.isFinished())
 		quit();
 }

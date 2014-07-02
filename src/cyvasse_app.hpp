@@ -24,6 +24,7 @@
 #include <fea/ui/inputhandler.hpp>
 #include <fea/ui/window.hpp>
 #include <fea/ui/windowbackend.hpp>
+#include <cyvmath/match.hpp>
 
 class CyvasseApp : public fea::Application
 {
@@ -32,6 +33,8 @@ class CyvasseApp : public fea::Application
 		fea::InputHandler _input;
 		fea::Renderer2D _renderer;
 		fea::GameStateMachine _stateMachine;
+
+		std::unique_ptr<cyvmath::Match> _ruleSet;
 
 	protected:
 		void setup(const std::vector<std::string>& args) override;

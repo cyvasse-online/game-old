@@ -24,6 +24,7 @@
 #include <cstdlib>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/rendering/quad.hpp>
+#include <fea/ui/event.hpp>
 #include <cyvmath/hexagon.hpp>
 
 template<int l>
@@ -59,6 +60,8 @@ class HexagonBoard
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
 		~HexagonBoard();
 
+		std::function<void(Coordinate)> onTileClicked;
+
 		glm::uvec2 getSize();
 		glm::uvec2 getPosition();
 
@@ -90,6 +93,10 @@ class HexagonBoard
 		void updateTileColors(int8_t fromRow, int8_t toRow, bool setup = false);
 
 		void tick();
+
+		void onMouseMoved(const fea::Event::MouseMoveEvent&);
+		void onMouseButtonPressed(const fea::Event::MouseButtonEvent&);
+		void onMouseButtonReleased(const fea::Event::MouseButtonEvent&);
 };
 
 #include "hexagon_board.inl"

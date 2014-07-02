@@ -19,13 +19,11 @@
 
 #include <fea/structure/gamestate.hpp>
 
+#include <functional>
 #include <memory>
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/ui/inputhandler.hpp>
-#include <cyvmath/players_color.hpp>
-#include <cyvmath/rule_sets.hpp>
-#include "rule_set_base.hpp"
 
 class IngameState : public fea::GameState
 {
@@ -35,16 +33,20 @@ class IngameState : public fea::GameState
 
 		fea::Quad _background;
 
-		std::unique_ptr<RuleSetBase> _ruleSet;
-
 	public:
 		IngameState(fea::InputHandler&, fea::Renderer2D&);
 
 		// non-copyable
-		IngameState(const RuleSetBase&) = delete;
+		IngameState(const IngameState&) = delete;
 		const IngameState& operator= (const IngameState&) = delete;
 
-		void initMatch(cyvmath::RuleSet, cyvmath::PlayersColor);
+		std::function<void(const fea::Event::MouseMoveEvent&)> onMouseMoved;
+		std::function<void(const fea::Event::MouseButtonEvent&)> onMouseButtonPressed;
+		std::function<void(const fea::Event::MouseButtonEvent&)> onMouseButtonReleased;
+		std::function<void(const fea::Event::KeyEvent&)> onKeyPressed;
+		std::function<void(const fea::Event::KeyEvent&)> onKeyReleased;
+
+		std::function<void()> tick;
 
 		void setup() override;
 		std::string run() override;

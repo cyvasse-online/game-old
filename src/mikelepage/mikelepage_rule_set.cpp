@@ -25,9 +25,9 @@ using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
-	MikelepageRuleSet::MikelepageRuleSet(fea::Renderer2D& renderer, PlayersColor color)
-		: RuleSetBase(renderer)
-		, Match(color)
+	MikelepageRuleSet::MikelepageRuleSet(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
+		: Match(color)
+		, _renderer(renderer)
 		, _board(renderer, color)
 	{
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
@@ -72,7 +72,7 @@ namespace mikelepage
 				_renderer.queue(*it);
 		}
 	}
-
+/*
 	void MikelepageRuleSet::processEvent(fea::Event& event)
 	{
 		// TODO: Clean up this function and move code out of it
@@ -93,8 +93,8 @@ namespace mikelepage
 		typedef std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> Tile;
 		typedef std::map<dc::unique_ptr<Coordinate>, fea::Quad*, dc::managed_less<dc::unique_ptr<Coordinate>>> TileMap;
 
-		static Tile lastTile     = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
-		static Tile selectedTile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
+		static Tile highlightedTile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
+		static Tile selectedTile    = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
 		static TileMap possibleTargets;
 
 		static auto resetTile = [](Tile& tile)
@@ -110,23 +110,23 @@ namespace mikelepage
 			case fea::Event::MOUSEMOVED:
 				if(coord) // mouse hovered on tile (*coord)
 				{
-					if(!lastTile.first || *coord != *lastTile.first)
+					if(!highlightedTile.first || *coord != *highlightedTile.first)
 					{
 						// reset color of old highlighted tile
-						if(lastTile.first)
-							lastTile.second->setColor(lastTile.second->getColor() - fea::Color(48, 48, 48, 0));
+						if(highlightedTile.first)
+							highlightedTile.second->setColor(highlightedTile.second->getColor() - fea::Color(48, 48, 48, 0));
 
 						quad->setColor(quad->getColor() + fea::Color(48, 48, 48, 0));
 
 						// don't access coord in this function after it was moved!
-						lastTile = std::make_pair(std::move(coord), quad);
+						highlightedTile = std::make_pair(std::move(coord), quad);
 					}
 				}
-				else if(lastTile.first && (!selectedTile.first || *lastTile.first != *selectedTile.first))
+				else if(highlightedTile.first && (!selectedTile.first || *highlightedTile.first != *selectedTile.first))
 				{
 					// mouse is outside the board and one tile is still marked with the hover effect
-					lastTile.second->setColor(lastTile.second->getColor() - fea::Color(48, 48, 48, 0));
-					resetTile(lastTile);
+					highlightedTile.second->setColor(highlightedTile.second->getColor() - fea::Color(48, 48, 48, 0));
+					resetTile(highlightedTile);
 				}
 				break;
 			case fea::Event::MOUSEBUTTONPRESSED:
@@ -231,7 +231,7 @@ namespace mikelepage
 						quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(48, 48, 48, 0));
 
 						// don't access coord in this function after it was moved!
-						lastTile = std::make_pair(std::move(coord), quad);
+						highlightedTile = std::make_pair(std::move(coord), quad);
 
 						resetTile(selectedTile);
 					}
@@ -252,7 +252,7 @@ namespace mikelepage
 				break;
 		}
 	}
-
+*/
 	void MikelepageRuleSet::placePiecesSetup()
 	{
 		#define coord(x, y) \

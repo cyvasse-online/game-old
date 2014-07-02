@@ -15,7 +15,6 @@ game_sources = \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
 	src/main.cpp \
-	src/rule_set_base.hpp \
 	src/mikelepage/local_player.hpp \
 	src/mikelepage/mikelepage_rule_set.cpp \
 	src/mikelepage/mikelepage_rule_set.hpp \

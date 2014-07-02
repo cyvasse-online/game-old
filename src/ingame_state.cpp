@@ -30,28 +30,6 @@ IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& rende
 {
 }
 
-void IngameState::initMatch(cyvmath::RuleSet ruleSet, cyvmath::PlayersColor playersColor)
-{
-	// The world needs more crazy C++11 lambda expressions!
-	static std::map<cyvmath::RuleSet, std::function<RuleSetBase*(fea::Renderer2D&, cyvmath::PlayersColor)>>
-		createRuleSet{{
-				RULESET_MIKELEPAGE,
-				[](fea::Renderer2D& r, cyvmath::PlayersColor c)
-					{ return new ::mikelepage::MikelepageRuleSet(r, c); }
-			}/*, {
-				RULESET_WHATEVER,
-				[](fea::Renderer2D& r, cyvmath::PlayersColor c)
-					{ return new WhateverRuleSet(r, c); }
-			}*/
-		};
-
-	auto it = createRuleSet.find(ruleSet);
-	if(it == createRuleSet.end())
-		return;
-
-	_ruleSet = std::unique_ptr<RuleSetBase>(it->second(_renderer, playersColor));
-}
-
 void IngameState::setup()
 {
 	_background.setColor({255, 255, 255});
@@ -62,30 +40,39 @@ std::string IngameState::run()
 	fea::Event event;
 	while(_input.pollEvent(event))
 	{
-		// won't happen when compiled to js,
-		// may be of interest somewhen later
-		//if(event.type == fea::Event::CLOSED)
-
-		// may be of interest somewhen later
-		//if(event.type == fea::Event::KEYPRESSED)
-
-		/*if(event.type == fea::Event::MOUSEBUTTONPRESSED ||
-		   event.type == fea::Event::MOUSEBUTTONRELEASED ||
-		   event.type == fea::Event::MOUSEMOVED)
-		{*/
-		// at the moment we don't have to find the right
-		// part of the applications that has to get the
-		// input because there only is one part.
-		_ruleSet->processEvent(event);
-		/*}*/
+		// calling all event handler functors unconditionally
+		// means they all have to have a callable set because
+		// else they will raise an exception.
+		switch(event.type)
+		{
+			case fea::Event::CLOSED:
+				return "NONE";
+				break;
+			case fea::Event::MOUSEMOVED:
+				onMouseMoved(event.mouseMove);
+				break;
+			case fea::Event::MOUSEBUTTONPRESSED:
+				onMouseButtonPressed(event.mouseButton);
+				break;
+			case fea::Event::MOUSEBUTTONRELEASED:
+				onMouseButtonReleased(event.mouseButton);
+				break;
+			case fea::Event::KEYPRESSED:
+				onKeyPressed(event.key);
+				break;
+			case fea::Event::KEYRELEASED:
+				onKeyReleased(event.key);
+				break;
+		}
 	}
+
 	// after events were processed
 	// * clear the rendered content from the last frame
 	_renderer.clear();
 
 	// * queue something to render
 	_renderer.queue(_background);
-	_ruleSet->tick();
+	tick();
 
 	// * render everything
 	_renderer.render();
