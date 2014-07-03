@@ -22,6 +22,7 @@
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
 #include <cyvmath/mikelepage/piece.hpp>
+#include <deepcopy_smart_ptr/unique_ptr.hpp>
 #include "hexagon_board.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
@@ -38,6 +39,10 @@ namespace mikelepage
 		public:
 			typedef HexagonBoard<6> Board;
 
+			typedef Board::Tile Tile;
+			typedef std::map<std::unique_ptr<Board::Coordinate>, fea::Quad*,
+				managed_less<std::unique_ptr<Board::Coordinate>>> TileMap;
+
 		private:
 			fea::Renderer2D& _renderer;
 
@@ -51,6 +56,9 @@ namespace mikelepage
 			fea::Texture _buttonSetupDoneTexture;
 			fea::Quad _buttonSetupDone;
 
+			// highlighted tiles
+			Tile _selectedTile;
+			TileMap _possibleTargets;
 		public:
 			MikelepageRuleSet(IngameState&, fea::Renderer2D&, cyvmath::PlayersColor firstPlayer);
 			~MikelepageRuleSet() = default;
@@ -61,8 +69,8 @@ namespace mikelepage
 
 			void tick();
 
-			void onTileClicked(Board::Coordinate);
-
+			void onTileClicked(const Tile&);
+			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 			void placePiecesSetup();
 			void exitSetup();
 	};

@@ -40,13 +40,13 @@ class IngameState : public fea::GameState
 		IngameState(const IngameState&) = delete;
 		const IngameState& operator= (const IngameState&) = delete;
 
+		std::function<void()> tick;
+
 		std::function<void(const fea::Event::MouseMoveEvent&)> onMouseMoved;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onMouseButtonPressed;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onMouseButtonReleased;
 		std::function<void(const fea::Event::KeyEvent&)> onKeyPressed;
 		std::function<void(const fea::Event::KeyEvent&)> onKeyReleased;
-
-		std::function<void()> tick;
 
 		void setup() override;
 		std::string run() override;

@@ -33,14 +33,11 @@ class HexagonBoard
 	public:
 		typedef typename cyvmath::Hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
+		typedef typename std::pair<std::unique_ptr<Coordinate>, fea::Quad*> Tile;
 		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
 		typedef std::vector<fea::Quad*> TileVec;
 
 	private:
-		// non-copyable
-		HexagonBoard(const HexagonBoard&) = delete;
-		const HexagonBoard& operator= (const HexagonBoard&) = delete;
-
 		fea::Renderer2D& _renderer;
 
 		bool _upsideDown;
@@ -56,17 +53,27 @@ class HexagonBoard
 		TileMap _tileMap;
 		TileVec _tileVec;
 
+		Tile _highlightedTile;
+		Tile _mouseBPressTile;
+
 	public:
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
 		~HexagonBoard();
 
-		std::function<void(Coordinate)> onTileClicked;
+		// non-copyable
+		HexagonBoard(const HexagonBoard&) = delete;
+		const HexagonBoard& operator= (const HexagonBoard&) = delete;
+
+		static Tile noTile();
+
+		std::function<void(const Tile&)> onTileClicked;
+		std::function<void(const fea::Event::MouseButtonEvent&)> onClickedOutside;
 
 		glm::uvec2 getSize();
 		glm::uvec2 getPosition();
 
 		glm::vec2 getTilePosition(Coordinate);
-		glm::vec2 getTilePosition(const dc::unique_ptr<Coordinate>& c)
+		glm::vec2 getTilePosition(const std::unique_ptr<Coordinate>& c)
 		{
 			assert(c);
 			return getTilePosition(*c);
@@ -75,7 +82,7 @@ class HexagonBoard
 		const glm::vec2& getTileSize() const;
 
 		fea::Color getTileColor(Coordinate, bool setup);
-		fea::Color getTileColor(const dc::unique_ptr<Coordinate>& c, bool setup)
+		fea::Color getTileColor(const std::unique_ptr<Coordinate>& c, bool setup)
 		{
 			assert(c);
 			return getTileColor(*c, setup);
@@ -84,7 +91,7 @@ class HexagonBoard
 		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition);
 
 		fea::Quad* getTileAt(Coordinate);
-		fea::Quad* getTileAt(const dc::unique_ptr<Coordinate>& c)
+		fea::Quad* getTileAt(const std::unique_ptr<Coordinate>& c)
 		{
 			assert(c);
 			return getTileAt(*c);

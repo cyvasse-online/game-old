@@ -29,6 +29,7 @@ namespace mikelepage
 		: Match(color)
 		, _renderer(renderer)
 		, _board(renderer, color)
+		, _selectedTile(Board::noTile())
 	{
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
@@ -48,6 +49,18 @@ namespace mikelepage
 		_buttonSetupDone.setPosition(boardPos + boardSize - buttonSize);
 		_buttonSetupDone.setSize(buttonSize);
 		_buttonSetupDone.setTexture(_buttonSetupDoneTexture);
+
+		using namespace std::placeholders;
+
+		ingameState.tick = std::bind(&MikelepageRuleSet::tick, this);
+		ingameState.onMouseMoved = std::bind(&Board::onMouseMoved, &_board, _1);
+		ingameState.onMouseButtonPressed = std::bind(&Board::onMouseButtonPressed, &_board, _1);
+		ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &_board, _1);
+		ingameState.onKeyPressed = [](const fea::Event::KeyEvent&) { };
+		ingameState.onKeyReleased = [](const fea::Event::KeyEvent&) { };
+
+		_board.onTileClicked = std::bind(&MikelepageRuleSet::onTileClicked, this, _1);
+		_board.onClickedOutside = std::bind(&MikelepageRuleSet::onClickedOutsideBoard, this, _1);
 	}
 
 	void MikelepageRuleSet::tick()
@@ -72,187 +85,125 @@ namespace mikelepage
 				_renderer.queue(*it);
 		}
 	}
-/*
-	void MikelepageRuleSet::processEvent(fea::Event& event)
+
+	void MikelepageRuleSet::onTileClicked(const Tile& tile)
 	{
-		// TODO: Clean up this function and move code out of it
+		// temporary workaround [TODO]
+		#define cloneCoord(uq_ptr) \
+			make_unique<Coordinate>(*uq_ptr)
 
-		// assert that we are processing a mouse event (for now)
-		int mX, mY; // mouse x and y coordinates
-		if(event.type == fea::Event::MOUSEMOVED)
+		for(auto& it : _possibleTargets)
+			it.second->setColor(_board.getTileColor(it.first, _setup));
+
+		_possibleTargets.clear();
+
+		// a non-selected tile was clicked
+		if(!_selectedTile.first || *tile.first != *_selectedTile.first)
 		{
-			mX = event.mouseMove.x;
-			mY = event.mouseMove.y;
+			// there already was a tile selected
+			if(_selectedTile.first)
+			{
+				PlayersColor colorSelf = _self->_color;
+				PlayersColor colorOp = (colorSelf == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
+
+				PieceMap::iterator itStart = _self->_activePieces.find(cloneCoord(_selectedTile.first));
+				PieceMap::const_iterator itTarget[2] {
+						_players[colorSelf]->getActivePieces().find(cloneCoord(tile.first)),
+						_players[colorOp]->getActivePieces().find(cloneCoord(tile.first))
+					};
+
+				// the selected tile has a piece of the player on it
+				if(itStart != _self->_activePieces.end())
+				{
+					// the clicked tile has no piece on it
+					if(itTarget[0] == _players[colorSelf]->getActivePieces().end() &&
+					   itTarget[1] == _players[colorOp]->getActivePieces().end())
+					{
+						// try to move the piece from selected piece to clicked piece
+						// this doesn't work without clone(), though I don't know why
+						itStart->second->moveTo(cloneCoord(tile.first), !_setup);
+
+						if(_setup)
+							_self->checkSetupComplete();
+
+						_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+
+						tile.second->setColor(_board.getTileColor(tile.first, _setup) + fea::Color(48, 48, 48));
+
+						_selectedTile = Board::noTile();
+						return;
+					}
+					// the clicked piece has an opponents piece on it
+					else if(itTarget[1] != _players[colorOp]->getActivePieces().end())
+					{
+						// TODO: ATTACK!
+						_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+
+						_selectedTile = Board::noTile();
+						return;
+					}
+				}
+			}
+
+			// if return wasn't executed, that means either there
+			// was no tile selected before or the tile selected
+			// before didn't have a piece on it; both means we
+			// now move the selection to the clicked tile.
+
+			// reset color of old highlighted tile
+			if(_selectedTile.first)
+				_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+
+			tile.second->setColor((_board.getTileColor(tile.first, _setup) + fea::Color(192, 0, 0))
+				- fea::Color(0, 64, 64, 0));
+
+			// if the new selected tile has a piece on it and we are no
+			// more in the setup, display all possible target tiles
+			if(!_setup)
+			{
+				auto& pieces = _self->getActivePieces();
+				auto it = pieces.find(cloneCoord(tile.first));
+				if(it != pieces.end()) // the tile clicked on holds an own piece
+				{
+					auto piece = std::dynamic_pointer_cast<cyvmath::mikelepage::Piece>(it->second);
+					assert(piece);
+
+					for(auto targetC : piece->getPossibleTargetTiles())
+					{
+						fea::Quad* targetQ = _board.getTileAt(targetC);
+						targetQ->setColor((_board.getTileColor(targetC, false)
+							+ fea::Color(0, 0, 192)) - fea::Color(64, 64, 0, 0));
+
+						_possibleTargets.emplace(make_unique<Coordinate>(targetC), targetQ);
+					}
+				}
+			}
+
+			_selectedTile = std::make_pair(cloneCoord(tile.first), tile.second);
 		}
-		else
+		else // selected tile was clicked again - unselect it
 		{
-			mX = event.mouseButton.x;
-			mY = event.mouseButton.y;
-		}
+			// giving it the hovered color may be weird on
+			// touch screens, this should be fixed somewhen
+			tile.second->setColor(_board.getTileColor(tile.first, _setup) + fea::Color(48, 48, 48, 0));
 
-		typedef std::pair<dc::unique_ptr<Coordinate>, fea::Quad*> Tile;
-		typedef std::map<dc::unique_ptr<Coordinate>, fea::Quad*, dc::managed_less<dc::unique_ptr<Coordinate>>> TileMap;
-
-		static Tile highlightedTile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
-		static Tile selectedTile    = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr);
-		static TileMap possibleTargets;
-
-		static auto resetTile = [](Tile& tile)
-			{ tile = std::make_pair(dc::unique_ptr<Coordinate>(), nullptr); };
-
-		dc::unique_ptr<Coordinate> coord = _board.getCoordinate({mX, mY});
-		fea::Quad* quad = nullptr;
-		if(coord)
-			quad = _board.getTileAt(coord);
-
-		switch(event.type)
-		{
-			case fea::Event::MOUSEMOVED:
-				if(coord) // mouse hovered on tile (*coord)
-				{
-					if(!highlightedTile.first || *coord != *highlightedTile.first)
-					{
-						// reset color of old highlighted tile
-						if(highlightedTile.first)
-							highlightedTile.second->setColor(highlightedTile.second->getColor() - fea::Color(48, 48, 48, 0));
-
-						quad->setColor(quad->getColor() + fea::Color(48, 48, 48, 0));
-
-						// don't access coord in this function after it was moved!
-						highlightedTile = std::make_pair(std::move(coord), quad);
-					}
-				}
-				else if(highlightedTile.first && (!selectedTile.first || *highlightedTile.first != *selectedTile.first))
-				{
-					// mouse is outside the board and one tile is still marked with the hover effect
-					highlightedTile.second->setColor(highlightedTile.second->getColor() - fea::Color(48, 48, 48, 0));
-					resetTile(highlightedTile);
-				}
-				break;
-			case fea::Event::MOUSEBUTTONPRESSED:
-				// this stuff should be moved to MOUSEBUTTONRELEASED when
-				// we check if the mouse is still on the same tile there
-				if(coord) // clicked on the tile *coord
-				{
-					for(auto& it : possibleTargets)
-						it.second->setColor(_board.getTileColor(it.first, _setup));
-
-					possibleTargets.clear();
-
-					// a non-selected tile was clicked
-					if(!selectedTile.first || *coord != *selectedTile.first)
-					{
-						// there already was a tile selected
-						if(selectedTile.first)
-						{
-							PlayersColor colorSelf = _self->_color;
-							PlayersColor colorOp = (colorSelf == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
-
-							PieceMap::iterator itStart = _self->_activePieces.find(selectedTile.first.clone());
-							PieceMap::const_iterator itTarget[2] {
-									_players[colorSelf]->getActivePieces().find(coord.clone()),
-									_players[colorOp]->getActivePieces().find(coord.clone())
-								};
-
-							// the selected tile has a piece of the player on it
-							if(itStart != _self->_activePieces.end())
-							{
-								// the clicked tile has no piece on it
-								if(itTarget[0] == _players[colorSelf]->getActivePieces().end() &&
-								   itTarget[1] == _players[colorOp]->getActivePieces().end())
-								{
-									// try to move the piece from selected piece to clicked piece
-									// this doesn't work without clone(), though I don't know why
-									itStart->second->moveTo(coord.clone(), !_setup);
-
-									if(_setup)
-										_self->checkSetupComplete();
-
-									selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
-
-									quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(48, 48, 48));
-
-									resetTile(selectedTile);
-									return;
-								}
-								// the clicked piece has an opponents piece on it
-								else if(itTarget[1] != _players[colorOp]->getActivePieces().end())
-								{
-									// TODO: ATTACK!
-									selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
-
-									resetTile(selectedTile);
-									return;
-								}
-							}
-						}
-
-						// if return wasn't executed, that means either there
-						// was no tile selected before or the tile selected
-						// before didn't have a piece on it; both means we
-						// now move the selection to the clicked tile.
-
-						// reset color of old highlighted tile
-						if(selectedTile.first)
-							selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
-
-						quad->setColor((_board.getTileColor(coord, _setup) + fea::Color(192, 0, 0))
-							- fea::Color(0, 64, 64, 0));
-
-						// if the new selected tile has a piece on it and we are no
-						// more in the setup, display all possible target tiles
-						if(!_setup)
-						{
-							auto& pieces = _self->getActivePieces();
-							auto it = pieces.find(coord.clone());
-							if(it != pieces.end()) // the tile clicked on holds an own piece
-							{
-								auto piece = std::dynamic_pointer_cast<cyvmath::mikelepage::Piece>(it->second);
-								assert(piece);
-
-								for(auto targetC : piece->getPossibleTargetTiles())
-								{
-									fea::Quad* targetQ = _board.getTileAt(targetC);
-									targetQ->setColor((_board.getTileColor(targetC, false)
-										+ fea::Color(0, 0, 192)) - fea::Color(64, 64, 0, 0));
-
-									possibleTargets.emplace(dc::make_unique<Coordinate>(targetC), targetQ);
-								}
-							}
-						}
-
-						// don't access coord in this function after it was moved!
-						selectedTile = std::make_pair(std::move(coord), quad);
-					}
-					else // selected tile was clicked again - unselect it
-					{
-						// giving it the hovered color may be weird on
-						// touch screens, this should be fixed somewhen
-						quad->setColor(_board.getTileColor(coord, _setup) + fea::Color(48, 48, 48, 0));
-
-						// don't access coord in this function after it was moved!
-						highlightedTile = std::make_pair(std::move(coord), quad);
-
-						resetTile(selectedTile);
-					}
-				}
-				else // clicked outside the board
-				{
-					// a tile is selected
-					if(selectedTile.first)
-					{
-						selectedTile.second->setColor(_board.getTileColor(selectedTile.first, _setup));
-						resetTile(selectedTile);
-					}
-
-					// 'Setup done' button pressed (while being visible)
-					if(_self->setupComplete() && mouseOver(_buttonSetupDone, event))
-						exitSetup();
-				}
-				break;
+			_selectedTile = Board::noTile();
 		}
 	}
-*/
+
+	void MikelepageRuleSet::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
+	{
+		// a tile is selected
+		if(_selectedTile.first)
+		{
+			_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+			_selectedTile = Board::noTile();
+		}
+		// 'Setup done' button clicked (while being visible)
+		else if(_self->setupComplete() && mouseOver(_buttonSetupDone, {event.x, event.y}))
+			exitSetup();
+	}
+
 	void MikelepageRuleSet::placePiecesSetup()
 	{
 		#define coord(x, y) \

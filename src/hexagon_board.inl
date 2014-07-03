@@ -15,9 +15,17 @@
  */
 
 template <int l>
+typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
+{
+	return std::make_pair(std::unique_ptr<HexagonBoard<l>::Coordinate>(), nullptr);
+}
+
+template <int l>
 HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
 	: _renderer(renderer)
 	, _upsideDown(color == cyvmath::PLAYER_WHITE ? false : true)
+	, _highlightedTile(noTile())
+	, _mouseBPressTile(noTile())
 {
 	const glm::uvec2 windowSize = renderer.getViewport().getSize();
 
@@ -213,4 +221,71 @@ void HexagonBoard<l>::tick()
 {
 	for(const fea::Quad* it : _tileVec)
 		_renderer.queue(*it);
+}
+
+template <int l>
+void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
+{
+	static const fea::Color highlightColor = fea::Color(48, 48, 48, 0);
+
+	auto coord = getCoordinate({mouseMove.x, mouseMove.y});
+
+	if(coord) // mouse hovers on tile (*coord)
+	{
+		fea::Quad* quad = getTileAt(coord);
+
+		if(!_highlightedTile.first || *coord != *_highlightedTile.first)
+		{
+			// reset color of old highlighted tile
+			if(_highlightedTile.first)
+				_highlightedTile.second->setColor(_highlightedTile.second->getColor() - highlightColor);
+
+			quad->setColor(quad->getColor() + highlightColor);
+
+			_highlightedTile = std::make_pair(std::move(coord), quad);
+		}
+	}
+	else if(_highlightedTile.first)
+	{
+		// mouse is outside the board and one tile is still marked with the hover effect
+		_highlightedTile.second->setColor(_highlightedTile.second->getColor() - highlightColor);
+		_highlightedTile = noTile();
+	}
+}
+
+template <int l>
+void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& mouseButton)
+{
+	assert(!_mouseBPressTile.first);
+
+	auto coord = getCoordinate({mouseButton.x, mouseButton.y});
+
+	if(coord)
+	{
+		fea::Quad* quad = getTileAt(coord);
+
+		_mouseBPressTile = std::make_pair(std::move(coord), quad);
+	}
+	else
+	{
+		// *really* not the best way to do this, but okay for now
+		onClickedOutside(mouseButton);
+	}
+}
+
+template <int l>
+void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& mouseButton)
+{
+	if(_mouseBPressTile.first)
+	{
+		auto coord = getCoordinate({mouseButton.x, mouseButton.y});
+
+		if(coord && *coord == *_mouseBPressTile.first)
+		{
+			fea::Quad* quad = getTileAt(coord);
+			onTileClicked(std::make_pair(std::move(coord), quad));
+		}
+
+		_mouseBPressTile = noTile();
+	}
 }
