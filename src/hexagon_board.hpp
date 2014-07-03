@@ -38,6 +38,8 @@ class HexagonBoard
 		typedef std::vector<fea::Quad*> TileVec;
 
 	private:
+		static const fea::Color highlightColor;
+
 		fea::Renderer2D& _renderer;
 
 		bool _upsideDown;
@@ -73,30 +75,14 @@ class HexagonBoard
 		glm::uvec2 getPosition();
 
 		glm::vec2 getTilePosition(Coordinate);
-		glm::vec2 getTilePosition(const std::unique_ptr<Coordinate>& c)
-		{
-			assert(c);
-			return getTilePosition(*c);
-		}
-
 		const glm::vec2& getTileSize() const;
-
 		fea::Color getTileColor(Coordinate, bool setup);
-		fea::Color getTileColor(const std::unique_ptr<Coordinate>& c, bool setup)
-		{
-			assert(c);
-			return getTileColor(*c, setup);
-		}
 
 		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition);
 
 		fea::Quad* getTileAt(Coordinate);
-		fea::Quad* getTileAt(const std::unique_ptr<Coordinate>& c)
-		{
-			assert(c);
-			return getTileAt(*c);
-		}
 
+		void resetTileColor(Coordinate, bool setup);
 		void updateTileColors(int8_t fromRow, int8_t toRow, bool setup = false);
 
 		void tick();

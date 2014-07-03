@@ -123,9 +123,9 @@ namespace mikelepage
 						if(_setup)
 							_self->checkSetupComplete();
 
-						_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+						_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
 
-						tile.second->setColor(_board.getTileColor(tile.first, _setup) + fea::Color(48, 48, 48));
+						tile.second->setColor(_board.getTileColor(*tile.first, _setup) + fea::Color(48, 48, 48));
 
 						_selectedTile = Board::noTile();
 						return;
@@ -134,7 +134,7 @@ namespace mikelepage
 					else if(itTarget[1] != _players[colorOp]->getActivePieces().end())
 					{
 						// TODO: ATTACK!
-						_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+						_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
 
 						_selectedTile = Board::noTile();
 						return;
@@ -149,9 +149,9 @@ namespace mikelepage
 
 			// reset color of old highlighted tile
 			if(_selectedTile.first)
-				_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+				_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
 
-			tile.second->setColor((_board.getTileColor(tile.first, _setup) + fea::Color(192, 0, 0))
+			tile.second->setColor((_board.getTileColor(*tile.first, _setup) + fea::Color(192, 0, 0))
 				- fea::Color(0, 64, 64, 0));
 
 			// if the new selected tile has a piece on it and we are no
@@ -171,7 +171,7 @@ namespace mikelepage
 						targetQ->setColor((_board.getTileColor(targetC, false)
 							+ fea::Color(0, 0, 192)) - fea::Color(64, 64, 0, 0));
 
-						_possibleTargets.emplace(make_unique<Coordinate>(targetC), targetQ);
+						_possibleTargets.emplace(targetC, targetQ);
 					}
 				}
 			}
@@ -182,7 +182,7 @@ namespace mikelepage
 		{
 			// giving it the hovered color may be weird on
 			// touch screens, this should be fixed somewhen
-			tile.second->setColor(_board.getTileColor(tile.first, _setup) + fea::Color(48, 48, 48, 0));
+			tile.second->setColor(_board.getTileColor(*tile.first, _setup) + fea::Color(48, 48, 48, 0));
 
 			_selectedTile = Board::noTile();
 		}
@@ -195,7 +195,7 @@ namespace mikelepage
 		// a tile is selected
 		if(_selectedTile.first)
 		{
-			_selectedTile.second->setColor(_board.getTileColor(_selectedTile.first, _setup));
+			_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
 			_selectedTile = Board::noTile();
 		}
 		// 'Setup done' button clicked (while being visible)

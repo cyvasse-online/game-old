@@ -15,6 +15,9 @@
  */
 
 template <int l>
+const fea::Color HexagonBoard<l>::highlightColor = fea::Color(48, 48, 48, 0);
+
+template <int l>
 typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
 {
 	return std::make_pair(std::unique_ptr<HexagonBoard<l>::Coordinate>(), nullptr);
@@ -206,6 +209,19 @@ fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
+void HexagonBoard<l>::resetTileColor(Coordinate c, bool setup)
+{
+    fea::Quad* quad = getTileAt(c);
+    assert(quad);
+
+    fea::Color color = getTileColor(c, setup);
+    if(setup)
+        color += highlightColor;
+
+    quad->setColor(color);
+}
+
+template <int l>
 void HexagonBoard<l>::updateTileColors(int8_t fromRow, int8_t toRow, bool setup)
 {
 	assert(fromRow <= toRow);
@@ -226,13 +242,11 @@ void HexagonBoard<l>::tick()
 template <int l>
 void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 {
-	static const fea::Color highlightColor = fea::Color(48, 48, 48, 0);
-
 	auto coord = getCoordinate({mouseMove.x, mouseMove.y});
 
 	if(coord) // mouse hovers on tile (*coord)
 	{
-		fea::Quad* quad = getTileAt(coord);
+		fea::Quad* quad = getTileAt(*coord);
 
 		if(!_highlightedTile.first || *coord != *_highlightedTile.first)
 		{
@@ -262,7 +276,7 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 
 	if(coord)
 	{
-		fea::Quad* quad = getTileAt(coord);
+		fea::Quad* quad = getTileAt(*coord);
 
 		_mouseBPressTile = std::make_pair(std::move(coord), quad);
 	}
@@ -282,7 +296,7 @@ void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& 
 
 		if(coord && *coord == *_mouseBPressTile.first)
 		{
-			fea::Quad* quad = getTileAt(coord);
+			fea::Quad* quad = getTileAt(*coord);
 			onTileClicked(std::make_pair(std::move(coord), quad));
 		}
 

@@ -22,7 +22,6 @@
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
 #include <cyvmath/mikelepage/piece.hpp>
-#include <deepcopy_smart_ptr/unique_ptr.hpp>
 #include "hexagon_board.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
@@ -40,8 +39,7 @@ namespace mikelepage
 			typedef HexagonBoard<6> Board;
 
 			typedef Board::Tile Tile;
-			typedef std::map<std::unique_ptr<Board::Coordinate>, fea::Quad*,
-				managed_less<std::unique_ptr<Board::Coordinate>>> TileMap;
+			typedef std::map<Board::Coordinate, fea::Quad*> TileMap;
 
 		private:
 			fea::Renderer2D& _renderer;
