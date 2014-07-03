@@ -69,9 +69,9 @@ namespace mikelepage
 
 		if(_setup)
 		{
-			for(std::shared_ptr<cyvmath::Piece>& it : _self->_allPieces)
+			for(auto it : _self->_allPieces)
 			{
-				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
+				auto tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
 				assert(tmp);
 				_renderer.queue(*tmp);
 			}
@@ -88,10 +88,6 @@ namespace mikelepage
 
 	void MikelepageRuleSet::onTileClicked(const Tile& tile)
 	{
-		// temporary workaround [TODO]
-		#define cloneCoord(uq_ptr) \
-			make_unique<Coordinate>(*uq_ptr)
-
 		resetPossibleTargets();
 
 		// a non-selected tile was clicked
@@ -103,10 +99,10 @@ namespace mikelepage
 				PlayersColor colorSelf = _self->_color;
 				PlayersColor colorOp = (colorSelf == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
-				PieceMap::iterator itStart = _self->_activePieces.find(cloneCoord(_selectedTile.first));
+				PieceMap::iterator itStart = _self->_activePieces.find(*_selectedTile.first);
 				PieceMap::const_iterator itTarget[2] {
-						_players[colorSelf]->getActivePieces().find(cloneCoord(tile.first)),
-						_players[colorOp]->getActivePieces().find(cloneCoord(tile.first))
+						_players[colorSelf]->getActivePieces().find(*tile.first),
+						_players[colorOp]->getActivePieces().find(*tile.first)
 					};
 
 				// the selected tile has a piece of the player on it
@@ -116,16 +112,13 @@ namespace mikelepage
 					if(itTarget[0] == _players[colorSelf]->getActivePieces().end() &&
 					   itTarget[1] == _players[colorOp]->getActivePieces().end())
 					{
-						// try to move the piece from selected piece to clicked piece
-						// this doesn't work without clone(), though I don't know why
-						itStart->second->moveTo(cloneCoord(tile.first), !_setup);
+						itStart->second->moveTo(*tile.first, !_setup);
 
 						if(_setup)
 							_self->checkSetupComplete();
 
-						_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
-
-						tile.second->setColor(_board.getTileColor(*tile.first, _setup) + fea::Color(48, 48, 48));
+						_board.resetTileColor(*tile.first, _setup);
+						_board.resetTileColor(*_selectedTile.first, _setup);
 
 						_selectedTile = Board::noTile();
 						return;
@@ -134,7 +127,7 @@ namespace mikelepage
 					else if(itTarget[1] != _players[colorOp]->getActivePieces().end())
 					{
 						// TODO: ATTACK!
-						_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
+						_board.resetTileColor(*_selectedTile.first, _setup);
 
 						_selectedTile = Board::noTile();
 						return;
@@ -149,7 +142,7 @@ namespace mikelepage
 
 			// reset color of old highlighted tile
 			if(_selectedTile.first)
-				_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
+				_board.resetTileColor(*_selectedTile.first, _setup);
 
 			tile.second->setColor((_board.getTileColor(*tile.first, _setup) + fea::Color(192, 0, 0))
 				- fea::Color(0, 64, 64, 0));
@@ -159,7 +152,7 @@ namespace mikelepage
 			if(!_setup)
 			{
 				auto& pieces = _self->getActivePieces();
-				auto it = pieces.find(cloneCoord(tile.first));
+				auto it = pieces.find(*tile.first);
 				if(it != pieces.end()) // the tile clicked on holds an own piece
 				{
 					auto piece = std::dynamic_pointer_cast<cyvmath::mikelepage::Piece>(it->second);
@@ -176,13 +169,11 @@ namespace mikelepage
 				}
 			}
 
-			_selectedTile = std::make_pair(cloneCoord(tile.first), tile.second);
+			_selectedTile = std::make_pair(make_unique<Coordinate>(*tile.first), tile.second);
 		}
 		else // selected tile was clicked again - unselect it
 		{
-			// giving it the hovered color may be weird on
-			// touch screens, this should be fixed somewhen
-			tile.second->setColor(_board.getTileColor(*tile.first, _setup) + fea::Color(48, 48, 48, 0));
+			_board.resetTileColor(*tile.first, _setup);
 
 			_selectedTile = Board::noTile();
 		}
@@ -195,7 +186,7 @@ namespace mikelepage
 		// a tile is selected
 		if(_selectedTile.first)
 		{
-			_selectedTile.second->setColor(_board.getTileColor(*_selectedTile.first, _setup));
+			_board.resetTileColor(*_selectedTile.first, _setup);
 			_selectedTile = Board::noTile();
 		}
 		// 'Setup done' button clicked (while being visible)
@@ -288,16 +279,18 @@ namespace mikelepage
 
 		for(auto& it : defaultPiecePositions[color])
 		{
-			dc::unique_ptr<Coordinate> tmpCoord;
-			if(it.second)
-				tmpCoord = dc::make_unique<Coordinate>(*it.second);
-
-			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece
-				(it.first, tmpCoord.clone(), color, _self->_activePieces, _board));
+			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(
+					it.first,
+					// is there a better method to do this? [TODO]
+					it.second ? make_unique<Coordinate>(*it.second) : nullptr,
+					color,
+					_self->_activePieces,
+					_board
+				));
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
-				_self->_activePieces.emplace(std::move(tmpCoord), tmpPiece);
+				_self->_activePieces.emplace(*it.second, tmpPiece);
 			}
 			else // dragon, 26th piece
 			{
@@ -335,7 +328,7 @@ namespace mikelepage
 	void MikelepageRuleSet::resetPossibleTargets()
 	{
 		for(auto& it : _possibleTargets)
-			it.second->setColor(_board.getTileColor(it.first, _setup));
+			_board.resetTileColor(it.first, _setup);
 
 		_possibleTargets.clear();
 	}

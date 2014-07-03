@@ -209,13 +209,13 @@ fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
-void HexagonBoard<l>::resetTileColor(Coordinate c, bool setup)
+void HexagonBoard<l>::resetTileColor(Coordinate coord, bool setup)
 {
-    fea::Quad* quad = getTileAt(c);
+    fea::Quad* quad = getTileAt(coord);
     assert(quad);
 
-    fea::Color color = getTileColor(c, setup);
-    if(setup)
+    fea::Color color = getTileColor(coord, setup);
+    if(_highlightedTile.first && *_highlightedTile.first == coord)
         color += highlightColor;
 
     quad->setColor(color);

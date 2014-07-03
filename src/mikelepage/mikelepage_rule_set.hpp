@@ -17,7 +17,7 @@
 #ifndef _MIKELEPAGE_RULESET_HPP_
 #define _MIKELEPAGE_RULESET_HPP_
 
-#include <cyvmath/match.hpp>
+#include <cyvmath/mikelepage/match.hpp>
 
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
@@ -33,7 +33,7 @@ namespace mikelepage
 
 		See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
 	 */
-	class MikelepageRuleSet : public cyvmath::Match
+	class MikelepageRuleSet : public cyvmath::mikelepage::Match
 	{
 		public:
 			typedef HexagonBoard<6> Board;

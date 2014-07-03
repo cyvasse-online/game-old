@@ -33,10 +33,10 @@ namespace mikelepage
 			Board& _board;
 
 		public:
-			RenderedPiece(cyvmath::PieceType, dc::unique_ptr<cyvmath::mikelepage::Coordinate>&&,
+			RenderedPiece(cyvmath::PieceType, std::unique_ptr<Board::Coordinate>,
 			              cyvmath::PlayersColor, PieceMap&, Board&);
 
-			bool moveTo(const cyvmath::CoordinateDcUqP&, bool checkMoveValidity) override;
+			bool moveTo(Board::Coordinate, bool checkMoveValidity) final override;
 	};
 
 	typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;

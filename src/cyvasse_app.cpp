@@ -20,8 +20,7 @@
 #include <fea/ui/sdlwindowbackend.hpp>
 #include <fea/ui/sdlinputbackend.hpp>
 #include <cyvmath/rule_sets.hpp>
-// for make_unique (use this until std::make_unique has enough compiler support)
-#include <deepcopy_smart_ptr/unique_ptr.hpp>
+#include <make_unique.hpp>
 #include "ingame_state.hpp"
 
 #include "mikelepage/mikelepage_rule_set.hpp"

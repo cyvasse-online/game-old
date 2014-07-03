@@ -23,7 +23,7 @@ using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
-	RenderedPiece::RenderedPiece(PieceType type, dc::unique_ptr<Coordinate>&& coord,
+	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
 	                             PlayersColor color, PieceMap& map, Board& board)
 		: Piece(color, type, std::move(coord), map)
 		, fea::Quad({48.0f, 40.0f})
@@ -59,15 +59,12 @@ namespace mikelepage
 		}
 	}
 
-	bool RenderedPiece::moveTo(const cyvmath::CoordinateDcUqP& coord, bool checkMoveValidity)
+	bool RenderedPiece::moveTo(Coordinate coord, bool checkMoveValidity)
 	{
-		if(!Piece::moveTo(std::move(coord), checkMoveValidity))
+		if(!Piece::moveTo(coord, checkMoveValidity))
 			return false;
 
-		Coordinate* c = dynamic_cast<Coordinate*>(_coord.get());
-		assert(c);
-
-		glm::vec2 position = _board.getTilePosition(*c);
+		glm::vec2 position = _board.getTilePosition(coord);
 		position += glm::vec2(8, 4); // TODO
 
 		setPosition(position);
