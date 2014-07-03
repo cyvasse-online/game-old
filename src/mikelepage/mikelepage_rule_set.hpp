@@ -71,8 +71,10 @@ namespace mikelepage
 
 			void onTileClicked(const Tile&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
+
 			void placePiecesSetup();
 			void exitSetup();
+			void resetPossibleTargets();
 	};
 }
 

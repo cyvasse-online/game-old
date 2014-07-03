@@ -92,10 +92,7 @@ namespace mikelepage
 		#define cloneCoord(uq_ptr) \
 			make_unique<Coordinate>(*uq_ptr)
 
-		for(auto& it : _possibleTargets)
-			it.second->setColor(_board.getTileColor(it.first, _setup));
-
-		_possibleTargets.clear();
+		resetPossibleTargets();
 
 		// a non-selected tile was clicked
 		if(!_selectedTile.first || *tile.first != *_selectedTile.first)
@@ -193,6 +190,8 @@ namespace mikelepage
 
 	void MikelepageRuleSet::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
+		resetPossibleTargets();
+
 		// a tile is selected
 		if(_selectedTile.first)
 		{
@@ -331,5 +330,13 @@ namespace mikelepage
 			_board.updateTileColors(0, 5);
 			//placePiecesSetup(PLAYER_WHITE);
 		}
+	}
+
+	void MikelepageRuleSet::resetPossibleTargets()
+	{
+		for(auto& it : _possibleTargets)
+			it.second->setColor(_board.getTileColor(it.first, _setup));
+
+		_possibleTargets.clear();
 	}
 }
