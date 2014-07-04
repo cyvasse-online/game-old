@@ -29,7 +29,6 @@ namespace mikelepage
 
 	class RemotePlayer : public cyvmath::mikelepage::Player
 	{
-		friend MikelepageRuleSet;
 		private:
 			bool _setupComplete;
 

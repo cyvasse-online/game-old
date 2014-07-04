@@ -29,7 +29,7 @@ namespace mikelepage
 		: Match(color)
 		, _renderer(renderer)
 		, _board(renderer, color)
-		, _selectedTile(Board::noTile())
+		, _selectedPiece(nullptr)
 	{
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
@@ -86,108 +86,83 @@ namespace mikelepage
 		}
 	}
 
-	void MikelepageRuleSet::onTileClicked(const Tile& tile)
+	void MikelepageRuleSet::onTileClicked(Coordinate coord)
 	{
-		resetPossibleTargets();
-
-		// a non-selected tile was clicked
-		if(!_selectedTile.first || *tile.first != *_selectedTile.first)
+		if(!_selectedPiece)
 		{
-			// there already was a tile selected
-			if(_selectedTile.first)
+			// search for an own piece on the clicked tile
+			auto it = _self->getActivePieces().find(coord);
+
+			if(it != _self->getActivePieces().end())
 			{
-				PlayersColor colorSelf = _self->_color;
-				PlayersColor colorOp = (colorSelf == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
+				_selectedPiece = it->second;
 
-				PieceMap::iterator itStart = _self->_activePieces.find(*_selectedTile.first);
-				PieceMap::const_iterator itTarget[2] {
-						_players[colorSelf]->getActivePieces().find(*tile.first),
-						_players[colorOp]->getActivePieces().find(*tile.first)
-					};
-
-				// the selected tile has a piece of the player on it
-				if(itStart != _self->_activePieces.end())
-				{
-					// the clicked tile has no piece on it
-					if(itTarget[0] == _players[colorSelf]->getActivePieces().end() &&
-					   itTarget[1] == _players[colorOp]->getActivePieces().end())
-					{
-						itStart->second->moveTo(*tile.first, !_setup);
-
-						if(_setup)
-							_self->checkSetupComplete();
-
-						_board.resetTileColor(*tile.first, _setup);
-						_board.resetTileColor(*_selectedTile.first, _setup);
-
-						_selectedTile = Board::noTile();
-						return;
-					}
-					// the clicked piece has an opponents piece on it
-					else if(itTarget[1] != _players[colorOp]->getActivePieces().end())
-					{
-						// TODO: ATTACK!
-						_board.resetTileColor(*_selectedTile.first, _setup);
-
-						_selectedTile = Board::noTile();
-						return;
-					}
-				}
+				_board.highlightTileRed(coord, _setup);
+				showPossibleTargetTiles(coord);
 			}
-
-			// if return wasn't executed, that means either there
-			// was no tile selected before or the tile selected
-			// before didn't have a piece on it; both means we
-			// now move the selection to the clicked tile.
-
-			// reset color of old highlighted tile
-			if(_selectedTile.first)
-				_board.resetTileColor(*_selectedTile.first, _setup);
-
-			tile.second->setColor((_board.getTileColor(*tile.first, _setup) + fea::Color(192, 0, 0))
-				- fea::Color(0, 64, 64, 0));
-
-			// if the new selected tile has a piece on it and we are no
-			// more in the setup, display all possible target tiles
-			if(!_setup)
-			{
-				auto& pieces = _self->getActivePieces();
-				auto it = pieces.find(*tile.first);
-				if(it != pieces.end()) // the tile clicked on holds an own piece
-				{
-					auto piece = std::dynamic_pointer_cast<cyvmath::mikelepage::Piece>(it->second);
-					assert(piece);
-
-					for(auto targetC : piece->getPossibleTargetTiles())
-					{
-						fea::Quad* targetQ = _board.getTileAt(targetC);
-						targetQ->setColor((_board.getTileColor(targetC, false)
-							+ fea::Color(0, 0, 192)) - fea::Color(64, 64, 0, 0));
-
-						_possibleTargets.emplace(targetC, targetQ);
-					}
-				}
-			}
-
-			_selectedTile = std::make_pair(make_unique<Coordinate>(*tile.first), tile.second);
 		}
-		else // selected tile was clicked again - unselect it
+		else // a piece is selected
 		{
-			_board.resetTileColor(*tile.first, _setup);
+			// determine which piece is on the clicked tile
+			std::shared_ptr<Piece> piece;
 
-			_selectedTile = Board::noTile();
+			for(auto it : _players)
+			{
+				auto pieceIt = it.second->getActivePieces().find(coord);
+				if(pieceIt != it.second->getActivePieces().end())
+				{
+					assert(!piece);
+					piece = pieceIt->second;
+				}
+			}
+
+			if(!piece) // there is no piece on the clicked tile
+			{
+				auto oldCoord = _selectedPiece->getCoord();
+
+				// try to move to the clicked tile
+				if(_selectedPiece->moveTo(coord, !_setup))
+				{
+					// move is valid and was done
+					_selectedPiece.reset();
+
+					if(_setup)
+						_self->checkSetupComplete();
+
+					clearPossibleTargetTiles();
+					//if(oldCoord)
+						_board.resetTileColor(*oldCoord, _setup);
+				}
+			}
+			// there is a piece of the player on the clicked tile
+			else if(piece->getColor() == _self->getColor())
+			{
+				// move the focus to the clicked tile
+				_board.resetTileColor(*_selectedPiece->getCoord(), _setup);
+				clearPossibleTargetTiles();
+
+				_selectedPiece = piece;
+
+				_board.highlightTileRed(coord, _setup);
+				showPossibleTargetTiles(coord);
+			}
+			// there is an opponents piece on the clicked tile
+			else
+			{
+				// TODO: attacking code
+			}
 		}
 	}
 
 	void MikelepageRuleSet::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
-		resetPossibleTargets();
-
-		// a tile is selected
-		if(_selectedTile.first)
+		// a piece is selected
+		if(_selectedPiece)
 		{
-			_board.resetTileColor(*_selectedTile.first, _setup);
-			_selectedTile = Board::noTile();
+			_board.resetTileColor(*_selectedPiece->getCoord(), _setup);
+			clearPossibleTargetTiles();
+
+			_selectedPiece.reset();
 		}
 		// 'Setup done' button clicked (while being visible)
 		else if(_self->setupComplete() && mouseOver(_buttonSetupDone, {event.x, event.y}))
@@ -279,14 +254,8 @@ namespace mikelepage
 
 		for(auto& it : defaultPiecePositions[color])
 		{
-			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(
-					it.first,
-					// is there a better method to do this? [TODO]
-					it.second ? make_unique<Coordinate>(*it.second) : nullptr,
-					color,
-					_self->_activePieces,
-					_board
-				));
+			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second),
+			                                        color, _self->_activePieces, _board));
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
@@ -315,21 +284,40 @@ namespace mikelepage
 
 		if(_self->_color == PLAYER_WHITE)
 		{
-			_board.updateTileColors(5, 11);
+			_board.resetTileColors(5, 11);
 			//placePiecesSetup(PLAYER_BLACK);
 		}
 		else
 		{
-			_board.updateTileColors(0, 5);
+			_board.resetTileColors(0, 5);
 			//placePiecesSetup(PLAYER_WHITE);
 		}
 	}
 
-	void MikelepageRuleSet::resetPossibleTargets()
+	void MikelepageRuleSet::showPossibleTargetTiles(Coordinate coord)
 	{
-		for(auto& it : _possibleTargets)
-			_board.resetTileColor(it.first, _setup);
+		// only show possible target tiles when not in setup
+		if(!_setup)
+		{
+			auto& pieces = _self->getActivePieces();
+			auto it = pieces.find(coord);
+			if(it != pieces.end()) // the tile clicked on holds an own piece
+			{
+				for(auto targetTile : it->second->getPossibleTargetTiles())
+				{
+					_board.highlightTileBlue(targetTile, false);
 
-		_possibleTargets.clear();
+					_possibleTargetTiles.emplace(targetTile);
+				}
+			}
+		}
+	}
+
+	void MikelepageRuleSet::clearPossibleTargetTiles()
+	{
+		for(auto it : _possibleTargetTiles)
+			_board.resetTileColor(it, _setup);
+
+		_possibleTargetTiles.clear();
 	}
 }

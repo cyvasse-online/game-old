@@ -58,6 +58,8 @@ class HexagonBoard
 		Tile _highlightedTile;
 		Tile _mouseBPressTile;
 
+		void addHighlightning(Coordinate, bool setup, const fea::Color& cAdd, const fea::Color& cSub);
+
 	public:
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
 		~HexagonBoard();
@@ -68,7 +70,7 @@ class HexagonBoard
 
 		static Tile noTile();
 
-		std::function<void(const Tile&)> onTileClicked;
+		std::function<void(Coordinate)> onTileClicked;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onClickedOutside;
 
 		glm::uvec2 getSize();
@@ -82,8 +84,14 @@ class HexagonBoard
 
 		fea::Quad* getTileAt(Coordinate);
 
+		void highlightTileRed(Coordinate coord, bool setup)
+		{ addHighlightning(coord, setup, fea::Color(192, 0, 0, 0), fea::Color(0, 64, 64, 0)); }
+
+		void highlightTileBlue(Coordinate coord, bool setup)
+		{ addHighlightning(coord, setup, fea::Color(0, 0, 192, 0), fea::Color(64, 64, 0, 0)); }
+
 		void resetTileColor(Coordinate, bool setup);
-		void updateTileColors(int8_t fromRow, int8_t toRow, bool setup = false);
+		void resetTileColors(int8_t fromRow, int8_t toRow, bool setup = false);
 
 		void tick();
 

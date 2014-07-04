@@ -19,6 +19,7 @@
 
 #include <cyvmath/mikelepage/match.hpp>
 
+#include <set>
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
 #include <cyvmath/mikelepage/piece.hpp>
@@ -29,6 +30,9 @@
 
 namespace mikelepage
 {
+	using cyvmath::mikelepage::Coordinate;
+	using cyvmath::mikelepage::Piece;
+
 	/** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 
 		See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
@@ -37,9 +41,6 @@ namespace mikelepage
 	{
 		public:
 			typedef HexagonBoard<6> Board;
-
-			typedef Board::Tile Tile;
-			typedef std::map<Board::Coordinate, fea::Quad*> TileMap;
 
 		private:
 			fea::Renderer2D& _renderer;
@@ -54,9 +55,8 @@ namespace mikelepage
 			fea::Texture _buttonSetupDoneTexture;
 			fea::Quad _buttonSetupDone;
 
-			// highlighted tiles
-			Tile _selectedTile;
-			TileMap _possibleTargets;
+			std::shared_ptr<Piece> _selectedPiece;
+			std::set<Coordinate> _possibleTargetTiles;
 		public:
 			MikelepageRuleSet(IngameState&, fea::Renderer2D&, cyvmath::PlayersColor firstPlayer);
 			~MikelepageRuleSet() = default;
@@ -67,12 +67,13 @@ namespace mikelepage
 
 			void tick();
 
-			void onTileClicked(const Tile&);
+			void onTileClicked(Coordinate);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
 			void placePiecesSetup();
 			void exitSetup();
-			void resetPossibleTargets();
+			void showPossibleTargetTiles(Board::Coordinate);
+			void clearPossibleTargetTiles();
 	};
 }
 
