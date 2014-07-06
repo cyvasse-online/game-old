@@ -24,6 +24,10 @@
 
 namespace mikelepage
 {
+	using cyvmath::PieceType;
+	using cyvmath::PlayersColor;
+	using cyvmath::mikelepage::PieceMap;
+
 	class RenderedPiece : public cyvmath::mikelepage::Piece, public fea::Quad
 	{
 		public:
@@ -33,8 +37,7 @@ namespace mikelepage
 			Board& _board;
 
 		public:
-			RenderedPiece(cyvmath::PieceType, std::unique_ptr<Board::Coordinate>,
-			              cyvmath::PlayersColor, PieceMap&, Board&);
+			RenderedPiece(PieceType, std::unique_ptr<Board::Coordinate>, PlayersColor, PieceMap&, Board&);
 
 			bool moveTo(Board::Coordinate, bool checkMoveValidity) final override;
 	};

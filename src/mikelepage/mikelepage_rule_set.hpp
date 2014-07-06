@@ -30,8 +30,10 @@
 
 namespace mikelepage
 {
+	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::Coordinate;
 	using cyvmath::mikelepage::Piece;
+	using cyvmath::mikelepage::PieceMap;
 
 	/** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
 
@@ -58,7 +60,7 @@ namespace mikelepage
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
 		public:
-			MikelepageRuleSet(IngameState&, fea::Renderer2D&, cyvmath::PlayersColor firstPlayer);
+			MikelepageRuleSet(IngameState&, fea::Renderer2D&, PlayersColor firstPlayer);
 			~MikelepageRuleSet() = default;
 
 			// non-copyable

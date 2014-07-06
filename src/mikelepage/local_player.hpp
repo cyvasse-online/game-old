@@ -23,6 +23,8 @@
 
 namespace mikelepage
 {
+	using cyvmath::PlayersColor;
+	using cyvmath::mikelepage::PieceMap;
 	typedef HexagonBoard<6>::Hexagon Hexagon;
 
 	class MikelepageRuleSet;
@@ -34,8 +36,8 @@ namespace mikelepage
 			bool _setupComplete;
 
 		public:
-			LocalPlayer(cyvmath::PlayersColor color)
-				: Player(color)
+			LocalPlayer(PlayersColor color, PieceMap& activePieces)
+				: Player(color, activePieces)
 				, _setupComplete(false)
 			{
 			}

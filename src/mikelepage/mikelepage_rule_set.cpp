@@ -33,8 +33,8 @@ namespace mikelepage
 	{
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
-		_players.emplace(color, std::make_shared<LocalPlayer>(color));
-		_players.emplace(opColor, std::make_shared<RemotePlayer>(opColor));
+		_players.emplace(color, std::make_shared<LocalPlayer>(color, _activePieces));
+		_players.emplace(opColor, std::make_shared<RemotePlayer>(opColor, _activePieces));
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[color]);
 		assert(_self);
 
@@ -90,11 +90,12 @@ namespace mikelepage
 	{
 		if(!_selectedPiece)
 		{
-			// search for an own piece on the clicked tile
-			auto it = _self->getActivePieces().find(coord);
+			// search for a piece on the clicked tile
+			auto it = _activePieces.find(coord);
 
-			if(it != _self->getActivePieces().end())
+			if(it != _activePieces.end() && it->second->getColor() == _self->getColor())
 			{
+				// a piece of the player was clicked
 				_selectedPiece = it->second;
 
 				_board.highlightTileRed(coord, _setup);
@@ -106,15 +107,9 @@ namespace mikelepage
 			// determine which piece is on the clicked tile
 			std::shared_ptr<Piece> piece;
 
-			for(auto it : _players)
-			{
-				auto pieceIt = it.second->getActivePieces().find(coord);
-				if(pieceIt != it.second->getActivePieces().end())
-				{
-					assert(!piece);
-					piece = pieceIt->second;
-				}
-			}
+			auto pieceIt = _activePieces.find(coord);
+			if(pieceIt != _activePieces.end())
+				piece = pieceIt->second;
 
 			if(!piece) // there is no piece on the clicked tile
 			{
@@ -255,11 +250,11 @@ namespace mikelepage
 		for(auto& it : defaultPiecePositions[color])
 		{
 			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second),
-			                                        color, _self->_activePieces, _board));
+			                                        color, _activePieces, _board));
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
-				_self->_activePieces.emplace(*it.second, tmpPiece);
+				_activePieces.emplace(*it.second, tmpPiece);
 			}
 			else // dragon, 26th piece
 			{
@@ -299,10 +294,11 @@ namespace mikelepage
 		// only show possible target tiles when not in setup
 		if(!_setup)
 		{
-			auto& pieces = _self->getActivePieces();
+			auto& pieces = _activePieces;
 			auto it = pieces.find(coord);
-			if(it != pieces.end()) // the tile clicked on holds an own piece
+			if(it != pieces.end() && it->second->getColor() == _self->getColor())
 			{
+				// the tile clicked on holds a piece of the player
 				for(auto targetTile : it->second->getPossibleTargetTiles())
 				{
 					_board.highlightTileBlue(targetTile, false);

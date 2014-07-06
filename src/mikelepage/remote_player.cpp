@@ -22,8 +22,8 @@
 
 namespace mikelepage
 {
-	RemotePlayer::RemotePlayer(cyvmath::PlayersColor color)
-		: Player(color)
+	RemotePlayer::RemotePlayer(PlayersColor color, PieceMap& activePieces)
+		: Player(color, activePieces)
 		, _setupComplete(false)
 	{
 	}
