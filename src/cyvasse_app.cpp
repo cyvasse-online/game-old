@@ -23,6 +23,10 @@
 #include <make_unique.hpp>
 #include "ingame_state.hpp"
 
+#ifdef EMSCRIPTEN
+	#include <emscripten.h>
+#endif
+
 #include "mikelepage/mikelepage_rule_set.hpp"
 
 using namespace cyvmath;
@@ -42,10 +46,20 @@ void CyvasseApp::setup(const std::vector<std::string>& args)
 
 	auto ingameState = make_unique<IngameState>(_input, _renderer);
 
+	#ifdef EMSCRIPTEN
+	EM_ASM(
+		if(typeof(Module.gameMetaData) !== 'object' || Module.gameMetaData === null) {
+			throw new Error('No meta data found!');
+		}
+	);
+
+	auto ruleSet = StrToRuleSet(emscripten_run_script_string("return Module.gameMetaData.ruleSet"));
+	auto color = StrToPlayersColor(emscripten_run_script_string("return Module.gameMetaData.color"));
+	#else
 	// --- hardcoded only until game init code is written ---
 	auto ruleSet = RULESET_MIKELEPAGE;
 	auto color = PLAYER_WHITE;
-
+	#endif
 
 	_ruleSet = createRuleSet[ruleSet](*ingameState, _renderer, color);
 
