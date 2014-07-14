@@ -53,8 +53,8 @@ void CyvasseApp::setup(const std::vector<std::string>& args)
 		}
 	);
 
-	auto ruleSet = StrToRuleSet(emscripten_run_script_string("return Module.gameMetaData.ruleSet"));
-	auto color = StrToPlayersColor(emscripten_run_script_string("return Module.gameMetaData.color"));
+	auto ruleSet = StrToRuleSet(emscripten_run_script_string("Module.gameMetaData.ruleSet"));
+	auto color   = StrToPlayersColor(emscripten_run_script_string("Module.gameMetaData.color"));
 	#else
 	// --- hardcoded only until game init code is written ---
 	auto ruleSet = RULESET_MIKELEPAGE;
