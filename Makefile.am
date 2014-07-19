@@ -16,10 +16,10 @@ game_sources = \
 	src/ingame_state.hpp \
 	src/main.cpp \
 	src/mikelepage/local_player.hpp \
-	src/mikelepage/mikelepage_rule_set.cpp \
-	src/mikelepage/mikelepage_rule_set.hpp \
 	src/mikelepage/remote_player.cpp \
 	src/mikelepage/remote_player.hpp \
+	src/mikelepage/rendered_match.cpp \
+	src/mikelepage/rendered_match.hpp \
 	src/mikelepage/rendered_piece.cpp \
 	src/mikelepage/rendered_piece.hpp
 

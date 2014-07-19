@@ -27,11 +27,11 @@ namespace mikelepage
 	using cyvmath::mikelepage::PieceMap;
 	typedef HexagonBoard<6>::Hexagon Hexagon;
 
-	class MikelepageRuleSet;
+	class RenderedMatch;
 
 	class LocalPlayer : public cyvmath::mikelepage::Player
 	{
-		friend MikelepageRuleSet;
+		friend RenderedMatch;
 		private:
 			bool _setupComplete;
 

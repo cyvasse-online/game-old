@@ -14,7 +14,7 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mikelepage_rule_set.hpp"
+#include "rendered_match.hpp"
 
 #include "common.hpp"
 #include "remote_player.hpp"
@@ -25,9 +25,8 @@ using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
-	MikelepageRuleSet::MikelepageRuleSet(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
-		: Match(color)
-		, _renderer(renderer)
+	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
+		: _renderer(renderer)
 		, _board(renderer, color)
 		, _selectedPiece(nullptr)
 	{
@@ -52,18 +51,18 @@ namespace mikelepage
 
 		using namespace std::placeholders;
 
-		ingameState.tick = std::bind(&MikelepageRuleSet::tick, this);
+		ingameState.tick = std::bind(&RenderedMatch::tick, this);
 		ingameState.onMouseMoved = std::bind(&Board::onMouseMoved, &_board, _1);
 		ingameState.onMouseButtonPressed = std::bind(&Board::onMouseButtonPressed, &_board, _1);
 		ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &_board, _1);
 		ingameState.onKeyPressed = [](const fea::Event::KeyEvent&) { };
 		ingameState.onKeyReleased = [](const fea::Event::KeyEvent&) { };
 
-		_board.onTileClicked = std::bind(&MikelepageRuleSet::onTileClicked, this, _1);
-		_board.onClickedOutside = std::bind(&MikelepageRuleSet::onClickedOutsideBoard, this, _1);
+		_board.onTileClicked = std::bind(&RenderedMatch::onTileClicked, this, _1);
+		_board.onClickedOutside = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
 	}
 
-	void MikelepageRuleSet::tick()
+	void RenderedMatch::tick()
 	{
 		_board.tick();
 
@@ -86,7 +85,7 @@ namespace mikelepage
 		}
 	}
 
-	void MikelepageRuleSet::onTileClicked(Coordinate coord)
+	void RenderedMatch::onTileClicked(Coordinate coord)
 	{
 		if(!_selectedPiece)
 		{
@@ -149,7 +148,7 @@ namespace mikelepage
 		}
 	}
 
-	void MikelepageRuleSet::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
+	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
 		// a piece is selected
 		if(_selectedPiece)
@@ -164,7 +163,7 @@ namespace mikelepage
 			exitSetup();
 	}
 
-	void MikelepageRuleSet::placePiecesSetup()
+	void RenderedMatch::placePiecesSetup()
 	{
 		#define coord(x, y) \
 			Coordinate::create((x), (y))
@@ -273,23 +272,17 @@ namespace mikelepage
 		}
 	}
 
-	void MikelepageRuleSet::exitSetup()
+	void RenderedMatch::exitSetup()
 	{
 		_setup = false;
 
 		if(_self->_color == PLAYER_WHITE)
-		{
 			_board.resetTileColors(5, 11);
-			//placePiecesSetup(PLAYER_BLACK);
-		}
 		else
-		{
 			_board.resetTileColors(0, 5);
-			//placePiecesSetup(PLAYER_WHITE);
-		}
 	}
 
-	void MikelepageRuleSet::showPossibleTargetTiles(Coordinate coord)
+	void RenderedMatch::showPossibleTargetTiles(Coordinate coord)
 	{
 		// only show possible target tiles when not in setup
 		if(!_setup)
@@ -309,7 +302,7 @@ namespace mikelepage
 		}
 	}
 
-	void MikelepageRuleSet::clearPossibleTargetTiles()
+	void RenderedMatch::clearPossibleTargetTiles()
 	{
 		for(auto it : _possibleTargetTiles)
 			_board.resetTileColor(it, _setup);

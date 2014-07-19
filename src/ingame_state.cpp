@@ -19,7 +19,7 @@
 #include <map>
 #include <fea/ui/inputbackend.hpp>
 
-#include "mikelepage/mikelepage_rule_set.hpp"
+#include "mikelepage/rendered_match.hpp"
 
 using namespace cyvmath;
 

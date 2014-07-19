@@ -14,8 +14,8 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MIKELEPAGE_RULESET_HPP_
-#define _MIKELEPAGE_RULESET_HPP_
+#ifndef _RENDERED_MATCH_HPP_
+#define _RENDERED_MATCH_HPP_
 
 #include <cyvmath/mikelepage/match.hpp>
 
@@ -32,14 +32,11 @@ namespace mikelepage
 {
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::Coordinate;
+	using cyvmath::mikelepage::Match;
 	using cyvmath::mikelepage::Piece;
 	using cyvmath::mikelepage::PieceMap;
 
-	/** This rule set was created by Michael Le Page (http://www.mikelepage.com/)
-
-		See http://asoiaf.westeros.org/index.php/topic/58545-complete-cyvasse-rules/
-	 */
-	class MikelepageRuleSet : public cyvmath::mikelepage::Match
+	class RenderedMatch : public Match
 	{
 		public:
 			typedef HexagonBoard<6> Board;
@@ -60,12 +57,12 @@ namespace mikelepage
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
 		public:
-			MikelepageRuleSet(IngameState&, fea::Renderer2D&, PlayersColor firstPlayer);
-			~MikelepageRuleSet() = default;
+			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor firstPlayer);
+			~RenderedMatch() = default;
 
 			// non-copyable
-			MikelepageRuleSet(const MikelepageRuleSet&) = delete;
-			const MikelepageRuleSet& operator= (const MikelepageRuleSet&) = delete;
+			RenderedMatch(const RenderedMatch&) = delete;
+			const RenderedMatch& operator= (const RenderedMatch&) = delete;
 
 			void tick();
 
@@ -79,4 +76,4 @@ namespace mikelepage
 	};
 }
 
-#endif // _MIKELEPAGE_RULESET_HPP_
+#endif // _RENDERED_MATCH_HPP_
