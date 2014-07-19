@@ -24,9 +24,8 @@
 #include <fea/rendering/renderer2d.hpp>
 #include <cyvmath/mikelepage/piece.hpp>
 #include "hexagon_board.hpp"
-#include "ingame_state.hpp"
-#include "local_player.hpp"
-#include "rendered_piece.hpp"
+
+class IngameState;
 
 namespace mikelepage
 {
@@ -36,10 +35,14 @@ namespace mikelepage
 	using cyvmath::mikelepage::Piece;
 	using cyvmath::mikelepage::PieceMap;
 
+	class LocalPlayer;
+	class RenderedPiece;
+
 	class RenderedMatch : public Match
 	{
 		public:
 			typedef HexagonBoard<6> Board;
+			typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;
 
 		private:
 			fea::Renderer2D& _renderer;
@@ -71,7 +74,7 @@ namespace mikelepage
 
 			void placePiecesSetup();
 			void exitSetup();
-			void showPossibleTargetTiles(Board::Coordinate);
+			void showPossibleTargetTiles(Coordinate);
 			void clearPossibleTargetTiles();
 	};
 }

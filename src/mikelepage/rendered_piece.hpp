@@ -20,13 +20,15 @@
 #include <cyvmath/mikelepage/piece.hpp>
 #include <fea/rendering/quad.hpp>
 
-#include "hexagon_board.hpp"
+template<int> class HexagonBoard;
 
 namespace mikelepage
 {
 	using cyvmath::PieceType;
 	using cyvmath::PlayersColor;
+	using cyvmath::mikelepage::Coordinate;
 	using cyvmath::mikelepage::PieceMap;
+	using cyvmath::mikelepage::Match;
 
 	class RenderedPiece : public cyvmath::mikelepage::Piece, public fea::Quad
 	{
@@ -37,9 +39,9 @@ namespace mikelepage
 			Board& _board;
 
 		public:
-			RenderedPiece(PieceType, std::unique_ptr<Board::Coordinate>, PlayersColor, PieceMap&, Board&);
+			RenderedPiece(PieceType, std::unique_ptr<Coordinate>, PlayersColor, Match&, Board&);
 
-			bool moveTo(Board::Coordinate, bool checkMoveValidity) final override;
+			bool moveTo(Coordinate, bool checkMoveValidity) final override;
 	};
 
 	typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;

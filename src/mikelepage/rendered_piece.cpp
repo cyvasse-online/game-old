@@ -16,16 +16,17 @@
 
 #include "rendered_piece.hpp"
 
-// lodepng helper function
-#include "texturemaker.hpp"
+#include <cyvmath/mikelepage/match.hpp>
+#include "hexagon_board.hpp"
+#include "texturemaker.hpp" // lodepng helper function
 
 using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
 	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
-	                             PlayersColor color, PieceMap& map, Board& board)
-		: Piece(color, type, std::move(coord), map)
+	                             PlayersColor color, Match& match, Board& board)
+		: Piece(color, type, std::move(coord), match)
 		, fea::Quad({48.0f, 40.0f})
 		, _board(board)
 	{

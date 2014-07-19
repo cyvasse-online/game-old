@@ -25,7 +25,6 @@ namespace mikelepage
 {
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::PieceMap;
-	typedef HexagonBoard<6>::Hexagon Hexagon;
 
 	class MikelepageRuleSet;
 

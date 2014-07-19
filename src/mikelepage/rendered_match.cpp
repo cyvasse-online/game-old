@@ -17,9 +17,11 @@
 #include "rendered_match.hpp"
 
 #include "common.hpp"
+#include "ingame_state.hpp"
+#include "local_player.hpp"
+#include "rendered_piece.hpp"
 #include "remote_player.hpp"
-// lodepng helper function
-#include "texturemaker.hpp"
+#include "texturemaker.hpp" // lodepng helper function
 
 using namespace cyvmath::mikelepage;
 
@@ -249,7 +251,7 @@ namespace mikelepage
 		for(auto& it : defaultPiecePositions[color])
 		{
 			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second),
-			                                        color, _activePieces, _board));
+			                                        color, *this, _board));
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
