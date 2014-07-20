@@ -282,6 +282,19 @@ namespace mikelepage
 			_board.resetTileColors(5, 11);
 		else
 			_board.resetTileColors(0, 5);
+
+		// TODO: Rewrite when Terrain is added
+		for(auto it : _self->_allPieces)
+		{
+			assert(it);
+			if(it->getType() == PIECE_KING)
+			{
+				auto coord = it->getCoord();
+				assert(coord);
+
+				_fortressPositions.emplace(_self->getColor(), *coord);
+			}
+		}
 	}
 
 	void RenderedMatch::showPossibleTargetTiles(Coordinate coord)
