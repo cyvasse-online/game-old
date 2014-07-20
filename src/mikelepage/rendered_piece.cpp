@@ -19,16 +19,17 @@
 #include <cyvmath/mikelepage/match.hpp>
 #include "hexagon_board.hpp"
 #include "texturemaker.hpp" // lodepng helper function
+#include "rendered_match.hpp"
 
 using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
 	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
-	                             PlayersColor color, Match& match, Board& board)
+	                             PlayersColor color, RenderedMatch& match)
 		: Piece(color, type, std::move(coord), match)
 		, fea::Quad({48.0f, 40.0f})
-		, _board(board)
+		, _board(match.getBoard())
 	{
 		static std::map<PieceType, std::string> fileNames = {
 				{PIECE_MOUNTAIN,    "mountain.png"},

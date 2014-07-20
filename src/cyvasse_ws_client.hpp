@@ -18,13 +18,7 @@
 #define _CYVASSE_WS_CLIENT_HPP_
 
 #include <functional>
-
-// Only a workaround...
-#ifdef EMSCRIPTEN
 #include <json/value.h>
-#else
-#include <jsoncpp/json/value.h>
-#endif
 
 class WebsocketImpl;
 
@@ -43,8 +37,10 @@ class CyvasseWSClient
 
 		std::function<void(const Json::Value&)> handleMessage;
 
-		static CyvasseWSClient* instance()
-		{ return _instance; }
+		static CyvasseWSClient& instance();
+
+		void send(const std::string&);
+		void send(const Json::Value&);
 };
 
 #endif // _CYVASSE_WS_CLIENT_HPP_

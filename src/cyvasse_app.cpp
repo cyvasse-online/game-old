@@ -31,7 +31,7 @@
 
 using namespace cyvmath;
 
-void CyvasseApp::setup(const std::vector<std::string>& args)
+void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 {
 	static std::map<RuleSet, std::function<std::unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
 		createMatch {{

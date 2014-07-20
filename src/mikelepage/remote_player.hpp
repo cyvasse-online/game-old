@@ -18,7 +18,7 @@
 #define _MIKELEPAGE_REMOTE_PLAYER_HPP_
 
 #include <cyvmath/mikelepage/player.hpp>
-
+#include <json/value.h>
 #include "hexagon_board.hpp"
 
 namespace mikelepage
@@ -26,20 +26,22 @@ namespace mikelepage
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::PieceMap;
 
-	class MikelepageRuleSet;
+	class RenderedMatch;
 
 	class RemotePlayer : public cyvmath::mikelepage::Player
 	{
 		private:
 			bool _setupComplete;
 
+			RenderedMatch& _match;
+
 		public:
-			RemotePlayer(PlayersColor, PieceMap&);
+			RemotePlayer(PlayersColor, RenderedMatch&);
 
 			bool setupComplete() final override
-			{
-				return _setupComplete;
-			}
+			{ return _setupComplete; }
+
+			void handleMessage(Json::Value);
 	};
 }
 

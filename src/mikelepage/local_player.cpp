@@ -14,39 +14,40 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "local_player.hpp"
+
 #include "cyvasse_ws_client.hpp"
+#include "hexagon_board.hpp"
 
-#include <cassert>
-#include <json/writer.h>
-#ifdef EMSCRIPTEN
-	#include "websocket_impl_emscripten.inl"
-#else
-	#include "websocket_impl_native.inl"
-#endif
-
-CyvasseWSClient* CyvasseWSClient::_instance = new CyvasseWSClient();
-
-CyvasseWSClient::CyvasseWSClient()
-	: wsImpl(new WebsocketImpl())
-{ }
-
-CyvasseWSClient::~CyvasseWSClient()
+namespace mikelepage
 {
-	delete wsImpl;
-}
+	void LocalPlayer::sendGameUpdate(UpdateType update, Json::Value data)
+	{
+		Json::Value msg;
+		msg["messageType"] = "game update";
+		msg["update"] = UpdateTypeToStr(update);
+		msg["data"] = data;
 
-CyvasseWSClient& CyvasseWSClient::instance()
-{
-	assert(_instance);
-	return *_instance;
-}
+		CyvasseWSClient::instance().send(msg);
+	}
 
-void CyvasseWSClient::send(const std::string& str)
-{
-	wsImpl->send(str);
-}
+	void LocalPlayer::sendLeaveSetup()
+	{
+		Json::Value data;
+		data["pieces"] = Json::Value(Json::arrayValue);
 
-void CyvasseWSClient::send(const Json::Value& val)
-{
-	send((Json::FastWriter()).write(val));
+		Json::Value& pieces = data["pieces"];
+		for(auto it : _allPieces)
+		{
+			auto pos = it->getCoord();
+
+			Json::Value piece;
+			piece["type"] = PieceTypeToStr(it->getType());
+			piece["position"] = pos ? pos->toString() : Json::Value();
+
+			pieces.append(piece);
+		}
+
+		sendGameUpdate(UPDATE_LEAVE_SETUP, data);
+	}
 }

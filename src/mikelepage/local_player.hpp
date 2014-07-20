@@ -19,38 +19,41 @@
 
 #include <cyvmath/mikelepage/player.hpp>
 
-#include "hexagon_board.hpp"
+#include <json/value.h>
+#include <server_message.hpp>
 
 namespace mikelepage
 {
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::PieceMap;
-	typedef HexagonBoard<6>::Hexagon Hexagon;
+	using cyvmath::mikelepage::PieceVec;
+	using cyvmath::mikelepage::Player;
 
 	class RenderedMatch;
 
-	class LocalPlayer : public cyvmath::mikelepage::Player
+	class LocalPlayer : public Player
 	{
 		friend RenderedMatch;
 		private:
 			bool _setupComplete;
 
+			PieceVec _allPieces;
+
+			void sendGameUpdate(UpdateType, Json::Value data);
+
 		public:
 			LocalPlayer(PlayersColor color, PieceMap& activePieces)
 				: Player(color, activePieces)
 				, _setupComplete(false)
-			{
-			}
+			{ }
 
 			bool setupComplete() final override
-			{
-				return _setupComplete;
-			}
+			{ return _setupComplete; }
 
 			void checkSetupComplete()
-			{
-				_setupComplete = Player::setupComplete();
-			}
+			{ _setupComplete = Player::setupComplete(); }
+
+			void sendLeaveSetup();
 	};
 }
 

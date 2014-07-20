@@ -30,16 +30,17 @@ namespace mikelepage
 	using cyvmath::mikelepage::PieceMap;
 	using cyvmath::mikelepage::Match;
 
+	class RenderedMatch;
+
 	class RenderedPiece : public cyvmath::mikelepage::Piece, public fea::Quad
 	{
-		public:
+		private:
 			typedef HexagonBoard<6> Board;
 
-		private:
 			Board& _board;
 
 		public:
-			RenderedPiece(PieceType, std::unique_ptr<Coordinate>, PlayersColor, Match&, Board&);
+			RenderedPiece(PieceType, std::unique_ptr<Coordinate>, PlayersColor, RenderedMatch&);
 
 			bool moveTo(Coordinate, bool checkMoveValidity) final override;
 	};

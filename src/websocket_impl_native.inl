@@ -22,4 +22,7 @@
 class WebsocketImpl
 {
 	// TODO
+	public:
+		void send(const std::string& /* msgData */)
+		{ }
 };

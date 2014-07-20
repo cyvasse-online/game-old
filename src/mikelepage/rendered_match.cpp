@@ -35,7 +35,7 @@ namespace mikelepage
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
 
 		_players.emplace(color, std::make_shared<LocalPlayer>(color, _activePieces));
-		_players.emplace(opColor, std::make_shared<RemotePlayer>(opColor, _activePieces));
+		_players.emplace(opColor, std::make_shared<RemotePlayer>(opColor, *this));
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[color]);
 		assert(_self);
 
@@ -162,7 +162,10 @@ namespace mikelepage
 		}
 		// 'Setup done' button clicked (while being visible)
 		else if(_self->setupComplete() && mouseOver(_buttonSetupDone, {event.x, event.y}))
-			exitSetup();
+		{
+			tryLeaveSetup();
+			_self->sendLeaveSetup();
+		}
 	}
 
 	void RenderedMatch::placePiecesSetup()
@@ -250,8 +253,7 @@ namespace mikelepage
 
 		for(auto& it : defaultPiecePositions[color])
 		{
-			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second),
-			                                        color, *this, _board));
+			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second), color, *this));
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
@@ -274,8 +276,12 @@ namespace mikelepage
 		}
 	}
 
-	void RenderedMatch::exitSetup()
+	void RenderedMatch::tryLeaveSetup()
 	{
+		for(auto it : _players)
+			if(!it.second->setupComplete())
+				return;
+
 		_setup = false;
 
 		if(_self->_color == PLAYER_WHITE)
@@ -284,7 +290,8 @@ namespace mikelepage
 			_board.resetTileColors(0, 5);
 
 		// TODO: Rewrite when Terrain is added
-		for(auto it : _self->_allPieces)
+		int nFortresses = 0;
+		for(auto it : _allPieces)
 		{
 			assert(it);
 			if(it->getType() == PIECE_KING)
@@ -293,8 +300,10 @@ namespace mikelepage
 				assert(coord);
 
 				_fortressPositions.emplace(_self->getColor(), *coord);
+				nFortresses++;
 			}
 		}
+		assert(nFortresses == 2);
 	}
 
 	void RenderedMatch::showPossibleTargetTiles(Coordinate coord)

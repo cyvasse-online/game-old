@@ -67,13 +67,19 @@ namespace mikelepage
 			RenderedMatch(const RenderedMatch&) = delete;
 			const RenderedMatch& operator= (const RenderedMatch&) = delete;
 
+			Board& getBoard()
+			{ return _board; }
+
+			RenderedPieceVec& getAllPieces()
+			{ return _allPieces; }
+
 			void tick();
 
 			void onTileClicked(Coordinate);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
 			void placePiecesSetup();
-			void exitSetup();
+			void tryLeaveSetup();
 			void showPossibleTargetTiles(Coordinate);
 			void clearPossibleTargetTiles();
 	};

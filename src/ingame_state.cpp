@@ -63,6 +63,7 @@ std::string IngameState::run()
 			case fea::Event::KEYRELEASED:
 				onKeyReleased(event.key);
 				break;
+			default: { } // disable compiler warning
 		}
 	}
 

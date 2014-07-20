@@ -15,6 +15,7 @@ game_sources = \
 	src/ingame_state.cpp \
 	src/ingame_state.hpp \
 	src/main.cpp \
+	src/mikelepage/local_player.cpp \
 	src/mikelepage/local_player.hpp \
 	src/mikelepage/remote_player.cpp \
 	src/mikelepage/remote_player.hpp \
@@ -51,8 +52,11 @@ bin_PROGRAMS = cyvasse-game
 
 cyvasse_game_SOURCES = $(game_sources)
 
+# work around differing jsoncpp include dir
 cyvasse_game_CPPFLAGS = \
-	$(game_cppflags)
+	$(game_cppflags) \
+	-I/usr/include/jsoncpp \
+	-I/usr/local/include/jsoncpp
 
 cyvasse_game_CXXFLAGS = \
 	$(game_cxxflags) \
