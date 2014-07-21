@@ -16,6 +16,7 @@
 
 #include "cyvasse_ws_client.hpp"
 
+#include <iostream>
 #include <cassert>
 #include <json/writer.h>
 #ifdef EMSCRIPTEN
@@ -25,6 +26,23 @@
 #endif
 
 CyvasseWSClient* CyvasseWSClient::_instance = new CyvasseWSClient();
+
+void CyvasseWSClient::handleMessageWrap(const std::string& msg)
+{
+	if(instance().handleMessage) // if std::function object holds a callable
+	{
+		try
+		{
+			Json::Value val;
+			if((Json::Reader()).parse(msg, val, false))
+				CyvasseWSClient::instance().handleMessage(val);
+		}
+		catch(std::exception& e)
+		{
+			std::cerr << "Caught a std::exception while processing a remote message: " << e.what() << '\n';
+		}
+	}
+}
 
 CyvasseWSClient::CyvasseWSClient()
 	: wsImpl(new WebsocketImpl())

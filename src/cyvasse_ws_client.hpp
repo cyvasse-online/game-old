@@ -39,6 +39,8 @@ class CyvasseWSClient
 
 		static CyvasseWSClient& instance();
 
+		void handleMessageWrap(const std::string&);
+
 		void send(const std::string&);
 		void send(const Json::Value&);
 };

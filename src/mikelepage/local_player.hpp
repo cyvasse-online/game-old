@@ -19,12 +19,15 @@
 
 #include <cyvmath/mikelepage/player.hpp>
 
+#include <memory>
 #include <json/value.h>
 #include <server_message.hpp>
 
 namespace mikelepage
 {
 	using cyvmath::PlayersColor;
+	using cyvmath::mikelepage::Coordinate;
+	using cyvmath::mikelepage::Piece;
 	using cyvmath::mikelepage::PieceMap;
 	using cyvmath::mikelepage::PieceVec;
 	using cyvmath::mikelepage::Player;
@@ -54,6 +57,7 @@ namespace mikelepage
 			{ _setupComplete = Player::setupComplete(); }
 
 			void sendLeaveSetup();
+			void sendMovePiece(std::shared_ptr<Piece>, std::unique_ptr<Coordinate> oldPos);
 	};
 }
 

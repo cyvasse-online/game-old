@@ -51,12 +51,5 @@ void WebsocketImpl::send(const std::string& msgData)
 extern "C"
 {
 	void game_handlemessage(const char* msgData)
-	{
-		if(CyvasseWSClient::instance().handleMessage) // if std::function object holds a callable
-		{
-			Json::Value val;
-			if((Json::Reader()).parse(std::string(msgData), val, false))
-				CyvasseWSClient::instance().handleMessage(val);
-		}
-	}
+	{ CyvasseWSClient::instance().handleMessageWrap(std::string(msgData)); }
 }

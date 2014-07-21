@@ -28,7 +28,7 @@ namespace mikelepage
 	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
 	                             PlayersColor color, RenderedMatch& match)
 		: Piece(color, type, std::move(coord), match)
-		, fea::Quad({48.0f, 40.0f})
+		, _quad({48.0f, 40.0f})
 		, _board(match.getBoard())
 	{
 		static std::map<PieceType, std::string> fileNames = {
@@ -45,7 +45,8 @@ namespace mikelepage
 			};
 
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
-		mTexture = new fea::Texture(makeTexture(texturePath, 48, 40));
+		_texture = makeTexture(texturePath, 48, 40);
+		_quad.setTexture(_texture);
 
 		if(_coord)
 		{
@@ -57,7 +58,7 @@ namespace mikelepage
 			// that this constant should also be changed
 			position += glm::vec2(8, 4);
 
-			setPosition(position);
+			_quad.setPosition(position);
 		}
 	}
 
@@ -69,7 +70,7 @@ namespace mikelepage
 		glm::vec2 position = _board.getTilePosition(coord);
 		position += glm::vec2(8, 4); // TODO
 
-		setPosition(position);
+		_quad.setPosition(position);
 
 		return true;
 	}

@@ -50,4 +50,16 @@ namespace mikelepage
 
 		sendGameUpdate(UPDATE_LEAVE_SETUP, data);
 	}
+
+	void LocalPlayer::sendMovePiece(std::shared_ptr<Piece> piece, std::unique_ptr<Coordinate> oldPos)
+	{
+		assert(piece->getCoord());
+
+		Json::Value data;
+		data["piece type"]   = PieceTypeToStr(piece->getType()); // not really relevant, only for debugging
+		data["old position"] = oldPos ? oldPos->toString() : Json::Value();
+		data["new position"] = piece->getCoord()->toString();
+
+		sendGameUpdate(UPDATE_MOVE_PIECE, data);
+	}
 }

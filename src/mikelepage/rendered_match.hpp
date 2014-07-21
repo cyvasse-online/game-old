@@ -82,6 +82,7 @@ namespace mikelepage
 
 			void placePiecesSetup();
 			void tryLeaveSetup();
+			void tryMovePiece(std::shared_ptr<Piece>, Coordinate);
 			void showPossibleTargetTiles(Coordinate);
 			void clearPossibleTargetTiles();
 	};

@@ -49,15 +49,17 @@ namespace mikelepage
 
 		RenderedPieceVec& allPieces = _match.getAllPieces();
 
+		Json::Value& data = msg["data"];
+
 		switch(StrToUpdateType(msg["update"].asString()))
 		{
 			case UPDATE_LEAVE_SETUP:
-				if(msg["data"]["pieces"].size() != 26)
+				if(data["pieces"].size() != 26)
 					throw std::runtime_error("there have to be exactly 26 pieces when leaving setup");
 
 				// TODO: check for amounts of pieces of one type
 				// TODO: check whether all pieces are on the players side of the board
-				for(const Json::Value& piece : msg["data"]["pieces"])
+				for(const Json::Value& piece : data["pieces"])
 				{
 					auto type = StrToPieceType(piece["type"].asString());
 					auto coord = Coordinate::createFromStr(piece["position"].asString());
@@ -79,6 +81,42 @@ namespace mikelepage
 				_match.tryLeaveSetup();
 				break;
 			case UPDATE_MOVE_PIECE:
+			{
+				auto pieceType = StrToPieceType(data["piece type"].asString());
+				auto oldPos    = Coordinate::createFromStr(data["old position"].asString());
+				auto newPos    = Coordinate::createFromStr(data["new position"].asString());
+
+				if(!pieceType)
+					throw std::runtime_error(
+						"move of undefined piece " + data["piece type"].asString() + " requested"
+					);
+
+				if(!newPos)
+					throw std::runtime_error(
+						"move to undefined position " + data["new position"].asString() + " requested"
+					);
+
+				std::shared_ptr<Piece> piece;
+
+				if(oldPos)
+				{
+					auto it = _activePieces.find(*oldPos);
+					if(it == _activePieces.end())
+						throw std::runtime_error("move of non-existent piece at " + oldPos->toString() + " requested");
+
+					piece = it->second;
+				}
+				// else ... [TODO]
+
+				if(piece->getType() != pieceType)
+					throw std::runtime_error(
+						"remote client requested move of " + data["piece type"].asString() + ", but there is " +
+						PieceTypeToStr(piece->getType()) + " at " + oldPos->toString()
+					);
+
+				_match.tryMovePiece(piece, *newPos);
+				break;
+			}
 			case UPDATE_RESIGN:
 			default:
 				throw std::runtime_error("got a json request with update set to " + msg["update"].asString());

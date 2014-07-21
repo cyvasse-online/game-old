@@ -75,7 +75,7 @@ namespace mikelepage
 			{
 				auto tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
 				assert(tmp);
-				_renderer.queue(*tmp);
+				_renderer.queue(tmp->getQuad());
 			}
 
 			if(_self->setupComplete() && !_setupAccepted)
@@ -84,12 +84,16 @@ namespace mikelepage
 		else
 		{
 			for(std::shared_ptr<RenderedPiece> it : _allPieces)
-				_renderer.queue(*it);
+				_renderer.queue(it->getQuad());
 		}
 	}
 
 	void RenderedMatch::onTileClicked(Coordinate coord)
 	{
+		// if the player left the setup but the opponent isn't ready yet
+		if(_setup == _setupAccepted)
+			return;
+
 		if(!_selectedPiece)
 		{
 			// search for a piece on the clicked tile
@@ -115,21 +119,8 @@ namespace mikelepage
 
 			if(!piece) // there is no piece on the clicked tile
 			{
-				auto oldCoord = _selectedPiece->getCoord();
-
-				// try to move to the clicked tile
-				if(_selectedPiece->moveTo(coord, !_setup))
-				{
-					// move is valid and was done
-					_selectedPiece.reset();
-
-					if(_setup)
-						_self->checkSetupComplete();
-
-					clearPossibleTargetTiles();
-					//if(oldCoord)
-						_board.resetTileColor(*oldCoord, _setup);
-				}
+				tryMovePiece(_selectedPiece, coord);
+				_selectedPiece.reset();
 			}
 			// there is a piece of the player on the clicked tile
 			else if(piece->getColor() == _self->getColor())
@@ -269,7 +260,7 @@ namespace mikelepage
 				glm::uvec2 dragonPos = {boardPos.x, boardPos.y + boardSize.y - _board.getTileSize().y};
 				dragonPos += glm::vec2(8, 4); // TODO
 
-				tmpPiece->setPosition(dragonPos);
+				tmpPiece->getQuad().setPosition(dragonPos);
 
 				_self->_inactivePieces.push_back(tmpPiece);
 			}
@@ -303,14 +294,34 @@ namespace mikelepage
 				auto coord = it->getCoord();
 				assert(coord);
 
-				// Piece::getColor() has to be called explicitly
-				// because RenderedPiece is also derived from fea::Quad.
-				// probably that derivation should be removed [TODO]
-				_fortressPositions.emplace(it->Piece::getColor(), *coord);
+				_fortressPositions.emplace(it->getColor(), *coord);
 				nFortresses++;
 			}
 		}
 		assert(nFortresses == 2);
+	}
+
+	void RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
+	{
+		auto oldCoord = piece->getCoord();
+
+		if(piece->moveTo(coord, !_setup))
+		{
+			// move is valid and was done
+
+			if(piece->getColor() == _self->getColor())
+			{
+				if(!_setup)
+					_self->sendMovePiece(piece, make_unique(oldCoord));
+
+				if(!_setupAccepted)
+					_self->checkSetupComplete();
+			}
+
+			clearPossibleTargetTiles();
+			if(oldCoord)
+				_board.resetTileColor(*oldCoord, _setup);
+		}
 	}
 
 	void RenderedMatch::showPossibleTargetTiles(Coordinate coord)
