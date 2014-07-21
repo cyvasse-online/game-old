@@ -30,6 +30,7 @@ namespace mikelepage
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
 		: _renderer(renderer)
 		, _board(renderer, color)
+		, _setupAccepted(false)
 		, _selectedPiece(nullptr)
 	{
 		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
@@ -77,7 +78,7 @@ namespace mikelepage
 				_renderer.queue(*tmp);
 			}
 
-			if(_self->_setupComplete)
+			if(_self->setupComplete() && !_setupAccepted)
 				_renderer.queue(_buttonSetupDone);
 		}
 		else
@@ -161,8 +162,9 @@ namespace mikelepage
 			_selectedPiece.reset();
 		}
 		// 'Setup done' button clicked (while being visible)
-		else if(_self->setupComplete() && mouseOver(_buttonSetupDone, {event.x, event.y}))
+		else if(_self->setupComplete() && !_setupAccepted && mouseOver(_buttonSetupDone, {event.x, event.y}))
 		{
+			_setupAccepted = true;
 			tryLeaveSetup();
 			_self->sendLeaveSetup();
 		}
@@ -278,6 +280,8 @@ namespace mikelepage
 
 	void RenderedMatch::tryLeaveSetup()
 	{
+		if(!_setupAccepted) return;
+
 		for(auto it : _players)
 			if(!it.second->setupComplete())
 				return;
@@ -299,7 +303,10 @@ namespace mikelepage
 				auto coord = it->getCoord();
 				assert(coord);
 
-				_fortressPositions.emplace(_self->getColor(), *coord);
+				// Piece::getColor() has to be called explicitly
+				// because RenderedPiece is also derived from fea::Quad.
+				// probably that derivation should be removed [TODO]
+				_fortressPositions.emplace(it->Piece::getColor(), *coord);
 				nFortresses++;
 			}
 		}

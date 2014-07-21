@@ -21,20 +21,30 @@
 class WebsocketImpl
 {
 	public:
+		WebsocketImpl();
+
 		void send(const std::string& msgData);
 };
+
+WebsocketImpl::WebsocketImpl()
+{
+	EM_ASM(
+		Module.wsClient.handleMessageIngame = Module.cwrap('game_handlemessage', undefined, ['string']);
+	);
+}
 
 void WebsocketImpl::send(const std::string& msgData)
 {
 	EM_ASM_({
 		var jsWSClient = Module.wsClient;
+		var msg = Module.Pointer_stringify($0);
 
 		if(jsWSClient.debug === true) {
 	        console.log('[send]');
-	        console.log($0);
+	        console.log(msg);
 	    }
 
-		jsWSClient.conn.send($0);
+		jsWSClient.conn.send(msg);
 	}, msgData.c_str());
 }
 

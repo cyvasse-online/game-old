@@ -54,6 +54,8 @@ namespace mikelepage
 			// for rendering
 			RenderedPieceVec _allPieces;
 
+			bool _setupAccepted;
+
 			fea::Texture _buttonSetupDoneTexture;
 			fea::Quad _buttonSetupDone;
 

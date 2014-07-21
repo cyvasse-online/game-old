@@ -73,10 +73,11 @@ namespace mikelepage
 						_inactivePieces.push_back(renderedPiece);
 
 					allPieces.push_back(renderedPiece);
-
-					_setupComplete = true;
-					_match.tryLeaveSetup();
 				}
+
+				_setupComplete = true;
+				_match.tryLeaveSetup();
+				break;
 			case UPDATE_MOVE_PIECE:
 			case UPDATE_RESIGN:
 			default:
