@@ -14,9 +14,7 @@
 * If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <functional>
 #include <emscripten.h>
-#include <json/reader.h>
 
 class WebsocketImpl
 {

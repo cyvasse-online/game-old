@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <cassert>
+#include <json/reader.h>
 #include <json/writer.h>
 #ifdef EMSCRIPTEN
 	#include "websocket_impl_emscripten.inl"
