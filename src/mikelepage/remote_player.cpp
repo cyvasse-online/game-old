@@ -45,9 +45,8 @@ namespace mikelepage
 	{
 		// TODO: Revise when multiplayer for the native game is implemented
 		if(StrToMessageType(msg["messageType"].asString()) != MESSAGE_GAME_UPDATE)
-			throw std::runtime_error("this message should be handled outside the game");
-
-		RenderedPieceVec& allPieces = _match.getAllPieces();
+			throw std::runtime_error("this message should be handled outside the game (message type "
+				+ msg["messageType"].asString() + ")");
 
 		Json::Value& data = msg["data"];
 
@@ -55,7 +54,8 @@ namespace mikelepage
 		{
 			case UPDATE_LEAVE_SETUP:
 				if(data["pieces"].size() != 26)
-					throw std::runtime_error("there have to be exactly 26 pieces when leaving setup");
+					throw std::runtime_error("there have to be exactly 26 pieces when leaving setup (got "
+						+ std::to_string(data["pieces"].size()) + ")");
 
 				// TODO: check for amounts of pieces of one type
 				// TODO: check whether all pieces are on the players side of the board
@@ -66,15 +66,13 @@ namespace mikelepage
 
 					if(type == PIECE_UNDEFINED)
 						throw std::runtime_error("got unknown piece type " + piece["type"].asString());
+					if(!coord && type != PIECE_DRAGON)
+						throw std::runtime_error("a " + piece["type"].asString() +
+							" piece has no position on the board, this is only allowed for the dragon");
 
 					auto renderedPiece = std::make_shared<RenderedPiece>(type, make_unique(coord), _color, _match);
 
-					if(coord)
-						_activePieces.emplace(*coord, renderedPiece);
-					else
-						_inactivePieces.push_back(renderedPiece);
-
-					allPieces.push_back(renderedPiece);
+					_inactivePieces.push_back(renderedPiece);
 				}
 
 				_setupComplete = true;

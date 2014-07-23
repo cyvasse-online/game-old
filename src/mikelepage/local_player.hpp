@@ -40,8 +40,6 @@ namespace mikelepage
 		private:
 			bool _setupComplete;
 
-			PieceVec _allPieces;
-
 			void sendGameUpdate(UpdateType, Json::Value data);
 
 		public:

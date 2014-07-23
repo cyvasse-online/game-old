@@ -19,6 +19,8 @@
 #include "cyvasse_ws_client.hpp"
 #include "hexagon_board.hpp"
 
+using namespace cyvmath;
+
 namespace mikelepage
 {
 	void LocalPlayer::sendGameUpdate(UpdateType update, Json::Value data)
@@ -37,13 +39,27 @@ namespace mikelepage
 		data["pieces"] = Json::Value(Json::arrayValue);
 
 		Json::Value& pieces = data["pieces"];
-		for(auto it : _allPieces)
+		for(auto it : _activePieces)
 		{
-			auto pos = it->getCoord();
+			assert(it.second->getColor() == _color);
 
 			Json::Value piece;
-			piece["type"] = PieceTypeToStr(it->getType());
-			piece["position"] = pos ? pos->toString() : Json::Value();
+			piece["type"] = PieceTypeToStr(it.second->getType());
+			piece["position"] = it.first.toString();
+
+			pieces.append(piece);
+		}
+
+		// after setup, if there is an inactive piece, it has to be
+		// the dragon; otherwise _inactivePieces has to be empty
+		assert(_inactivePieces.size() <= 1);
+		assert(_inactivePieces.front()->getType() == PIECE_DRAGON);
+
+		if(_inactivePieces.size() > 0)
+		{
+			Json::Value piece;
+			piece["type"] = PieceTypeToStr(_inactivePieces.front()->getType());
+			piece["position"] = Json::Value(); // null
 
 			pieces.append(piece);
 		}

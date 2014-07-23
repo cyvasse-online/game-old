@@ -51,8 +51,7 @@ namespace mikelepage
 
 			std::shared_ptr<LocalPlayer> _self;
 
-			// for rendering
-			RenderedPieceVec _allPieces;
+			RenderedPieceVec _piecesToRender;
 
 			bool _setupAccepted;
 
@@ -71,9 +70,6 @@ namespace mikelepage
 
 			Board& getBoard()
 			{ return _board; }
-
-			RenderedPieceVec& getAllPieces()
-			{ return _allPieces; }
 
 			void tick();
 

@@ -69,23 +69,11 @@ namespace mikelepage
 	{
 		_board.tick();
 
-		if(_setup)
-		{
-			for(auto it : _self->_allPieces)
-			{
-				auto tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
-				assert(tmp);
-				_renderer.queue(tmp->getQuad());
-			}
+		for(std::shared_ptr<RenderedPiece> it : _piecesToRender)
+			_renderer.queue(it->getQuad());
 
-			if(_self->setupComplete() && !_setupAccepted)
-				_renderer.queue(_buttonSetupDone);
-		}
-		else
-		{
-			for(std::shared_ptr<RenderedPiece> it : _allPieces)
-				_renderer.queue(it->getQuad());
-		}
+		if(_setup && _self->setupComplete() && !_setupAccepted)
+			_renderer.queue(_buttonSetupDone);
 	}
 
 	void RenderedMatch::onTileClicked(Coordinate coord)
@@ -156,8 +144,9 @@ namespace mikelepage
 		else if(_self->setupComplete() && !_setupAccepted && mouseOver(_buttonSetupDone, {event.x, event.y}))
 		{
 			_setupAccepted = true;
-			tryLeaveSetup();
+			// send before modifying _activePieces, so it can be sent completely
 			_self->sendLeaveSetup();
+			tryLeaveSetup();
 		}
 	}
 
@@ -264,8 +253,7 @@ namespace mikelepage
 
 				_self->_inactivePieces.push_back(tmpPiece);
 			}
-			_allPieces.push_back(tmpPiece);
-			_self->_allPieces.push_back(tmpPiece);
+			_piecesToRender.push_back(tmpPiece);
 		}
 	}
 
@@ -279,14 +267,42 @@ namespace mikelepage
 
 		_setup = false;
 
-		if(_self->_color == PLAYER_WHITE)
-			_board.resetTileColors(5, 11);
+		// temporary variable to hold the dragon piece if it isn't
+		// "brought out" to the board (else this variable will remain unchanged)
+		std::shared_ptr<Piece> unpositionedDragon;
+
+		PlayersColor opColor = _self->getColor() == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
+		PieceVec& opInactivePieces = _players[opColor]->getInactivePieces();
+		for(auto& it : opInactivePieces)
+		{
+			if(it->getCoord())
+			{
+				_activePieces.emplace(*it->getCoord(), it);
+
+				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
+				assert(tmp);
+				_piecesToRender.push_back(tmp);
+			}
+			else
+			{
+				// the piece has to be a dragon, because other pieces
+				// have to have a position on the board after setup
+				assert(it->getType() == PIECE_DRAGON);
+				assert(!unpositionedDragon); // there can only be one dragon
+				unpositionedDragon = it;
+			}
+		}
+
+		// this is probably faster than erasing one single element in each
+		// iteration of the above loop (except in the unpositioned dragon case)
+		if(unpositionedDragon)
+			opInactivePieces.assign({unpositionedDragon});
 		else
-			_board.resetTileColors(0, 5);
+			opInactivePieces.clear();
 
 		// TODO: Rewrite when Terrain is added
 		int nFortresses = 0;
-		for(auto it : _allPieces)
+		for(auto it : _piecesToRender)
 		{
 			assert(it);
 			if(it->getType() == PIECE_KING)
@@ -299,6 +315,11 @@ namespace mikelepage
 			}
 		}
 		assert(nFortresses == 2);
+
+		if(_self->_color == PLAYER_WHITE)
+			_board.resetTileColors(5, 11);
+		else
+			_board.resetTileColors(0, 5);
 	}
 
 	void RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
