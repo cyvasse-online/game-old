@@ -38,10 +38,10 @@ namespace mikelepage
 		private:
 			typedef HexagonBoard<6> Board;
 
+			Board& _board;
+
 			fea::Quad _quad;
 			fea::Texture _texture;
-
-			Board& _board;
 
 		public:
 			RenderedPiece(PieceType, std::unique_ptr<Coordinate>, PlayersColor, RenderedMatch&);

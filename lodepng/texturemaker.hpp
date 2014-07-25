@@ -1,26 +1,34 @@
-// This file was copied from therocode, it has no copyright and was only altered a tiny bit
+/* Copyright 2014 Jonas Platte
+*
+* This file is NO part of Cyvasse Online.
+*
+* Use it however you want to.
+*/
 
 #ifndef _TEXTUREMAKER_HPP_
 #define _TEXTUREMAKER_HPP_
 
-#include <iostream>
+#include <string>
+#include <utility>
 #include <fea/render2d.hpp>
 #include "lodepng.h"
 
-inline fea::Texture makeTexture(std::string path, uint32_t width, uint32_t height)
+inline std::pair<fea::Texture, glm::uvec2> makeTexture(std::string path)
 {
+    unsigned width, height;
+
     std::vector<unsigned char> image; //the raw pixels
 
-    //decode
+    // decode
     unsigned error = lodepng::decode(image, width, height, path);
 
-    //if there's an error, display it
-    if(error) std::cout << "decoder error " << error << ": " << lodepng_error_text(error) << std::endl;
+    // if there's an error, display it
+    if(error)
+        throw std::runtime_error("lodepng error " + std::to_string(error) + ": " + lodepng_error_text(error));
 
-    //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBARGBA..., use it as texture, draw it, ...
     fea::Texture texture;
     texture.create(width, height, &image[0]);
-    return texture;
+    return {std::move(texture), {width, height}};
 }
 
 #endif // _TEXTUREMAKER_HPP_

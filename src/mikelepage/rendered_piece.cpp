@@ -28,8 +28,8 @@ namespace mikelepage
 	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
 	                             PlayersColor color, RenderedMatch& match)
 		: Piece(color, type, std::move(coord), match)
-		, _quad({48.0f, 40.0f})
 		, _board(match.getBoard())
+		, _quad(_board.getTileSize())
 	{
 		static std::map<PieceType, std::string> fileNames = {
 				{PIECE_MOUNTAIN,    "mountain.png"},
@@ -45,21 +45,11 @@ namespace mikelepage
 			};
 
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
-		_texture = makeTexture(texturePath, 48, 40);
+		_texture = makeTexture(texturePath).first;
 		_quad.setTexture(_texture);
 
 		if(_coord)
-		{
-			Coordinate* c = dynamic_cast<Coordinate*>(_coord.get());
-			assert(c);
-
-			glm::vec2 position = _board.getTilePosition(*c);
-			// TODO: piece graphics should be scaled, after
-			// that this constant should also be changed
-			position += glm::vec2(8, 4);
-
-			_quad.setPosition(position);
-		}
+			_quad.setPosition(_board.getTilePosition(*_coord));
 	}
 
 	bool RenderedPiece::moveTo(Coordinate coord, bool checkMoveValidity)
@@ -67,10 +57,7 @@ namespace mikelepage
 		if(!Piece::moveTo(coord, checkMoveValidity))
 			return false;
 
-		glm::vec2 position = _board.getTilePosition(coord);
-		position += glm::vec2(8, 4); // TODO
-
-		_quad.setPosition(position);
+		_quad.setPosition(_board.getTilePosition(coord));
 
 		return true;
 	}

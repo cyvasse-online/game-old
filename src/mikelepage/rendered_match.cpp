@@ -42,12 +42,12 @@ namespace mikelepage
 
 		glm::uvec2 boardSize = _board.getSize();
 		glm::uvec2 boardPos = _board.getPosition();
-		// hardcoded for now, can be done properly somewhen else
-		glm::uvec2 buttonSize = {80, 50};
 
-		_buttonSetupDoneTexture = makeTexture("setup-done.png", buttonSize.x, buttonSize.y);
-		_buttonSetupDone.setPosition(boardPos + boardSize - buttonSize);
-		_buttonSetupDone.setSize(buttonSize);
+		auto tmpTexture = makeTexture("setup-done.png");
+
+		_buttonSetupDoneTexture = std::move(tmpTexture.first);
+		_buttonSetupDone.setPosition(boardPos + boardSize - tmpTexture.second);
+		_buttonSetupDone.setSize(tmpTexture.second); // hardcoded for now, can be done properly somewhen else
 		_buttonSetupDone.setTexture(_buttonSetupDoneTexture);
 
 		_ownDragonTile.setSize(_board.getTileSize());
@@ -260,14 +260,7 @@ namespace mikelepage
 			{
 				assert(_self->getInactivePieces().empty());
 
-				glm::uvec2 boardSize = _board.getSize();
-				glm::uvec2 boardPos = _board.getPosition();
-
-				glm::uvec2 dragonPos = {boardPos.x, boardPos.y + boardSize.y - _board.getTileSize().y};
-				dragonPos += glm::uvec2(8, 4); // TODO
-
-				tmpPiece->getQuad().setPosition(dragonPos);
-
+				tmpPiece->getQuad().setPosition(_ownDragonTile.getPosition());
 				_self->getInactivePieces().push_back(tmpPiece);
 			}
 			_piecesToRender.push_back(tmpPiece);
@@ -310,7 +303,7 @@ namespace mikelepage
 
 				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
 				assert(tmp);
-				tmp->getQuad().setPosition(_opDragonTile.getPosition() + glm::vec2(8, 4)); // TODO
+				tmp->getQuad().setPosition(_opDragonTile.getPosition());
 				_piecesToRender.push_back(tmp);
 			}
 		}
