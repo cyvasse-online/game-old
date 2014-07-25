@@ -15,31 +15,28 @@
  */
 
 template <int l>
-const fea::Color HexagonBoard<l>::highlightColor = fea::Color(48, 48, 48, 0);
-
-template <int l>
 const fea::Color HexagonBoard<l>::tileColors[3] = {
-    {125,  81,  55},
-    {167, 108,  73},
-    {191, 140, 109}
+	{125,  81,  55},
+	{167, 108,  73},
+	{191, 140, 109}
 };
 
 
 template <int l>
 const fea::Color HexagonBoard<l>::tileColorsDark[3] = {
-    { 50,  32,  22},
-    { 67,  43,  29},
-    { 76,  56,  44}
+	{ 50,  32,  22},
+	{ 67,  43,  29},
+	{ 76,  56,  44}
 };
 
 template <int l>
-void HexagonBoard<l>::addHighlightning(Coordinate coord, bool setup, const fea::Color& cAdd, const fea::Color& cSub)
-{
-    auto tile = getTileAt(coord);
-    assert(tile);
+const fea::Color HexagonBoard<l>::hoverColor = fea::Color(48, 48, 48, 0);
 
-    tile->setColor(getTileColor(coord, setup) + cAdd - cSub);
-}
+template <int l>
+const typename HexagonBoard<l>::coloringMap HexagonBoard<l>::highlightColors = {
+	{"red",  {{192, 0, 0, 0}, {0, 64, 64, 0}}},
+	{"blue", {{0, 0, 192, 0}, {64, 64, 0, 0}}}
+};
 
 template <int l>
 typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
@@ -51,7 +48,7 @@ template <int l>
 HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
 	: _renderer(renderer)
 	, _upsideDown(color == cyvmath::PLAYER_WHITE ? false : true)
-	, _highlightedTile(noTile())
+	, _hoveredTile(noTile())
 	, _mouseBPressTile(noTile())
 {
 	const glm::uvec2 windowSize = renderer.getViewport().getSize();
@@ -222,16 +219,25 @@ fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
+void HexagonBoard<l>::highlightTile(Coordinate coord, const std::string& coloringStr, bool setup)
+{
+	fea::Quad* quad = getTileAt(coord);
+	assert(quad);
+
+	highlight(*quad, getTileColor(coord, setup), coloringStr);
+}
+
+template <int l>
 void HexagonBoard<l>::resetTileColor(Coordinate coord, bool setup)
 {
-    fea::Quad* quad = getTileAt(coord);
-    assert(quad);
+	fea::Quad* quad = getTileAt(coord);
+	assert(quad);
 
-    fea::Color color = getTileColor(coord, setup);
-    if(_highlightedTile.first && *_highlightedTile.first == coord)
-        color += highlightColor;
+	fea::Color color = getTileColor(coord, setup);
+	if(_hoveredTile.first && *_hoveredTile.first == coord)
+		color += hoverColor;
 
-    quad->setColor(color);
+	quad->setColor(color);
 }
 
 template <int l>
@@ -261,30 +267,35 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 	{
 		fea::Quad* quad = getTileAt(*coord);
 
-		if(!_highlightedTile.first || *coord != *_highlightedTile.first)
+		if(!_hoveredTile.first || *coord != *_hoveredTile.first)
 		{
-			// reset color of old highlighted tile
-			if(_highlightedTile.first)
-				_highlightedTile.second->setColor(_highlightedTile.second->getColor() - highlightColor);
+			// reset color of old hovered tile
+			if(_hoveredTile.first)
+				_hoveredTile.second->setColor(_hoveredTile.second->getColor() - hoverColor);
 
-			quad->setColor(quad->getColor() + highlightColor);
+			quad->setColor(quad->getColor() + hoverColor);
 
-			_highlightedTile = std::make_pair(std::move(coord), quad);
+			_hoveredTile = std::make_pair(std::move(coord), quad);
 		}
 	}
-	else if(_highlightedTile.first)
+	else
 	{
-		// mouse is outside the board and one tile is still marked with the hover effect
-		_highlightedTile.second->setColor(_highlightedTile.second->getColor() - highlightColor);
-		_highlightedTile = noTile();
+		if(_hoveredTile.first)
+		{
+			// mouse is outside the board and one tile is still marked with the hover effect
+			_hoveredTile.second->setColor(_hoveredTile.second->getColor() - hoverColor);
+			_hoveredTile = noTile();
+		}
+
+		onMouseMoveOutside(mouseMove);
 	}
 }
 
 template <int l>
 void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& mouseButton)
 {
-    if(mouseButton.button != fea::Mouse::Button::LEFT)
-        return;
+	if(mouseButton.button != fea::Mouse::Button::LEFT)
+		return;
 
 	assert(!_mouseBPressTile.first);
 
@@ -297,10 +308,7 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 		_mouseBPressTile = std::make_pair(std::move(coord), quad);
 	}
 	else
-	{
-		// *really* not the best way to do this, but okay for now
 		onClickedOutside(mouseButton);
-	}
 }
 
 template <int l>

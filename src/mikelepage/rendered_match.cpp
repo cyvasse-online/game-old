@@ -34,11 +34,14 @@ namespace mikelepage
 		: _renderer(renderer)
 		, _board(renderer, color)
 		, _setupAccepted(false)
+		, _hoveringOwnDragonTile(false)
+		, _hoveringOpDragonTile(false)
 		, _selectedPiece(nullptr)
 	{
 		_players.emplace(color, std::make_shared<LocalPlayer>(color, _activePieces));
 		_players.emplace(!color, std::make_shared<RemotePlayer>(!color, *this));
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[color]);
+		_op   = _players[!color];
 		assert(_self);
 
 		glm::uvec2 boardSize = _board.getSize();
@@ -58,7 +61,7 @@ namespace mikelepage
 		);
 
 		_opDragonTile.setSize(_board.getTileSize());
-		_opDragonTile.setColor(Board::tileColorsDark[2]);
+		_opDragonTile.setColor(Board::tileColorsDark[1]);
 		_opDragonTile.setPosition(
 			{boardPos.x + boardSize.x - _board.getTileSize().x, boardPos.y}
 		);
@@ -67,15 +70,16 @@ namespace mikelepage
 
 		using namespace std::placeholders;
 
-		ingameState.tick = std::bind(&RenderedMatch::tick, this);
-		ingameState.onMouseMoved = std::bind(&Board::onMouseMoved, &_board, _1);
-		ingameState.onMouseButtonPressed = std::bind(&Board::onMouseButtonPressed, &_board, _1);
+		ingameState.tick                  = std::bind(&RenderedMatch::tick, this);
+		ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, &_board, _1);
+		ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, &_board, _1);
 		ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &_board, _1);
-		ingameState.onKeyPressed = [](const fea::Event::KeyEvent&) { };
-		ingameState.onKeyReleased = [](const fea::Event::KeyEvent&) { };
+		ingameState.onKeyPressed          = [](const fea::Event::KeyEvent&) { };
+		ingameState.onKeyReleased         = [](const fea::Event::KeyEvent&) { };
 
-		_board.onTileClicked = std::bind(&RenderedMatch::onTileClicked, this, _1);
-		_board.onClickedOutside = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
+		_board.onTileClicked      = std::bind(&RenderedMatch::onTileClicked, this, _1);
+		_board.onMouseMoveOutside = std::bind(&RenderedMatch::onMouseMoveOutsideBoard, this, _1);
+		_board.onClickedOutside   = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
 
 		setStatus("Setup");
 	}
@@ -93,8 +97,10 @@ namespace mikelepage
 	{
 		_board.tick();
 
-		_renderer.queue(_ownDragonTile);
-		_renderer.queue(_opDragonTile);
+		if(_self->dragonAliveInactive())
+			_renderer.queue(_ownDragonTile);
+		if(!_setup && _op->dragonAliveInactive())
+			_renderer.queue(_opDragonTile);
 
 		for(std::shared_ptr<RenderedPiece> it : _piecesToRender)
 			_renderer.queue(it->getQuad());
@@ -122,8 +128,9 @@ namespace mikelepage
 				// a piece of the player was clicked
 				_selectedPiece = it->second;
 
-				_board.highlightTileRed(coord, _setup);
-				showPossibleTargetTiles(coord);
+				_board.highlightTile(coord, "red", _setup);
+				if(!_setup)
+					showPossibleTargetTiles();
 			}
 		}
 		else // a piece is selected
@@ -144,13 +151,14 @@ namespace mikelepage
 			else if(piece->getColor() == _self->getColor())
 			{
 				// move the focus to the clicked tile
-				_board.resetTileColor(*_selectedPiece->getCoord(), _setup);
+				resetSelectedTile();
 				clearPossibleTargetTiles();
 
 				_selectedPiece = piece;
 
-				_board.highlightTileRed(coord, _setup);
-				showPossibleTargetTiles(coord);
+				_board.highlightTile(coord, "red", _setup);
+				if(!_setup)
+					showPossibleTargetTiles();
 			}
 			// there is an opponents piece on the clicked tile
 			else
@@ -160,23 +168,70 @@ namespace mikelepage
 		}
 	}
 
+	void RenderedMatch::onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent& event)
+	{
+		if(_self->dragonAliveInactive() &&
+		   mouseOver(_ownDragonTile, {event.x, event.y}))
+		{
+			if(!_hoveringOwnDragonTile)
+			{
+				_ownDragonTile.setColor(_ownDragonTile.getColor() + Board::hoverColor);
+				_hoveringOwnDragonTile = true;
+			}
+		}
+		else if(_hoveringOwnDragonTile)
+		{
+			_ownDragonTile.setColor(_ownDragonTile.getColor() - Board::hoverColor);
+			_hoveringOwnDragonTile = false;
+		}
+		else if(_op->dragonAliveInactive() &&
+		        mouseOver(_opDragonTile, {event.x, event.y}))
+		{
+			if(!_hoveringOpDragonTile)
+			{
+				_opDragonTile.setColor(_opDragonTile.getColor() + Board::hoverColor);
+				_hoveringOpDragonTile = true;
+			}
+		}
+		else if(_hoveringOpDragonTile)
+		{
+			_opDragonTile.setColor(_opDragonTile.getColor() - Board::hoverColor);
+			_hoveringOpDragonTile = false;
+		}
+	}
+
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
 		// a piece is selected
 		if(_selectedPiece)
 		{
-			_board.resetTileColor(*_selectedPiece->getCoord(), _setup);
+			resetSelectedTile();
 			clearPossibleTargetTiles();
 
 			_selectedPiece.reset();
 		}
+
 		// 'Setup done' button clicked (while being visible)
-		else if(_self->setupComplete() && !_setupAccepted && mouseOver(_buttonSetupDone, {event.x, event.y}))
+		if(_self->setupComplete() && !_setupAccepted && mouseOver(_buttonSetupDone, {event.x, event.y}))
 		{
 			_setupAccepted = true;
 			// send before modifying _activePieces, so it can be sent completely
 			_self->sendLeaveSetup();
 			tryLeaveSetup();
+		}
+		else if(_self->dragonAliveInactive() &&
+		        mouseOver(_ownDragonTile, {event.x, event.y}) &&
+		        (_setup || _activePlayer == _self->getColor()))
+		{
+			for(auto it : _self->getInactivePieces())
+			{
+				if(it->getType() == PIECE_DRAGON)
+					_selectedPiece = it;
+			}
+			Board::highlight(_ownDragonTile, Board::tileColors[1], "red");
+
+			if(!_setup)
+				showPossibleTargetTiles();
 		}
 	}
 
@@ -263,7 +318,7 @@ namespace mikelepage
 
 		PlayersColor color = _self->_color;
 
-		for(auto& it : defaultPiecePositions[color])
+		for(auto& it : defaultPiecePositions[!color])
 		{
 			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second), color, *this));
 
@@ -296,7 +351,7 @@ namespace mikelepage
 		// "brought out" to the board (else this variable will remain unchanged)
 		std::shared_ptr<Piece> unpositionedDragon;
 
-		PieceVec& opInactivePieces = _players[!_self->getColor()]->getInactivePieces();
+		PieceVec& opInactivePieces = _op->getInactivePieces();
 		for(auto& it : opInactivePieces)
 		{
 			if(it->getCoord())
@@ -323,11 +378,14 @@ namespace mikelepage
 		}
 
 		// this is probably faster than erasing one single element in each
-		// iteration of the above loop (except in the unpositioned dragon case)
+		// iteration of the above loop except in the unpositioned dragon case
 		if(unpositionedDragon)
 			opInactivePieces.assign({unpositionedDragon});
 		else
+		{
 			opInactivePieces.clear();
+			_op->dragonBroughtOut();
+		}
 
 		// TODO: Rewrite when Terrain is added
 		int nFortresses = 0;
@@ -357,6 +415,8 @@ namespace mikelepage
 
 	void RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
 	{
+		assert(piece);
+
 		auto oldCoord = piece->getCoord();
 
 		if(piece->moveTo(coord, !_setup))
@@ -392,23 +452,36 @@ namespace mikelepage
 		setStatus(status);
 	}
 
-	void RenderedMatch::showPossibleTargetTiles(Coordinate coord)
+	void RenderedMatch::resetSelectedTile()
 	{
-		// only show possible target tiles when not in setup
-		if(!_setup)
-		{
-			auto& pieces = _activePieces;
-			auto it = pieces.find(coord);
-			if(it != pieces.end() && it->second->getColor() == _self->getColor())
-			{
-				// the tile clicked on holds a piece of the player
-				for(auto targetTile : it->second->getPossibleTargetTiles())
-				{
-					_board.highlightTileBlue(targetTile, false);
+		assert(_selectedPiece);
 
-					_possibleTargetTiles.emplace(targetTile);
-				}
-			}
+		if(_selectedPiece->getCoord())
+		{
+			_board.resetTileColor(*_selectedPiece->getCoord(), _setup);
+		}
+		else
+		{
+			assert(_selectedPiece->getType() == PIECE_DRAGON);
+
+			if(_selectedPiece->getColor() == _self->getColor())
+				_ownDragonTile.setColor(Board::tileColors[1]);
+			else
+				_opDragonTile.setColor(_setup ? Board::tileColorsDark[1] : Board::tileColors[1]);
+		}
+	}
+
+	void RenderedMatch::showPossibleTargetTiles()
+	{
+		assert(!_setup);
+		assert(_selectedPiece);
+
+		// the tile clicked on holds a piece of the player
+		for(auto targetTile : _selectedPiece->getPossibleTargetTiles())
+		{
+			_board.highlightTile(targetTile, "blue", false);
+
+			_possibleTargetTiles.emplace(targetTile);
 		}
 	}
 

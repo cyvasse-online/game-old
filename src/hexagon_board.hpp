@@ -17,11 +17,8 @@
 #ifndef _HEXAGON_BOARD_HPP_
 #define _HEXAGON_BOARD_HPP_
 
-#include <algorithm>
 #include <map>
 #include <vector>
-#include <cassert>
-#include <cstdlib>
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/rendering/quad.hpp>
 #include <fea/ui/event.hpp>
@@ -36,10 +33,12 @@ class HexagonBoard
 		typedef typename std::pair<std::unique_ptr<Coordinate>, fea::Quad*> Tile;
 		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
 		typedef std::vector<fea::Quad*> TileVec;
+		typedef std::map<std::string, std::pair<fea::Color, fea::Color>> coloringMap;
 
 		static const fea::Color tileColors[3];
 		static const fea::Color tileColorsDark[3];
-		static const fea::Color highlightColor;
+		static const fea::Color hoverColor;
+		static const coloringMap highlightColors;
 
 	private:
 		fea::Renderer2D& _renderer;
@@ -57,10 +56,12 @@ class HexagonBoard
 		TileMap _tileMap;
 		TileVec _tileVec;
 
-		Tile _highlightedTile;
+		Tile _hoveredTile;
 		Tile _mouseBPressTile;
 
-		void addHighlightning(Coordinate, bool setup, const fea::Color& cAdd, const fea::Color& cSub);
+		static void highlight(fea::Quad& tile, const fea::Color& base,
+		                      const std::pair<fea::Color, fea::Color>& coloring)
+		{ tile.setColor(base + coloring.first - coloring.second); }
 
 	public:
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
@@ -72,7 +73,11 @@ class HexagonBoard
 
 		static Tile noTile();
 
+		static void highlight(fea::Quad& tile, const fea::Color& base, const std::string& coloringStr)
+		{ highlight(tile, base, highlightColors.at(coloringStr)); }
+
 		std::function<void(Coordinate)> onTileClicked;
+		std::function<void(const fea::Event::MouseMoveEvent&)> onMouseMoveOutside;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onClickedOutside;
 
 		glm::uvec2 getSize();
@@ -86,11 +91,7 @@ class HexagonBoard
 
 		fea::Quad* getTileAt(Coordinate);
 
-		void highlightTileRed(Coordinate coord, bool setup)
-		{ addHighlightning(coord, setup, fea::Color(192, 0, 0, 0), fea::Color(0, 64, 64, 0)); }
-
-		void highlightTileBlue(Coordinate coord, bool setup)
-		{ addHighlightning(coord, setup, fea::Color(0, 0, 192, 0), fea::Color(64, 64, 0, 0)); }
+		void highlightTile(Coordinate coord, const std::string& coloringStr, bool setup);
 
 		void resetTileColor(Coordinate, bool setup);
 		void resetTileColors(int8_t fromRow, int8_t toRow, bool setup = false);

@@ -32,6 +32,7 @@ namespace mikelepage
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::Coordinate;
 	using cyvmath::mikelepage::Match;
+	using cyvmath::mikelepage::Player;
 	using cyvmath::mikelepage::Piece;
 	using cyvmath::mikelepage::PieceMap;
 
@@ -50,6 +51,7 @@ namespace mikelepage
 			Board _board;
 
 			std::shared_ptr<LocalPlayer> _self;
+			std::shared_ptr<Player> _op;
 
 			RenderedPieceVec _piecesToRender;
 
@@ -59,6 +61,7 @@ namespace mikelepage
 			fea::Quad _buttonSetupDone;
 
 			fea::Quad _ownDragonTile, _opDragonTile;
+			bool _hoveringOwnDragonTile, _hoveringOpDragonTile;
 
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
@@ -77,13 +80,15 @@ namespace mikelepage
 			void tick();
 
 			void onTileClicked(Coordinate);
+			void onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
 			void placePiecesSetup();
 			void tryLeaveSetup();
 			void tryMovePiece(std::shared_ptr<Piece>, Coordinate);
 			void updateTurnStatus();
-			void showPossibleTargetTiles(Coordinate);
+			void resetSelectedTile();
+			void showPossibleTargetTiles();
 			void clearPossibleTargetTiles();
 	};
 }

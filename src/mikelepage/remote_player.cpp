@@ -104,7 +104,23 @@ namespace mikelepage
 
 					piece = it->second;
 				}
-				// else ... [TODO]
+				else
+				{
+					if(pieceType != PIECE_DRAGON)
+						throw std::runtime_error("move of piece without position that is not a dragon requested");
+
+					if(!_dragonAliveInactive)
+						throw std::runtime_error("bringing out the dragon requested"
+						                         "although it has been brought out already");
+
+					for(auto it : _inactivePieces)
+					{
+						if(it->getType() == PIECE_DRAGON)
+							piece = it;
+					}
+
+					assert(piece);
+				}
 
 				if(piece->getType() != pieceType)
 					throw std::runtime_error(
