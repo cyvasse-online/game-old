@@ -37,9 +37,11 @@ class HexagonBoard
 		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
 		typedef std::vector<fea::Quad*> TileVec;
 
-	private:
+		static const fea::Color tileColors[3];
+		static const fea::Color tileColorsDark[3];
 		static const fea::Color highlightColor;
 
+	private:
 		fea::Renderer2D& _renderer;
 
 		bool _upsideDown;

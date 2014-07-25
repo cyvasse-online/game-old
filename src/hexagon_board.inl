@@ -18,6 +18,21 @@ template <int l>
 const fea::Color HexagonBoard<l>::highlightColor = fea::Color(48, 48, 48, 0);
 
 template <int l>
+const fea::Color HexagonBoard<l>::tileColors[3] = {
+    {125,  81,  55},
+    {167, 108,  73},
+    {191, 140, 109}
+};
+
+
+template <int l>
+const fea::Color HexagonBoard<l>::tileColorsDark[3] = {
+    { 50,  32,  22},
+    { 67,  43,  29},
+    { 76,  56,  44}
+};
+
+template <int l>
 void HexagonBoard<l>::addHighlightning(Coordinate coord, bool setup, const fea::Color& cAdd, const fea::Color& cSub)
 {
     auto tile = getTileAt(coord);
@@ -146,17 +161,6 @@ const glm::vec2& HexagonBoard<l>::getTileSize() const
 template <int l>
 fea::Color HexagonBoard<l>::getTileColor(Coordinate c, bool setup)
 {
-	static fea::Color tileColors[3] = {
-			{125,  81,  55},
-			{167, 108,  73},
-			{191, 140, 109}
-		};
-	static fea::Color tileColorsDark[3] = {
-			{ 50,  32,  22},
-			{ 67,  43,  29},
-			{ 76,  56,  44}
-		};
-
 	int8_t index = (((c.x() - c.y()) % 3) + 3) % 3;
 
 	if(setup && ((!_upsideDown && c.y() >= (l - 1)) ||

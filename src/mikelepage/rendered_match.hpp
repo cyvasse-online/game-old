@@ -58,11 +58,12 @@ namespace mikelepage
 			fea::Texture _buttonSetupDoneTexture;
 			fea::Quad _buttonSetupDone;
 
+			fea::Quad _ownDragonTile, _opDragonTile;
+
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
 		public:
 			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor firstPlayer);
-			~RenderedMatch() = default;
 
 			// non-copyable
 			RenderedMatch(const RenderedMatch&) = delete;

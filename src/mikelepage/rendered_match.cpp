@@ -40,8 +40,6 @@ namespace mikelepage
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[color]);
 		assert(_self);
 
-		placePiecesSetup();
-
 		glm::uvec2 boardSize = _board.getSize();
 		glm::uvec2 boardPos = _board.getPosition();
 		// hardcoded for now, can be done properly somewhen else
@@ -51,6 +49,20 @@ namespace mikelepage
 		_buttonSetupDone.setPosition(boardPos + boardSize - buttonSize);
 		_buttonSetupDone.setSize(buttonSize);
 		_buttonSetupDone.setTexture(_buttonSetupDoneTexture);
+
+		_ownDragonTile.setSize(_board.getTileSize());
+		_ownDragonTile.setColor(Board::tileColors[1]);
+		_ownDragonTile.setPosition(
+			{boardPos.x, boardPos.y + boardSize.y - _board.getTileSize().y}
+		);
+
+		_opDragonTile.setSize(_board.getTileSize());
+		_opDragonTile.setColor(Board::tileColorsDark[2]);
+		_opDragonTile.setPosition(
+			{boardPos.x + boardSize.x - _board.getTileSize().x, boardPos.y}
+		);
+
+		placePiecesSetup();
 
 		using namespace std::placeholders;
 
@@ -68,6 +80,9 @@ namespace mikelepage
 	void RenderedMatch::tick()
 	{
 		_board.tick();
+
+		_renderer.queue(_ownDragonTile);
+		_renderer.queue(_opDragonTile);
 
 		for(std::shared_ptr<RenderedPiece> it : _piecesToRender)
 			_renderer.queue(it->getQuad());
@@ -243,15 +258,17 @@ namespace mikelepage
 			}
 			else // dragon, 26th piece
 			{
+				assert(_self->getInactivePieces().empty());
+
 				glm::uvec2 boardSize = _board.getSize();
 				glm::uvec2 boardPos = _board.getPosition();
 
 				glm::uvec2 dragonPos = {boardPos.x, boardPos.y + boardSize.y - _board.getTileSize().y};
-				dragonPos += glm::vec2(8, 4); // TODO
+				dragonPos += glm::uvec2(8, 4); // TODO
 
 				tmpPiece->getQuad().setPosition(dragonPos);
 
-				_self->_inactivePieces.push_back(tmpPiece);
+				_self->getInactivePieces().push_back(tmpPiece);
 			}
 			_piecesToRender.push_back(tmpPiece);
 		}
@@ -290,6 +307,11 @@ namespace mikelepage
 				assert(it->getType() == PIECE_DRAGON);
 				assert(!unpositionedDragon); // there can only be one dragon
 				unpositionedDragon = it;
+
+				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
+				assert(tmp);
+				tmp->getQuad().setPosition(_opDragonTile.getPosition() + glm::vec2(8, 4)); // TODO
+				_piecesToRender.push_back(tmp);
 			}
 		}
 
@@ -320,6 +342,8 @@ namespace mikelepage
 			_board.resetTileColors(5, 11);
 		else
 			_board.resetTileColors(0, 5);
+
+		_opDragonTile.setColor(Board::tileColors[1]);
 	}
 
 	void RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
