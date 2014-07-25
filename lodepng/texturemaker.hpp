@@ -28,7 +28,12 @@ inline std::pair<fea::Texture, glm::uvec2> makeTexture(std::string path)
 
     fea::Texture texture;
     texture.create(width, height, &image[0]);
-    return {std::move(texture), {width, height}};
+
+    return std::pair<fea::Texture, glm::uvec2>(
+        std::piecewise_construct,
+        std::forward_as_tuple(std::move(texture)),
+        std::forward_as_tuple(width, height)
+    );
 }
 
 #endif // _TEXTUREMAKER_HPP_

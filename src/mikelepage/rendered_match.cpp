@@ -16,6 +16,9 @@
 
 #include "rendered_match.hpp"
 
+#ifdef EMSCRIPTEN
+	#include <emscripten.h>
+#endif
 #include "common.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
@@ -33,10 +36,8 @@ namespace mikelepage
 		, _setupAccepted(false)
 		, _selectedPiece(nullptr)
 	{
-		PlayersColor opColor = (color == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE);
-
 		_players.emplace(color, std::make_shared<LocalPlayer>(color, _activePieces));
-		_players.emplace(opColor, std::make_shared<RemotePlayer>(opColor, *this));
+		_players.emplace(!color, std::make_shared<RemotePlayer>(!color, *this));
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[color]);
 		assert(_self);
 
@@ -75,6 +76,17 @@ namespace mikelepage
 
 		_board.onTileClicked = std::bind(&RenderedMatch::onTileClicked, this, _1);
 		_board.onClickedOutside = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
+
+		setStatus("Setup");
+	}
+
+	void RenderedMatch::setStatus(const std::string& text)
+	{
+		#ifdef EMSCRIPTEN
+		EM_ASM_({
+			Module.setStatus(Module.Pointer_stringify($0));
+		}, text.c_str());
+		#endif
 	}
 
 	void RenderedMatch::tick()
@@ -95,6 +107,9 @@ namespace mikelepage
 	{
 		// if the player left the setup but the opponent isn't ready yet
 		if(_setup == _setupAccepted)
+			return;
+
+		if(!_setup && _activePlayer != _self->getColor())
 			return;
 
 		if(!_selectedPiece)
@@ -281,8 +296,7 @@ namespace mikelepage
 		// "brought out" to the board (else this variable will remain unchanged)
 		std::shared_ptr<Piece> unpositionedDragon;
 
-		PlayersColor opColor = _self->getColor() == PLAYER_WHITE ? PLAYER_BLACK : PLAYER_WHITE;
-		PieceVec& opInactivePieces = _players[opColor]->getInactivePieces();
+		PieceVec& opInactivePieces = _players[!_self->getColor()]->getInactivePieces();
 		for(auto& it : opInactivePieces)
 		{
 			if(it->getCoord())
@@ -337,6 +351,8 @@ namespace mikelepage
 			_board.resetTileColors(0, 5);
 
 		_opDragonTile.setColor(Board::tileColors[1]);
+
+		updateTurnStatus();
 	}
 
 	void RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
@@ -359,7 +375,21 @@ namespace mikelepage
 			clearPossibleTargetTiles();
 			if(oldCoord)
 				_board.resetTileColor(*oldCoord, _setup);
+
+			if(!_setup)
+			{
+				_activePlayer = !_activePlayer;
+				updateTurnStatus();
+			}
 		}
+	}
+
+	void RenderedMatch::updateTurnStatus()
+	{
+		std::string status = PlayersColorToStr(_activePlayer) + " players turn";
+		status[0] -= ('a' - 'A'); // lowercase to uppercase
+
+		setStatus(status);
 	}
 
 	void RenderedMatch::showPossibleTargetTiles(Coordinate coord)

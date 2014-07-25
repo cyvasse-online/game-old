@@ -72,6 +72,8 @@ namespace mikelepage
 			Board& getBoard()
 			{ return _board; }
 
+			void setStatus(const std::string&);
+
 			void tick();
 
 			void onTileClicked(Coordinate);
@@ -80,6 +82,7 @@ namespace mikelepage
 			void placePiecesSetup();
 			void tryLeaveSetup();
 			void tryMovePiece(std::shared_ptr<Piece>, Coordinate);
+			void updateTurnStatus();
 			void showPossibleTargetTiles(Coordinate);
 			void clearPossibleTargetTiles();
 	};
