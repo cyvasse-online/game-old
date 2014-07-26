@@ -225,7 +225,7 @@ namespace mikelepage
 		{
 			for(auto it : _self->getInactivePieces())
 			{
-				if(it->getType() == PIECE_DRAGON)
+				if(it->getType() == PieceType::DRAGON)
 					_selectedPiece = it;
 			}
 			Board::highlight(_ownDragonTile, Board::tileColors[1], "red");
@@ -244,73 +244,73 @@ namespace mikelepage
 
 		static std::map<PlayersColor, std::vector<Position>> defaultPiecePositions {
 			{
-				PLAYER_WHITE, {
-					{PIECE_MOUNTAIN,    coord(0, 10)},
-					{PIECE_MOUNTAIN,    coord(1, 10)},
-					{PIECE_MOUNTAIN,    coord(2, 10)},
-					{PIECE_MOUNTAIN,    coord(3, 10)},
-					{PIECE_MOUNTAIN,    coord(4, 10)},
-					{PIECE_MOUNTAIN,    coord(5, 10)},
+				PlayersColor::WHITE, {
+					{PieceType::MOUNTAIN,    coord(0, 10)},
+					{PieceType::MOUNTAIN,    coord(1, 10)},
+					{PieceType::MOUNTAIN,    coord(2, 10)},
+					{PieceType::MOUNTAIN,    coord(3, 10)},
+					{PieceType::MOUNTAIN,    coord(4, 10)},
+					{PieceType::MOUNTAIN,    coord(5, 10)},
 
-					{PIECE_TREBUCHET,   coord(1, 8)},
-					{PIECE_TREBUCHET,   coord(2, 8)},
-					{PIECE_ELEPHANT,    coord(3, 8)},
-					{PIECE_ELEPHANT,    coord(4, 8)},
-					{PIECE_HEAVY_HORSE, coord(5, 8)},
-					{PIECE_HEAVY_HORSE, coord(6, 8)},
+					{PieceType::TREBUCHET,   coord(1, 8)},
+					{PieceType::TREBUCHET,   coord(2, 8)},
+					{PieceType::ELEPHANT,    coord(3, 8)},
+					{PieceType::ELEPHANT,    coord(4, 8)},
+					{PieceType::HEAVY_HORSE, coord(5, 8)},
+					{PieceType::HEAVY_HORSE, coord(6, 8)},
 
-					{PIECE_RABBLE,      coord(1, 7)},
-					{PIECE_RABBLE,      coord(2, 7)},
-					{PIECE_RABBLE,      coord(3, 7)},
-					{PIECE_KING,        coord(4, 7)},
-					{PIECE_RABBLE,      coord(5, 7)},
-					{PIECE_RABBLE,      coord(6, 7)},
-					{PIECE_RABBLE,      coord(7, 7)},
+					{PieceType::RABBLE,      coord(1, 7)},
+					{PieceType::RABBLE,      coord(2, 7)},
+					{PieceType::RABBLE,      coord(3, 7)},
+					{PieceType::KING,        coord(4, 7)},
+					{PieceType::RABBLE,      coord(5, 7)},
+					{PieceType::RABBLE,      coord(6, 7)},
+					{PieceType::RABBLE,      coord(7, 7)},
 
-					{PIECE_CROSSBOWS,   coord(2, 6)},
-					{PIECE_CROSSBOWS,   coord(3, 6)},
-					{PIECE_SPEARS,      coord(4, 6)},
-					{PIECE_SPEARS,      coord(5, 6)},
-					{PIECE_LIGHT_HORSE, coord(6, 6)},
-					{PIECE_LIGHT_HORSE, coord(7, 6)},
+					{PieceType::CROSSBOWS,   coord(2, 6)},
+					{PieceType::CROSSBOWS,   coord(3, 6)},
+					{PieceType::SPEARS,      coord(4, 6)},
+					{PieceType::SPEARS,      coord(5, 6)},
+					{PieceType::LIGHT_HORSE, coord(6, 6)},
+					{PieceType::LIGHT_HORSE, coord(7, 6)},
 
 					// dragon starts outside the board
-					{PIECE_DRAGON,      nullptr}
+					{PieceType::DRAGON,      nullptr}
 				}
 			},
 			{
-				PLAYER_BLACK, {
-					{PIECE_MOUNTAIN,    coord(10, 0)},
-					{PIECE_MOUNTAIN,    coord(9,  0)},
-					{PIECE_MOUNTAIN,    coord(8,  0)},
-					{PIECE_MOUNTAIN,    coord(7,  0)},
-					{PIECE_MOUNTAIN,    coord(6,  0)},
-					{PIECE_MOUNTAIN,    coord(5,  0)},
+				PlayersColor::BLACK, {
+					{PieceType::MOUNTAIN,    coord(10, 0)},
+					{PieceType::MOUNTAIN,    coord(9,  0)},
+					{PieceType::MOUNTAIN,    coord(8,  0)},
+					{PieceType::MOUNTAIN,    coord(7,  0)},
+					{PieceType::MOUNTAIN,    coord(6,  0)},
+					{PieceType::MOUNTAIN,    coord(5,  0)},
 
-					{PIECE_TREBUCHET,   coord(9, 2)},
-					{PIECE_TREBUCHET,   coord(8, 2)},
-					{PIECE_ELEPHANT,    coord(7, 2)},
-					{PIECE_ELEPHANT,    coord(6, 2)},
-					{PIECE_HEAVY_HORSE, coord(5, 2)},
-					{PIECE_HEAVY_HORSE, coord(4, 2)},
+					{PieceType::TREBUCHET,   coord(9, 2)},
+					{PieceType::TREBUCHET,   coord(8, 2)},
+					{PieceType::ELEPHANT,    coord(7, 2)},
+					{PieceType::ELEPHANT,    coord(6, 2)},
+					{PieceType::HEAVY_HORSE, coord(5, 2)},
+					{PieceType::HEAVY_HORSE, coord(4, 2)},
 
-					{PIECE_RABBLE,      coord(9, 3)},
-					{PIECE_RABBLE,      coord(8, 3)},
-					{PIECE_RABBLE,      coord(7, 3)},
-					{PIECE_KING,        coord(6, 3)},
-					{PIECE_RABBLE,      coord(5, 3)},
-					{PIECE_RABBLE,      coord(4, 3)},
-					{PIECE_RABBLE,      coord(3, 3)},
+					{PieceType::RABBLE,      coord(9, 3)},
+					{PieceType::RABBLE,      coord(8, 3)},
+					{PieceType::RABBLE,      coord(7, 3)},
+					{PieceType::KING,        coord(6, 3)},
+					{PieceType::RABBLE,      coord(5, 3)},
+					{PieceType::RABBLE,      coord(4, 3)},
+					{PieceType::RABBLE,      coord(3, 3)},
 
-					{PIECE_CROSSBOWS,   coord(8, 4)},
-					{PIECE_CROSSBOWS,   coord(7, 4)},
-					{PIECE_SPEARS,      coord(6, 4)},
-					{PIECE_SPEARS,      coord(5, 4)},
-					{PIECE_LIGHT_HORSE, coord(4, 4)},
-					{PIECE_LIGHT_HORSE, coord(3, 4)},
+					{PieceType::CROSSBOWS,   coord(8, 4)},
+					{PieceType::CROSSBOWS,   coord(7, 4)},
+					{PieceType::SPEARS,      coord(6, 4)},
+					{PieceType::SPEARS,      coord(5, 4)},
+					{PieceType::LIGHT_HORSE, coord(4, 4)},
+					{PieceType::LIGHT_HORSE, coord(3, 4)},
 
 					// dragon starts outside the board
-					{PIECE_DRAGON,      nullptr}
+					{PieceType::DRAGON,      nullptr}
 				}
 			}};
 
@@ -318,7 +318,7 @@ namespace mikelepage
 
 		PlayersColor color = _self->_color;
 
-		for(auto& it : defaultPiecePositions[!color])
+		for(auto& it : defaultPiecePositions[color])
 		{
 			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second), color, *this));
 
@@ -366,7 +366,7 @@ namespace mikelepage
 			{
 				// the piece has to be a dragon, because other pieces
 				// have to have a position on the board after setup
-				assert(it->getType() == PIECE_DRAGON);
+				assert(it->getType() == PieceType::DRAGON);
 				assert(!unpositionedDragon); // there can only be one dragon
 				unpositionedDragon = it;
 
@@ -392,7 +392,7 @@ namespace mikelepage
 		for(auto it : _piecesToRender)
 		{
 			assert(it);
-			if(it->getType() == PIECE_KING)
+			if(it->getType() == PieceType::KING)
 			{
 				auto coord = it->getCoord();
 				assert(coord);
@@ -403,7 +403,7 @@ namespace mikelepage
 		}
 		assert(nFortresses == 2);
 
-		if(_self->_color == PLAYER_WHITE)
+		if(_self->_color == PlayersColor::WHITE)
 			_board.resetTileColors(5, 11);
 		else
 			_board.resetTileColors(0, 5);
@@ -462,7 +462,7 @@ namespace mikelepage
 		}
 		else
 		{
-			assert(_selectedPiece->getType() == PIECE_DRAGON);
+			assert(_selectedPiece->getType() == PieceType::DRAGON);
 
 			if(_selectedPiece->getColor() == _self->getColor())
 				_ownDragonTile.setColor(Board::tileColors[1]);

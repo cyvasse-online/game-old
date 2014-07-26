@@ -32,16 +32,16 @@ namespace mikelepage
 		, _quad(_board.getTileSize())
 	{
 		static std::map<PieceType, std::string> fileNames = {
-				{PIECE_MOUNTAIN,    "mountain.png"},
-				{PIECE_RABBLE,      "rabble.png"},
-				{PIECE_CROSSBOWS,   "crossbows.png"},
-				{PIECE_SPEARS,      "spears.png"},
-				{PIECE_LIGHT_HORSE, "light_horse.png"},
-				{PIECE_TREBUCHET,   "trebuchet.png"},
-				{PIECE_ELEPHANT,    "elephant.png"},
-				{PIECE_HEAVY_HORSE, "heavy_horse.png"},
-				{PIECE_DRAGON,      "dragon.png"},
-				{PIECE_KING,        "king.png"}
+				{PieceType::MOUNTAIN,    "mountain.png"},
+				{PieceType::RABBLE,      "rabble.png"},
+				{PieceType::CROSSBOWS,   "crossbows.png"},
+				{PieceType::SPEARS,      "spears.png"},
+				{PieceType::LIGHT_HORSE, "light_horse.png"},
+				{PieceType::TREBUCHET,   "trebuchet.png"},
+				{PieceType::ELEPHANT,    "elephant.png"},
+				{PieceType::HEAVY_HORSE, "heavy_horse.png"},
+				{PieceType::DRAGON,      "dragon.png"},
+				{PieceType::KING,        "king.png"}
 			};
 
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);

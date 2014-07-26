@@ -47,7 +47,7 @@ typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
 template <int l>
 HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
 	: _renderer(renderer)
-	, _upsideDown(color == cyvmath::PLAYER_WHITE ? false : true)
+	, _upsideDown(color == cyvmath::PlayersColor::WHITE ? false : true)
 	, _hoveredTile(noTile())
 	, _mouseBPressTile(noTile())
 {

@@ -23,11 +23,11 @@ using namespace cyvmath;
 
 namespace mikelepage
 {
-	void LocalPlayer::sendGameUpdate(UpdateType update, Json::Value data)
+	void LocalPlayer::sendGameUpdate(Update update, Json::Value data)
 	{
 		Json::Value msg;
 		msg["messageType"] = "game update";
-		msg["update"] = UpdateTypeToStr(update);
+		msg["update"] = UpdateToStr(update);
 		msg["data"] = data;
 
 		CyvasseWSClient::instance().send(msg);
@@ -53,7 +53,7 @@ namespace mikelepage
 		// after setup, if there is an inactive piece, it has to be
 		// the dragon; otherwise _inactivePieces has to be empty
 		assert(_inactivePieces.size() <= 1);
-		assert(_inactivePieces.front()->getType() == PIECE_DRAGON);
+		assert(_inactivePieces.front()->getType() == PieceType::DRAGON);
 
 		if(_inactivePieces.size() > 0)
 		{
@@ -64,7 +64,7 @@ namespace mikelepage
 			pieces.append(piece);
 		}
 
-		sendGameUpdate(UPDATE_LEAVE_SETUP, data);
+		sendGameUpdate(Update::LEAVE_SETUP, data);
 	}
 
 	void LocalPlayer::sendMovePiece(std::shared_ptr<Piece> piece, std::unique_ptr<Coordinate> oldPos)
@@ -76,6 +76,6 @@ namespace mikelepage
 		data["old position"] = oldPos ? oldPos->toString() : Json::Value();
 		data["new position"] = piece->getCoord()->toString();
 
-		sendGameUpdate(UPDATE_MOVE_PIECE, data);
+		sendGameUpdate(Update::MOVE_PIECE, data);
 	}
 }

@@ -44,15 +44,15 @@ namespace mikelepage
 	void RemotePlayer::handleMessage(Json::Value msg)
 	{
 		// TODO: Revise when multiplayer for the native game is implemented
-		if(StrToMessageType(msg["messageType"].asString()) != MESSAGE_GAME_UPDATE)
+		if(StrToMessage(msg["messageType"].asString()) != Message::GAME_UPDATE)
 			throw std::runtime_error("this message should be handled outside the game (message type "
 				+ msg["messageType"].asString() + ")");
 
 		Json::Value& data = msg["data"];
 
-		switch(StrToUpdateType(msg["update"].asString()))
+		switch(StrToUpdate(msg["update"].asString()))
 		{
-			case UPDATE_LEAVE_SETUP:
+			case Update::LEAVE_SETUP:
 				if(data["pieces"].size() != 26)
 					throw std::runtime_error("there have to be exactly 26 pieces when leaving setup (got "
 						+ std::to_string(data["pieces"].size()) + ")");
@@ -64,9 +64,9 @@ namespace mikelepage
 					auto type = StrToPieceType(piece["type"].asString());
 					auto coord = Coordinate::createFromStr(piece["position"].asString());
 
-					if(type == PIECE_UNDEFINED)
+					if(type == PieceType::UNDEFINED)
 						throw std::runtime_error("got unknown piece type " + piece["type"].asString());
-					if(!coord && type != PIECE_DRAGON)
+					if(!coord && type != PieceType::DRAGON)
 						throw std::runtime_error("a " + piece["type"].asString() +
 							" piece has no position on the board, this is only allowed for the dragon");
 
@@ -78,13 +78,13 @@ namespace mikelepage
 				_setupComplete = true;
 				_match.tryLeaveSetup();
 				break;
-			case UPDATE_MOVE_PIECE:
+			case Update::MOVE_PIECE:
 			{
 				auto pieceType = StrToPieceType(data["piece type"].asString());
 				auto oldPos    = Coordinate::createFromStr(data["old position"].asString());
 				auto newPos    = Coordinate::createFromStr(data["new position"].asString());
 
-				if(!pieceType)
+				if(pieceType == PieceType::UNDEFINED)
 					throw std::runtime_error(
 						"move of undefined piece " + data["piece type"].asString() + " requested"
 					);
@@ -106,7 +106,7 @@ namespace mikelepage
 				}
 				else
 				{
-					if(pieceType != PIECE_DRAGON)
+					if(pieceType != PieceType::DRAGON)
 						throw std::runtime_error("move of piece without position that is not a dragon requested");
 
 					if(!_dragonAliveInactive)
@@ -115,7 +115,7 @@ namespace mikelepage
 
 					for(auto it : _inactivePieces)
 					{
-						if(it->getType() == PIECE_DRAGON)
+						if(it->getType() == PieceType::DRAGON)
 							piece = it;
 					}
 
@@ -131,7 +131,7 @@ namespace mikelepage
 				_match.tryMovePiece(piece, *newPos);
 				break;
 			}
-			case UPDATE_RESIGN:
+			case Update::RESIGN:
 			default:
 				throw std::runtime_error("got a json request with update set to " + msg["update"].asString());
 				break;

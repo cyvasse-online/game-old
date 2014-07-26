@@ -35,7 +35,7 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 {
 	static std::map<RuleSet, std::function<std::unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
 		createMatch {{
-			RULE_SET_MIKELEPAGE, [](IngameState& st, fea::Renderer2D& r, PlayersColor c)
+			RuleSet::MIKELEPAGE, [](IngameState& st, fea::Renderer2D& r, PlayersColor c)
 				{ return std::unique_ptr<Match>(new ::mikelepage::RenderedMatch(st, r, c)); }
 		}};
 
@@ -57,8 +57,8 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 	auto color   = StrToPlayersColor(emscripten_run_script_string("Module.gameMetaData.color"));
 	#else
 	// --- hardcoded only until game init code is written ---
-	auto ruleSet = RULE_SET_MIKELEPAGE;
-	auto color = PLAYER_WHITE;
+	auto ruleSet = RuleSet::MIKELEPAGE;
+	auto color = PlayersColor::WHITE;
 	#endif
 
 	_ruleSet = createMatch[ruleSet](*ingameState, _renderer, color);

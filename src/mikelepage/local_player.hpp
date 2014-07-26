@@ -40,7 +40,7 @@ namespace mikelepage
 		private:
 			bool _setupComplete;
 
-			void sendGameUpdate(UpdateType, Json::Value data);
+			void sendGameUpdate(Update, Json::Value data);
 
 		public:
 			LocalPlayer(PlayersColor color, PieceMap& activePieces)
