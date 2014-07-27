@@ -21,9 +21,10 @@
 
 namespace mikelepage
 {
-	RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board)
+	RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
 		: Terrain(type, coord)
 		, _board(board)
+		, _terrainMap(terrainMap)
 		, _quad(board.getTileSize())
 	{
 		static const std::map<TerrainType, fea::Color> colors = {
@@ -40,7 +41,15 @@ namespace mikelepage
 
 	void RenderedTerrain::setCoord(Coordinate coord)
 	{
-		Terrain::setCoord(coord);
+		auto it = _terrainMap.find(_coord);
+		assert(it != _terrainMap.end());
+
+		auto selfSharedPtr = it->second;
+
+		_coord = coord;
 		_quad.setPosition(_board.getTilePosition(coord));
+
+		_terrainMap.erase(it);
+		_terrainMap.emplace(coord, selfSharedPtr);
 	}
 }

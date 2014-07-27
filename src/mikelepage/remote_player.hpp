@@ -27,11 +27,18 @@ namespace mikelepage
 	using cyvmath::mikelepage::PieceMap;
 
 	class RenderedMatch;
+	class RenderedPiece;
+
+	typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;
 
 	class RemotePlayer : public cyvmath::mikelepage::Player
 	{
 		private:
 			bool _setupComplete;
+
+			// contains all pieces before
+			// leaving setup, is empty afterwards
+			RenderedPieceVec _pieceCache;
 
 			RenderedMatch& _match;
 
@@ -40,6 +47,12 @@ namespace mikelepage
 
 			bool setupComplete() final override
 			{ return _setupComplete; }
+
+			RenderedPieceVec& getPieceCache()
+			{ return _pieceCache; }
+
+			void clearPieceCache()
+			{ _pieceCache.clear(); }
 
 			void handleMessage(Json::Value);
 	};

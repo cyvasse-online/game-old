@@ -19,6 +19,7 @@
 
 #include <cyvmath/mikelepage/match.hpp>
 
+#include <array>
 #include <set>
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
@@ -51,21 +52,24 @@ namespace mikelepage
 			std::shared_ptr<LocalPlayer> _self;
 			std::shared_ptr<Player> _op;
 
-			std::vector<fea::Quad*> _entitiesToRender;
+			const PlayersColor _ownColor, _opColor;
+
+			std::vector<fea::Quad*> _piecesToRender;
+			std::vector<fea::Quad*> _terrainToRender;
 
 			bool _setupAccepted;
 
 			fea::Texture _buttonSetupDoneTexture;
 			fea::Quad _buttonSetupDone;
 
-			fea::Quad _ownDragonTile, _opDragonTile;
-			bool _hoveringOwnDragonTile, _hoveringOpDragonTile;
+			std::array<fea::Quad, 2> _dragonTiles;
+			std::array<bool, 2> _hoveringDragonTile;
 
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
 
 		public:
-			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor firstPlayer);
+			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor);
 
 			// non-copyable
 			RenderedMatch(const RenderedMatch&) = delete;
@@ -82,6 +86,7 @@ namespace mikelepage
 			void onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
+			void placePiece(std::shared_ptr<RenderedPiece>, std::shared_ptr<Player>);
 			void placePiecesSetup();
 			void tryLeaveSetup();
 			void tryMovePiece(std::shared_ptr<Piece>, Coordinate);

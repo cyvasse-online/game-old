@@ -26,17 +26,19 @@ namespace mikelepage
 {
 	using cyvmath::mikelepage::Coordinate;
 	using cyvmath::mikelepage::Terrain;
+	using cyvmath::mikelepage::TerrainMap;
 	using cyvmath::mikelepage::TerrainType;
 
 	class RenderedTerrain : public Terrain
 	{
 		private:
 			HexagonBoard<6>& _board;
+			TerrainMap& _terrainMap;
 
 			fea::Quad _quad;
 
 		public:
-			RenderedTerrain(TerrainType, Coordinate, HexagonBoard<6>&);
+			RenderedTerrain(TerrainType, Coordinate, HexagonBoard<6>&, TerrainMap&);
 
 			fea::Quad* getQuad()
 			{ return &_quad; }

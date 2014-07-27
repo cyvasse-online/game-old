@@ -16,6 +16,7 @@
 
 #include "rendered_fortress.hpp"
 
+#include <array>
 #include "hexagon_board.hpp"
 
 namespace mikelepage
@@ -25,10 +26,10 @@ namespace mikelepage
 		, _board(board)
 		, _quad(board.getTileSize())
 	{
-		static const std::map<PlayersColor, fea::Color> colors = {
-			{PlayersColor::WHITE, {255, 255, 255, 127}},
-			{PlayersColor::BLACK, {0, 0, 0, 127}}
-		};
+		static const std::array<fea::Color, 2> colors {{
+			{255, 255, 255, 127},
+			{0, 0, 0, 127}
+		}};
 
 		assert(color != PlayersColor::UNDEFINED);
 
@@ -38,7 +39,7 @@ namespace mikelepage
 
 	void RenderedFortress::setCoord(Coordinate coord)
 	{
-		Fortress::setCoord(coord);
+		_coord = coord;
 		_quad.setPosition(_board.getTilePosition(coord));
 	}
 }

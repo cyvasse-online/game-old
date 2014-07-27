@@ -71,7 +71,7 @@ namespace mikelepage
 
 					auto renderedPiece = std::make_shared<RenderedPiece>(type, make_unique(coord), _color, _match);
 
-					_inactivePieces.push_back(renderedPiece);
+					_pieceCache.push_back(renderedPiece);
 				}
 
 				_setupComplete = true;
