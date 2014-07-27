@@ -19,10 +19,14 @@ game_sources = \
 	src/mikelepage/local_player.hpp \
 	src/mikelepage/remote_player.cpp \
 	src/mikelepage/remote_player.hpp \
+	src/mikelepage/rendered_fortress.cpp \
+	src/mikelepage/rendered_fortress.hpp \
 	src/mikelepage/rendered_match.cpp \
 	src/mikelepage/rendered_match.hpp \
 	src/mikelepage/rendered_piece.cpp \
-	src/mikelepage/rendered_piece.hpp
+	src/mikelepage/rendered_piece.hpp \
+	src/mikelepage/rendered_terrain.cpp \
+	src/mikelepage/rendered_terrain.hpp
 
 # The last include directory contains lodepng,
 # which loads png files, plus texturemaker.hpp

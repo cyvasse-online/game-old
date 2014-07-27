@@ -14,40 +14,33 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <emscripten.h>
+#include "rendered_terrain.hpp"
 
-class WebsocketImpl
+#include <map>
+#include "hexagon_board.hpp"
+
+namespace mikelepage
 {
-	public:
-		WebsocketImpl();
+	RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board)
+		: Terrain(type, coord)
+		, _board(board)
+		, _quad(board.getTileSize())
+	{
+		static const std::map<TerrainType, fea::Color> colors = {
+			{TerrainType::HILL, {255, 143, 0, 127}},
+			{TerrainType::FOREST, {0, 127, 0, 127}},
+			{TerrainType::GRASSLAND, {0, 255, 0, 127}}
+		};
 
-		void send(const std::string& msgData);
-};
+		assert(type != TerrainType::UNDEFINED);
 
-WebsocketImpl::WebsocketImpl()
-{
-	EM_ASM(
-		Module.wsClient.handleMessageIngame = Module.cwrap('game_handlemessage', undefined, ['string']);
-	);
-}
+		_quad.setColor(colors.at(type));
+		_quad.setPosition(board.getTilePosition(coord));
+	}
 
-void WebsocketImpl::send(const std::string& msgData)
-{
-	EM_ASM_({
-		var jsWSClient = Module.wsClient;
-		var msg = Module.Pointer_stringify($0);
-
-		if(jsWSClient.debug === true) {
-	        console.log('[send]');
-	        console.log(msg);
-	    }
-
-		jsWSClient.conn.send(msg);
-	}, msgData.c_str());
-}
-
-extern "C"
-{
-	void game_handlemessage(const char* msgData)
-	{ CyvasseWSClient::instance().handleMessageWrap(std::string(msgData)); }
+	void RenderedTerrain::setCoord(Coordinate coord)
+	{
+		Terrain::setCoord(coord);
+		_quad.setPosition(_board.getTilePosition(coord));
+	}
 }

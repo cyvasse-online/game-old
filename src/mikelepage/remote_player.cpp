@@ -16,7 +16,6 @@
 
 #include "remote_player.hpp"
 
-#include <cyvmath/mikelepage/common.hpp>
 #include <server_message.hpp>
 #ifdef EMSCRIPTEN
 	#include <emscripten.h>

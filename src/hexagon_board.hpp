@@ -23,6 +23,7 @@
 #include <fea/rendering/quad.hpp>
 #include <fea/ui/event.hpp>
 #include <cyvmath/hexagon.hpp>
+#include <cyvmath/players_color.hpp>
 
 template<int l>
 class HexagonBoard

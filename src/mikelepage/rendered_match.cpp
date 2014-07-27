@@ -22,7 +22,9 @@
 #include "common.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
+#include "rendered_fortress.hpp"
 #include "rendered_piece.hpp"
+#include "rendered_terrain.hpp"
 #include "remote_player.hpp"
 #include "texturemaker.hpp" // lodepng helper function
 
@@ -102,8 +104,8 @@ namespace mikelepage
 		if(!_setup && _op->dragonAliveInactive())
 			_renderer.queue(_opDragonTile);
 
-		for(std::shared_ptr<RenderedPiece> it : _piecesToRender)
-			_renderer.queue(it->getQuad());
+		for(fea::Quad* it : _entitiesToRender)
+			_renderer.queue(*it);
 
 		if(_setup && _self->setupComplete() && !_setupAccepted)
 			_renderer.queue(_buttonSetupDone);
@@ -215,7 +217,8 @@ namespace mikelepage
 		if(_self->setupComplete() && !_setupAccepted && mouseOver(_buttonSetupDone, {event.x, event.y}))
 		{
 			_setupAccepted = true;
-			// send before modifying _activePieces, so it can be sent completely
+			// send before modifying _activePieces, so the map doesn't
+			// have to be filtered for only black / white pieces
 			_self->sendLeaveSetup();
 			tryLeaveSetup();
 		}
@@ -320,20 +323,41 @@ namespace mikelepage
 
 		for(auto& it : defaultPiecePositions[color])
 		{
-			std::shared_ptr<RenderedPiece> tmpPiece(new RenderedPiece(it.first, make_unique(it.second), color, *this));
+			auto tmpPiece = std::make_shared<RenderedPiece>(
+				it.first, make_unique(it.second), color, *this
+			);
 
 			if(it.second) // not null - one of the first 25 pieces
 			{
 				_activePieces.emplace(*it.second, tmpPiece);
+
+				if(it.first == PieceType::KING)
+				{
+					auto fortress = std::make_shared<RenderedFortress>(color, *it.second, _board);
+
+					_self->setFortress(fortress);
+					_entitiesToRender.push_back(fortress->getQuad());
+				}
+				else
+				{
+					TerrainType tType = tmpPiece->getSetupTerrain();
+					if(tType != TerrainType::UNDEFINED)
+					{
+						auto terrain = std::make_shared<RenderedTerrain>(tType, *it.second, _board);
+
+						_terrain.emplace(*it.second, terrain);
+						_entitiesToRender.push_back(terrain->getQuad());
+					}
+				}
 			}
 			else // dragon, 26th piece
 			{
 				assert(_self->getInactivePieces().empty());
 
-				tmpPiece->getQuad().setPosition(_ownDragonTile.getPosition());
+				tmpPiece->setPosition(_ownDragonTile.getPosition());
 				_self->getInactivePieces().push_back(tmpPiece);
 			}
-			_piecesToRender.push_back(tmpPiece);
+			_entitiesToRender.push_back(tmpPiece->getQuad());
 		}
 	}
 
@@ -360,7 +384,7 @@ namespace mikelepage
 
 				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
 				assert(tmp);
-				_piecesToRender.push_back(tmp);
+				_entitiesToRender.push_back(tmp->getQuad());
 			}
 			else
 			{
@@ -372,8 +396,8 @@ namespace mikelepage
 
 				std::shared_ptr<RenderedPiece> tmp = std::dynamic_pointer_cast<RenderedPiece>(it);
 				assert(tmp);
-				tmp->getQuad().setPosition(_opDragonTile.getPosition());
-				_piecesToRender.push_back(tmp);
+				tmp->setPosition(_opDragonTile.getPosition());
+				_entitiesToRender.push_back(tmp->getQuad());
 			}
 		}
 
@@ -386,22 +410,6 @@ namespace mikelepage
 			opInactivePieces.clear();
 			_op->dragonBroughtOut();
 		}
-
-		// TODO: Rewrite when Terrain is added
-		int nFortresses = 0;
-		for(auto it : _piecesToRender)
-		{
-			assert(it);
-			if(it->getType() == PieceType::KING)
-			{
-				auto coord = it->getCoord();
-				assert(coord);
-
-				_fortressPositions.emplace(it->getColor(), *coord);
-				nFortresses++;
-			}
-		}
-		assert(nFortresses == 2);
 
 		if(_self->_color == PlayersColor::WHITE)
 			_board.resetTileColors(5, 11);

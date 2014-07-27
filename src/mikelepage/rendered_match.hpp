@@ -22,7 +22,6 @@
 #include <set>
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
-#include <cyvmath/mikelepage/piece.hpp>
 #include "hexagon_board.hpp"
 
 class IngameState;
@@ -43,7 +42,6 @@ namespace mikelepage
 	{
 		public:
 			typedef HexagonBoard<6> Board;
-			typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;
 
 		private:
 			fea::Renderer2D& _renderer;
@@ -53,7 +51,7 @@ namespace mikelepage
 			std::shared_ptr<LocalPlayer> _self;
 			std::shared_ptr<Player> _op;
 
-			RenderedPieceVec _piecesToRender;
+			std::vector<fea::Quad*> _entitiesToRender;
 
 			bool _setupAccepted;
 
@@ -65,6 +63,7 @@ namespace mikelepage
 
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
+
 		public:
 			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor firstPlayer);
 
