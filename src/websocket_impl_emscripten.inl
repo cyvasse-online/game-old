@@ -38,9 +38,9 @@ void WebsocketImpl::send(const std::string& msgData)
 		var msg = Module.Pointer_stringify($0);
 
 		if(jsWSClient.debug === true) {
-	        console.log('[send]');
-	        console.log(msg);
-	    }
+			console.log('[send]');
+			console.log(msg);
+		}
 
 		jsWSClient.conn.send(msg);
 	}, msgData.c_str());
