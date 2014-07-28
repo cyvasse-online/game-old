@@ -16,6 +16,7 @@
 
 #include "rendered_match.hpp"
 
+#include <algorithm>
 #ifdef EMSCRIPTEN
 	#include <emscripten.h>
 #endif
@@ -149,15 +150,18 @@ namespace mikelepage
 			if(pieceIt != _activePieces.end())
 				piece = pieceIt->second;
 
-			if(!piece) // there is no piece on the clicked tile
+			if(!piece || piece->getColor() == _opColor)
 			{
-				tryMovePiece(_selectedPiece, coord);
-				_selectedPiece.reset();
+				if(tryMovePiece(_selectedPiece, coord))
+					_selectedPiece.reset();
 			}
-			// there is a piece of the player on the clicked tile
-			else if(piece->getColor() == _ownColor)
+			else
 			{
-				// move the focus to the clicked tile
+				// there is a piece of the player on the clicked tile
+				// => move the focus to the clicked tile
+
+				assert(piece->getColor() == _ownColor);
+
 				resetSelectedTile();
 				clearPossibleTargetTiles();
 
@@ -166,11 +170,6 @@ namespace mikelepage
 				_board.highlightTile(coord, "red", _setup);
 				if(!_setup)
 					showPossibleTargetTiles();
-			}
-			// there is an opponents piece on the clicked tile
-			else
-			{
-				// TODO: attacking code
 			}
 		}
 	}
@@ -282,7 +281,7 @@ namespace mikelepage
 
 		typedef std::pair<PieceType, std::shared_ptr<Coordinate>> Position;
 
-		static std::array<std::vector<Position>, 2> defaultPiecePositions {{
+		static const std::array<std::vector<Position>, 2> defaultPiecePositions {{
 			{
 				// white
 				{PieceType::MOUNTAIN,    coord(0, 10)},
@@ -356,7 +355,7 @@ namespace mikelepage
 
 		PlayersColor color = _self->_color;
 
-		for(auto& it : defaultPiecePositions[color])
+		for(auto& it : defaultPiecePositions.at(color))
 		{
 			auto tmpPiece = std::make_shared<RenderedPiece>(
 				it.first, make_unique(it.second), color, *this
@@ -399,7 +398,7 @@ namespace mikelepage
 		updateTurnStatus();
 	}
 
-	void RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
+	bool RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
 	{
 		assert(piece);
 
@@ -427,7 +426,26 @@ namespace mikelepage
 				_activePlayer = !_activePlayer;
 				updateTurnStatus();
 			}
+
+			return true;
 		}
+
+		return false;
+	}
+
+	void RenderedMatch::removeFromBoard(std::shared_ptr<Piece> piece)
+	{
+		Match::removeFromBoard(piece);
+
+		// TODO: place the piece somewhere outside
+		// the board instead of not rendering it
+
+		auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(piece);
+		assert(rPiece);
+
+		auto it = std::find(_piecesToRender.begin(), _piecesToRender.end(), rPiece->getQuad());
+		assert(it != _piecesToRender.end());
+		_piecesToRender.erase(it);
 	}
 
 	void RenderedMatch::updateTurnStatus()

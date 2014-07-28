@@ -88,8 +88,11 @@ namespace mikelepage
 
 			void placePiece(std::shared_ptr<RenderedPiece>, std::shared_ptr<Player>);
 			void placePiecesSetup();
+
 			void tryLeaveSetup();
-			void tryMovePiece(std::shared_ptr<Piece>, Coordinate);
+			bool tryMovePiece(std::shared_ptr<Piece>, Coordinate);
+			void removeFromBoard(std::shared_ptr<Piece>) final override;
+
 			void updateTurnStatus();
 			void resetSelectedTile();
 			void showPossibleTargetTiles();
