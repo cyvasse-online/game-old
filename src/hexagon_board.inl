@@ -294,10 +294,8 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 template <int l>
 void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if(mouseButton.button != fea::Mouse::Button::LEFT)
+	if(mouseButton.button != fea::Mouse::Button::LEFT || _mouseBPressTile.first)
 		return;
-
-	assert(!_mouseBPressTile.first);
 
 	auto coord = getCoordinate({mouseButton.x, mouseButton.y});
 
