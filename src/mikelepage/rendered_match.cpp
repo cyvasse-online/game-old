@@ -353,12 +353,10 @@ namespace mikelepage
 
 		#undef coord
 
-		PlayersColor color = _self->_color;
-
-		for(auto& it : defaultPiecePositions.at(color))
+		for(auto& it : defaultPiecePositions.at(_ownColor))
 		{
 			auto tmpPiece = std::make_shared<RenderedPiece>(
-				it.first, make_unique(it.second), color, *this
+				it.first, make_unique(it.second), _ownColor, *this
 			);
 
 			placePiece(tmpPiece, _self);
@@ -390,7 +388,7 @@ namespace mikelepage
 
 		_bearingTable.init();
 
-		if(_self->_color == PlayersColor::WHITE)
+		if(_ownColor == PlayersColor::WHITE)
 			_board.resetTileColors(5, 11);
 		else
 			_board.resetTileColors(0, 5);
