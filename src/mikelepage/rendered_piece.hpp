@@ -50,7 +50,7 @@ namespace mikelepage
 			const glm::vec2& getPosition() const
 			{ return _quad.getPosition(); }
 
-			bool moveTo(Coordinate, bool checkMoveValidity) final override;
+			bool moveTo(Coordinate, bool setup) final override;
 
 			void setPosition(const glm::vec2& pos)
 			{ _quad.setPosition(pos); }

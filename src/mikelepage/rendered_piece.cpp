@@ -52,9 +52,9 @@ namespace mikelepage
 			_quad.setPosition(_board.getTilePosition(*_coord));
 	}
 
-	bool RenderedPiece::moveTo(Coordinate coord, bool checkMoveValidity)
+	bool RenderedPiece::moveTo(Coordinate coord, bool setup)
 	{
-		if(!Piece::moveTo(coord, checkMoveValidity))
+		if(!Piece::moveTo(coord, setup))
 			return false;
 
 		_quad.setPosition(_board.getTilePosition(coord));

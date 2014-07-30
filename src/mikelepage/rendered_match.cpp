@@ -388,6 +388,8 @@ namespace mikelepage
 
 		op->clearPieceCache();
 
+		_bearingTable.init();
+
 		if(_self->_color == PlayersColor::WHITE)
 			_board.resetTileColors(5, 11);
 		else
@@ -404,7 +406,7 @@ namespace mikelepage
 
 		auto oldCoord = piece->getCoord();
 
-		if(piece->moveTo(coord, !_setup))
+		if(piece->moveTo(coord, _setup))
 		{
 			// move is valid and was done
 
