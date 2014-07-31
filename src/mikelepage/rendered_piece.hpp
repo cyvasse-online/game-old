@@ -28,12 +28,10 @@ namespace mikelepage
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::Coordinate;
 	using cyvmath::mikelepage::Piece;
-	using cyvmath::mikelepage::PieceMap;
-	using cyvmath::mikelepage::Match;
 
 	class RenderedMatch;
 
-	class RenderedPiece : public cyvmath::mikelepage::Piece
+	class RenderedPiece : public Piece
 	{
 		private:
 			HexagonBoard<6>& _board;

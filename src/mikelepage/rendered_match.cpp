@@ -29,20 +29,28 @@
 #include "remote_player.hpp"
 #include "texturemaker.hpp" // lodepng helper function
 
+using namespace std::placeholders;
 using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
 		: _renderer{renderer}
+		, _ingameState(ingameState)
 		, _board(renderer, color)
+		, _gameEnded{false}
 		, _ownColor{color}
 		, _opColor{!color}
 		, _setupAccepted{false}
+		, _dragonTiles{{_board.getTileSize(), _board.getTileSize()}}
 		, _hoveringDragonTile{{false, false}}
-		, _selectedPiece{nullptr}
+		, _piecePromotionBackground{{glm::vec2{100, 100}, glm::vec2{100, 100}, glm::vec2{100, 100}}}
+		, _piecePromotionTypes{{PieceType::UNDEFINED, PieceType::UNDEFINED, PieceType::UNDEFINED}}
+		, _renderPiecePromotionBgs{0}
+		, _piecePromotionHover{0}
+		, _piecePromotionMousePress{0}
 	{
-		_players[_ownColor] = std::make_shared<LocalPlayer>(_ownColor, _activePieces);
+		_players[_ownColor] = std::make_shared<LocalPlayer>(_ownColor, *this);
 		_players[_opColor]  = std::make_shared<RemotePlayer>(_opColor, *this);
 
 		_self = std::dynamic_pointer_cast<LocalPlayer>(_players[_ownColor]);
@@ -60,9 +68,6 @@ namespace mikelepage
 		_buttonSetupDone.setSize(tmpTexture.second); // hardcoded for now, can be done properly somewhen else
 		_buttonSetupDone.setTexture(_buttonSetupDoneTexture);
 
-		for(auto& tile : _dragonTiles)
-			tile.setSize(_board.getTileSize());
-
 		_dragonTiles[_ownColor].setColor(Board::tileColors[1]);
 		_dragonTiles[_ownColor].setPosition(
 			{boardPos.x, boardPos.y + boardSize.y - _board.getTileSize().y}
@@ -73,9 +78,11 @@ namespace mikelepage
 			{boardPos.x + boardSize.x - _board.getTileSize().x, boardPos.y}
 		);
 
-		placePiecesSetup();
+		for(auto& quad : _piecePromotionBackground)
+			quad.setColor({95, 95, 95});
 
-		using namespace std::placeholders;
+
+		placePiecesSetup();
 
 		ingameState.tick                  = std::bind(&RenderedMatch::tick, this);
 		ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, &_board, _1);
@@ -91,13 +98,23 @@ namespace mikelepage
 		setStatus("Setup");
 	}
 
+	const std::string& RenderedMatch::getStatus()
+	{
+		return _status;
+	}
+
 	void RenderedMatch::setStatus(const std::string& text)
 	{
-		#ifdef EMSCRIPTEN
-		EM_ASM_({
-			Module.setStatus(Module.Pointer_stringify($0));
-		}, text.c_str());
-		#endif
+		if(!_gameEnded)
+		{
+			_status = text;
+
+			#ifdef EMSCRIPTEN
+			EM_ASM_({
+				Module.setStatus(Module.Pointer_stringify($0));
+			}, text.c_str());
+			#endif
+		}
 	}
 
 	void RenderedMatch::tick()
@@ -115,6 +132,14 @@ namespace mikelepage
 
 		if(_setup && _self->setupComplete() && !_setupAccepted)
 			_renderer.queue(_buttonSetupDone);
+		else if(_renderPiecePromotionBgs > 0)
+		{
+			for(int i = 0; i < _renderPiecePromotionBgs; ++i)
+			{
+				_renderer.queue(_piecePromotionBackground[i]);
+				_renderer.queue(*_piecePromotionPieces[i]);
+			}
+		}
 	}
 
 	void RenderedMatch::onTileClicked(Coordinate coord)
@@ -221,15 +246,81 @@ namespace mikelepage
 			   mouseOver(_dragonTiles[_ownColor], {event.x, event.y}) &&
 			   (_setup || _activePlayer == _ownColor))
 		{
-			for(auto it : _self->getInactivePieces())
-			{
-				if(it->getType() == PieceType::DRAGON)
-					_selectedPiece = it;
-			}
+			assert(_self->getInactivePieces().count(PieceType::DRAGON) == 1);
+			auto it = _self->getInactivePieces().find(PieceType::DRAGON);
+
+			_selectedPiece = it->second;
+
 			Board::highlight(_dragonTiles[_ownColor], Board::tileColors[1], "red");
 
 			if(!_setup)
 				showPossibleTargetTiles();
+		}
+	}
+
+	void RenderedMatch::onMouseMovedPromotionPieceSelect(const fea::Event::MouseMoveEvent& mouseMove)
+	{
+		bool hoverOne = false;
+
+		for(int i = 0; i < _renderPiecePromotionBgs; i++)
+			if(mouseOver(_piecePromotionBackground[i], {mouseMove.x, mouseMove.y}))
+			{
+				hoverOne = true;
+
+				_piecePromotionHover = i+1;
+				_piecePromotionBackground[i].setColor({127, 127, 127});
+			}
+			else
+			{
+				_piecePromotionBackground[i].setColor({95, 95, 95});
+			}
+
+		if(!hoverOne)
+			_piecePromotionHover = 0;
+	}
+
+	void RenderedMatch::onMouseButtonPressedPromotionPieceSelect(const fea::Event::MouseButtonEvent& mouseButton)
+	{
+		if(mouseButton.button != fea::Mouse::Button::LEFT || _piecePromotionMousePress)
+			return;
+
+		if(_piecePromotionHover)
+			_piecePromotionMousePress = _piecePromotionHover;
+	}
+
+	void RenderedMatch::onMouseButtonReleasedPromotionPieceSelect(const fea::Event::MouseButtonEvent& mouseButton)
+	{
+		if(mouseButton.button != fea::Mouse::Button::LEFT || !_piecePromotionMousePress)
+			return;
+
+		if(_piecePromotionMousePress == _piecePromotionHover)
+		{
+			assert(_self->getFortress());
+
+			auto piece = getPieceAt(_self->getFortress()->getCoord());
+			assert(piece);
+
+			piece->promoteTo(_piecePromotionTypes[_piecePromotionMousePress-1]);
+
+			_renderPiecePromotionBgs = 0;
+			_piecePromotionPieces.fill(nullptr);
+
+			_ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, &_board, _1);
+			_ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, &_board, _1);
+			_ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &_board, _1);
+		}
+	}
+
+	void RenderedMatch::onTileClickedFortressReplaceSelect(Coordinate coord)
+	{
+		if(addFortressReplacementTile(coord))
+		{
+			// another ugly hack... pure laziness
+			setStatus("");
+			updateTurnStatus();
+
+			_self->sendAddFortressReplacementTile(coord);
+			_board.onTileClicked = std::bind(&RenderedMatch::onTileClicked, this, _1);
 		}
 	}
 
@@ -268,7 +359,7 @@ namespace mikelepage
 			assert(player->getInactivePieces().empty());
 
 			piece->setPosition(_dragonTiles[color].getPosition());
-			player->getInactivePieces().push_back(piece);
+			player->getInactivePieces().emplace(piece->getType(), piece);
 		}
 
 		_piecesToRender.push_back(piece->getQuad());
@@ -423,14 +514,34 @@ namespace mikelepage
 
 			if(!_setup)
 			{
+				_players[_activePlayer]->onTurnEnd();
+
 				_activePlayer = !_activePlayer;
-				updateTurnStatus();
+
+				// ugly hack [TODO]
+				if(_activePlayer == _opColor || getStatus() != "Select fortress replacement corner")
+					updateTurnStatus();
+
+				if(_activePlayer == _ownColor)
+					_self->onTurnBegin();
 			}
 
 			return true;
 		}
 
 		return false;
+	}
+
+	void RenderedMatch::addToBoard(PieceType type, PlayersColor color, Coordinate coord)
+	{
+		Match::addToBoard(type, color, coord);
+
+		auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(getPieceAt(coord));
+		assert(rPiece);
+
+		rPiece->setPosition(_board.getTileAt(coord)->getPosition());
+
+		_piecesToRender.push_back(rPiece->getQuad());
 	}
 
 	void RenderedMatch::removeFromBoard(std::shared_ptr<Piece> piece)
@@ -446,6 +557,48 @@ namespace mikelepage
 		auto it = std::find(_piecesToRender.begin(), _piecesToRender.end(), rPiece->getQuad());
 		assert(it != _piecesToRender.end());
 		_piecesToRender.erase(it);
+
+		PlayersColor pieceColor = piece->getColor();
+
+		if(piece->getType() == PieceType::KING && !_players.at(pieceColor)->getFortress())
+			endGame(!pieceColor);
+	}
+
+	bool RenderedMatch::addFortressReplacementTile(Coordinate coord)
+	{
+		static const std::set<Coordinate> cornerTiles {
+			*Coordinate::create( 0, 10),
+			*Coordinate::create( 5, 10),
+			*Coordinate::create(10,  5),
+			*Coordinate::create(10,  0),
+			*Coordinate::create( 5,  0),
+			*Coordinate::create( 0,  5)
+		};
+
+		if(cornerTiles.find(coord) != cornerTiles.end())
+		{
+			_fortressReplaceCorners.insert(coord);
+
+			_fortressReplacementTileHighlightings.push_back(std::make_shared<fea::Quad>(_board.getTileSize()));
+			_fortressReplacementTileHighlightings.back()->setColor({127, 0, 191, 127});
+			_fortressReplacementTileHighlightings.back()->setPosition(_board.getTilePosition(coord));
+
+			_terrainToRender.push_back(_fortressReplacementTileHighlightings.back().get());
+
+			_bearingTable.clear();
+			_bearingTable.init();
+
+			return true;
+		}
+
+		return false;
+	}
+
+	void RenderedMatch::removeTerrain(fea::Quad* quad)
+	{
+		auto it = std::find(_terrainToRender.begin(), _terrainToRender.end(), quad);
+		assert(it != _terrainToRender.end());
+		_terrainToRender.erase(it);
 	}
 
 	void RenderedMatch::updateTurnStatus()
@@ -495,5 +648,69 @@ namespace mikelepage
 			_board.resetTileColor(it, _setup);
 
 		_possibleTargetTiles.clear();
+	}
+
+	void RenderedMatch::showPromotionPieces(std::set<PieceType> pieceTypes)
+	{
+		assert(pieceTypes.size() > 1 && pieceTypes.size() <= 3);
+
+		_renderPiecePromotionBgs = pieceTypes.size();
+		glm::uvec2 scrMid = _renderer.getViewport().getSize() / glm::uvec2{2, 2};
+
+		if(pieceTypes.size() == 2)
+		{
+			_piecePromotionBackground[0].setPosition(glm::ivec2(scrMid) + glm::ivec2{-100, -50});
+			_piecePromotionBackground[1].setPosition(glm::ivec2(scrMid) + glm::ivec2{0, -50});
+		}
+		else
+		{
+			_piecePromotionBackground[0].setPosition(glm::ivec2(scrMid) + glm::ivec2{-150, -50});
+			_piecePromotionBackground[1].setPosition(glm::ivec2(scrMid) + glm::ivec2{-50, -50});
+			_piecePromotionBackground[2].setPosition(glm::ivec2(scrMid) + glm::ivec2{50, -50});
+		}
+
+		auto& inactivePieces = _self->getInactivePieces();
+
+		uint_least8_t i = 0;
+		for(PieceType type : pieceTypes)
+		{
+			_piecePromotionTypes[i] = type;
+
+			auto it = inactivePieces.find(type);
+			assert(it != inactivePieces.end());
+
+			auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(it->second);
+			assert(rPiece);
+
+			rPiece->setPosition(_piecePromotionBackground[i].getPosition() + glm::vec2{17, 25}); // TODO
+			_piecePromotionPieces[i] = rPiece->getQuad();
+			i++;
+		}
+
+		_ingameState.onMouseMoved          = std::bind(&RenderedMatch::onMouseMovedPromotionPieceSelect, this, _1);
+		_ingameState.onMouseButtonPressed  = std::bind(&RenderedMatch::onMouseButtonPressedPromotionPieceSelect, this, _1);
+		_ingameState.onMouseButtonReleased = std::bind(&RenderedMatch::onMouseButtonReleasedPromotionPieceSelect, this, _1);
+	}
+
+	void RenderedMatch::chooseFortressReplacementTile()
+	{
+		setStatus("Select fortress replacement corner");
+		_board.onTileClicked = std::bind(&RenderedMatch::onTileClickedFortressReplaceSelect, this, _1);
+	}
+
+	void RenderedMatch::endGame(PlayersColor winner)
+	{
+		std::string status = PlayersColorToStr(winner) + " player won!";
+		status[0] -= ('a' - 'A'); // lowercase to uppercase
+
+		setStatus(status);
+
+		_ingameState.onMouseMoved          = [](const fea::Event::MouseMoveEvent&) { };
+		_ingameState.onMouseButtonPressed  = [](const fea::Event::MouseButtonEvent&) { };
+		_ingameState.onMouseButtonReleased = [](const fea::Event::MouseButtonEvent&) { };
+		_ingameState.onKeyPressed          = [](const fea::Event::KeyEvent&) { };
+		_ingameState.onKeyReleased         = [](const fea::Event::KeyEvent&) { };
+
+		_gameEnded = true;
 	}
 }

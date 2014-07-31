@@ -24,7 +24,6 @@
 namespace mikelepage
 {
 	using cyvmath::PlayersColor;
-	using cyvmath::mikelepage::PieceMap;
 
 	class RenderedMatch;
 	class RenderedPiece;
@@ -47,6 +46,8 @@ namespace mikelepage
 
 			bool setupComplete() final override
 			{ return _setupComplete; }
+
+			void removeFortress() final override;
 
 			RenderedPieceVec& getPieceCache()
 			{ return _pieceCache; }

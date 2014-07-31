@@ -29,12 +29,12 @@ class IngameState;
 
 namespace mikelepage
 {
+	using cyvmath::PieceType;
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::Coordinate;
 	using cyvmath::mikelepage::Match;
 	using cyvmath::mikelepage::Player;
 	using cyvmath::mikelepage::Piece;
-	using cyvmath::mikelepage::PieceMap;
 
 	class LocalPlayer;
 	class RenderedPiece;
@@ -46,8 +46,12 @@ namespace mikelepage
 
 		private:
 			fea::Renderer2D& _renderer;
+			IngameState& _ingameState;
 
 			Board _board;
+
+			bool _gameEnded;
+			std::string _status;
 
 			std::shared_ptr<LocalPlayer> _self;
 			std::shared_ptr<Player> _op;
@@ -65,6 +69,14 @@ namespace mikelepage
 			std::array<fea::Quad, 2> _dragonTiles;
 			std::array<bool, 2> _hoveringDragonTile;
 
+			std::array<fea::Quad, 3> _piecePromotionBackground;
+			std::array<fea::Quad*, 3> _piecePromotionPieces;
+			std::array<PieceType, 3> _piecePromotionTypes;
+			uint_least8_t _renderPiecePromotionBgs;
+			uint_least8_t _piecePromotionHover, _piecePromotionMousePress;
+
+			std::vector<std::shared_ptr<fea::Quad>> _fortressReplacementTileHighlightings;
+
 			std::shared_ptr<Piece> _selectedPiece;
 			std::set<Coordinate> _possibleTargetTiles;
 
@@ -78,6 +90,7 @@ namespace mikelepage
 			Board& getBoard()
 			{ return _board; }
 
+			const std::string& getStatus();
 			void setStatus(const std::string&);
 
 			void tick();
@@ -86,17 +99,32 @@ namespace mikelepage
 			void onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
+			void tickPromotionPieceSelect();
+
+			void onMouseMovedPromotionPieceSelect(const fea::Event::MouseMoveEvent&);
+			void onMouseButtonPressedPromotionPieceSelect(const fea::Event::MouseButtonEvent&);
+			void onMouseButtonReleasedPromotionPieceSelect(const fea::Event::MouseButtonEvent&);
+			void onTileClickedFortressReplaceSelect(Coordinate);
+
 			void placePiece(std::shared_ptr<RenderedPiece>, std::shared_ptr<Player>);
 			void placePiecesSetup();
 
 			void tryLeaveSetup();
 			bool tryMovePiece(std::shared_ptr<Piece>, Coordinate);
+			void addToBoard(PieceType, PlayersColor, Coordinate) final override;
 			void removeFromBoard(std::shared_ptr<Piece>) final override;
+
+			bool addFortressReplacementTile(Coordinate);
+			void removeTerrain(fea::Quad*);
 
 			void updateTurnStatus();
 			void resetSelectedTile();
 			void showPossibleTargetTiles();
 			void clearPossibleTargetTiles();
+
+			void showPromotionPieces(std::set<PieceType>);
+			void chooseFortressReplacementTile();
+			void endGame(PlayersColor winner) final override;
 	};
 }
 

@@ -16,11 +16,13 @@
 
 #include "remote_player.hpp"
 
+#include <cyvmath/mikelepage/fortress.hpp>
 #include <server_message.hpp>
 #ifdef EMSCRIPTEN
 	#include <emscripten.h>
 #endif
 #include "cyvasse_ws_client.hpp"
+#include "rendered_fortress.hpp"
 #include "rendered_match.hpp"
 #include "rendered_piece.hpp"
 
@@ -33,11 +35,21 @@ namespace mikelepage
 	using cyvmath::mikelepage::Coordinate;
 
 	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match)
-		: Player(color, match.getActivePieces())
+		: Player(color, match)
 		, _setupComplete(false)
 		, _match(match) // should probably be considered a workaround
 	{
 		CyvasseWSClient::instance().handleMessage = std::bind(&RemotePlayer::handleMessage, this, _1);
+	}
+
+	void RemotePlayer::removeFortress()
+	{
+		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(_fortress);
+		_match.removeTerrain(fortress->getQuad());
+
+		Player::removeFortress();
+
+		_match.chooseFortressReplacementTile();
 	}
 
 	void RemotePlayer::handleMessage(Json::Value msg)
@@ -97,8 +109,8 @@ namespace mikelepage
 
 				if(oldPos)
 				{
-					auto it = _activePieces.find(*oldPos);
-					if(it == _activePieces.end())
+					auto it = _match.getActivePieces().find(*oldPos);
+					if(it == _match.getActivePieces().end())
 						throw std::runtime_error("move of non-existent piece at " + oldPos->toString() + " requested");
 
 					piece = it->second;
@@ -112,11 +124,10 @@ namespace mikelepage
 						throw std::runtime_error("bringing out the dragon requested"
 						                         "although it has been brought out already");
 
-					for(auto it : _inactivePieces)
-					{
-						if(it->getType() == PieceType::DRAGON)
-							piece = it;
-					}
+					assert(_inactivePieces.count(PieceType::DRAGON) == 1);
+					auto it = _inactivePieces.find(PieceType::DRAGON);
+
+					piece = it->second;
 
 					assert(piece);
 				}
@@ -128,6 +139,74 @@ namespace mikelepage
 					);
 
 				_match.tryMovePiece(piece, *newPos);
+				break;
+			}
+			case Update::PROMOTE_PIECE:
+			{
+				auto from = StrToPieceType(data["from"].asString());
+				auto to   = StrToPieceType(data["to"].asString());
+
+				if(!_fortress)
+					throw std::runtime_error("requested promotion of a piece although the fortress is ruined");
+
+				auto piece = _match.getPieceAt(_fortress->getCoord());
+				if(!piece)
+					throw std::runtime_error("requested promotion of a piece although there is no piece on the fortress");
+
+				if(piece->getType() != from)
+					throw std::runtime_error("requested promotion of " + PieceTypeToStr(from) + ", but there is a "
+						+ PieceTypeToStr(piece->getType()) + " piece in the fortress.");
+
+				switch(from)
+				{
+					case PieceType::RABBLE:
+						if(!(
+							to == PieceType::CROSSBOWS ||
+							to == PieceType::SPEARS ||
+							to == PieceType::LIGHT_HORSE
+						   ))
+							throw std::runtime_error("requested promotion from rabble to " + PieceTypeToStr(to));
+
+						break;
+					case PieceType::CROSSBOWS:
+						if(to != PieceType::TREBUCHET)
+							throw std::runtime_error("requested promotion from crossbows to " + PieceTypeToStr(to));
+
+						break;
+					case PieceType::SPEARS:
+						if(to != PieceType::ELEPHANT)
+							throw std::runtime_error("requested promotion from spears to " + PieceTypeToStr(to));
+
+						break;
+					case PieceType::LIGHT_HORSE:
+						if(to != PieceType::HEAVY_HORSE)
+							throw std::runtime_error("requested promotion from light horse to " + PieceTypeToStr(to));
+
+						break;
+					case PieceType::TREBUCHET:
+					case PieceType::ELEPHANT:
+					case PieceType::HEAVY_HORSE:
+						if(to != PieceType::KING)
+							throw std::runtime_error("requested promotion from " + PieceTypeToStr(from) + " to " + PieceTypeToStr(to));
+						else if(!_kingTaken)
+							throw std::runtime_error("requested promotion to king when there still is a king");
+
+						break;
+					default:
+						throw std::runtime_error("requested promotion of unknown piece");
+				}
+
+				piece->promoteTo(to);
+
+				break;
+			}
+			case Update::ADD_FORTRESS_REPLACEMENT_TILE:
+			{
+				auto coord = Coordinate::createFromStr(data["coordinate"].asString());
+
+				if(!coord || !_match.addFortressReplacementTile(*coord))
+					throw std::runtime_error("fortress replacment tile not valid");
+
 				break;
 			}
 			case Update::RESIGN:

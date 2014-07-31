@@ -18,11 +18,49 @@
 
 #include "cyvasse_ws_client.hpp"
 #include "hexagon_board.hpp"
+#include "rendered_fortress.hpp"
+#include "rendered_match.hpp"
 
 using namespace cyvmath;
 
 namespace mikelepage
 {
+	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match)
+		: Player(color, match)
+		, _setupComplete{false}
+		, _match{match}
+	{ }
+
+	void LocalPlayer::onTurnBegin()
+	{
+		if(_fortress)
+		{
+			auto piece = _match.getPieceAt(_fortress->getCoord());
+			if(piece && piece->getColor() == _color && piece->getType() != PieceType::KING)
+			{
+				if(piece->getBaseTier() < 4 && !piece->tryAutoPromote())
+				{
+					// multiple promote options available
+
+					std::set<PieceType> availablePieceTypes;
+					for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
+						if(_inactivePieces.count(type) > 0)
+							availablePieceTypes.insert(type);
+
+					_match.showPromotionPieces(availablePieceTypes);
+				}
+			}
+		}
+	}
+
+	void LocalPlayer::removeFortress()
+	{
+		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(_fortress);
+		_match.removeTerrain(fortress->getQuad());
+
+		Player::removeFortress();
+	}
+
 	void LocalPlayer::sendGameUpdate(Update update, Json::Value data)
 	{
 		Json::Value msg;
@@ -39,7 +77,7 @@ namespace mikelepage
 		data["pieces"] = Json::Value(Json::arrayValue);
 
 		Json::Value& pieces = data["pieces"];
-		for(auto it : _activePieces)
+		for(auto it : _match.getActivePieces())
 		{
 			assert(it.second->getColor() == _color);
 
@@ -53,12 +91,11 @@ namespace mikelepage
 		// after setup, if there is an inactive piece, it has to be
 		// the dragon; otherwise _inactivePieces has to be empty
 		assert(_inactivePieces.size() <= 1);
-		assert(_inactivePieces.front()->getType() == PieceType::DRAGON);
 
 		if(_inactivePieces.size() > 0)
 		{
 			Json::Value piece;
-			piece["type"] = PieceTypeToStr(_inactivePieces.front()->getType());
+			piece["type"] = PieceTypeToStr(PieceType::DRAGON);
 			piece["position"] = Json::Value(); // null
 
 			pieces.append(piece);
@@ -77,5 +114,25 @@ namespace mikelepage
 		data["new position"] = piece->getCoord()->toString();
 
 		sendGameUpdate(Update::MOVE_PIECE, data);
+	}
+
+	void LocalPlayer::sendPromotePiece(PieceType from, PieceType to)
+	{
+		assert(from != PieceType::UNDEFINED);
+		assert(to != PieceType::UNDEFINED);
+
+		Json::Value data;
+		data["from"] = PieceTypeToStr(from);
+		data["to"]   = PieceTypeToStr(to);
+
+		sendGameUpdate(Update::PROMOTE_PIECE, data);
+	}
+
+	void LocalPlayer::sendAddFortressReplacementTile(Coordinate coord)
+	{
+		Json::Value data;
+		data["coordinate"] = coord.toString();
+
+		sendGameUpdate(Update::ADD_FORTRESS_REPLACEMENT_TILE, data);
 	}
 }

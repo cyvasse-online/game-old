@@ -21,15 +21,16 @@
 
 #include <memory>
 #include <json/value.h>
+#include <cyvmath/mikelepage/fortress.hpp>
 #include <server_message.hpp>
 
 namespace mikelepage
 {
+	using cyvmath::PieceType;
 	using cyvmath::PlayersColor;
 	using cyvmath::mikelepage::Coordinate;
+	using cyvmath::mikelepage::CoordPieceMap;
 	using cyvmath::mikelepage::Piece;
-	using cyvmath::mikelepage::PieceMap;
-	using cyvmath::mikelepage::PieceVec;
 	using cyvmath::mikelepage::Player;
 
 	class RenderedMatch;
@@ -40,13 +41,12 @@ namespace mikelepage
 		private:
 			bool _setupComplete;
 
+			RenderedMatch& _match;
+
 			void sendGameUpdate(Update, Json::Value data);
 
 		public:
-			LocalPlayer(PlayersColor color, PieceMap& activePieces)
-				: Player(color, activePieces)
-				, _setupComplete(false)
-			{ }
+			LocalPlayer(PlayersColor, RenderedMatch&);
 
 			bool setupComplete() final override
 			{ return _setupComplete; }
@@ -54,8 +54,14 @@ namespace mikelepage
 			void checkSetupComplete()
 			{ _setupComplete = Player::setupComplete(); }
 
+			void onTurnBegin();
+
+			void removeFortress() final override;
+
 			void sendLeaveSetup();
 			void sendMovePiece(std::shared_ptr<Piece>, std::unique_ptr<Coordinate> oldPos);
+			void sendPromotePiece(PieceType from, PieceType to) override;
+			void sendAddFortressReplacementTile(Coordinate);
 	};
 }
 
