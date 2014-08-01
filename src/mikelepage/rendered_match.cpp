@@ -309,6 +309,8 @@ namespace mikelepage
 			_ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, &_board, _1);
 			_ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &_board, _1);
 		}
+
+		_piecePromotionMousePress = 0;
 	}
 
 	void RenderedMatch::onTileClickedFortressReplaceSelect(Coordinate coord)

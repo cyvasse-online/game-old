@@ -83,6 +83,7 @@ cyvasse_js_CXXFLAGS = \
 	$(game_cppflags) \
 	$(game_cxxflags) \
 	-I$(EMSCRIPTEN_PREFIX)/include \
+	-s DISABLE_EXCEPTION_CATCHING=0 \
 	-Wno-warn-absolute-paths
 
 cyvasse_js_LDFLAGS = \
