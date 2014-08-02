@@ -300,7 +300,11 @@ namespace mikelepage
 			auto piece = getPieceAt(_self->getFortress()->getCoord());
 			assert(piece);
 
-			piece->promoteTo(_piecePromotionTypes[_piecePromotionMousePress-1]);
+			PieceType oldType = piece->getType();
+			PieceType newType = _piecePromotionTypes[_piecePromotionMousePress-1];
+
+			piece->promoteTo(newType);
+			_self->sendPromotePiece(oldType, newType);
 
 			_renderPiecePromotionBgs = 0;
 			_piecePromotionPieces.fill(nullptr);

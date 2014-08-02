@@ -36,18 +36,59 @@ namespace mikelepage
 		if(_fortress)
 		{
 			auto piece = _match.getPieceAt(_fortress->getCoord());
+
 			if(piece && piece->getColor() == _color && piece->getType() != PieceType::KING)
 			{
-				if(piece->getBaseTier() < 4 && !piece->tryAutoPromote())
-				{
-					// multiple promote options available
+				auto baseTier = piece->getBaseTier();
+				PieceType pieceType = piece->getType();
+				PieceType promoteToType = PieceType::UNDEFINED;
 
+				if(baseTier == 3)
+				{
+					if(_kingTaken)
+					{
+						promoteToType = PieceType::KING;
+						_kingTaken = false;
+					}
+				}
+				else if(baseTier == 2)
+				{
+					static const std::map<PieceType, PieceType> nextTierPieces {
+						{PieceType::CROSSBOWS, PieceType::TREBUCHET},
+						{PieceType::SPEARS, PieceType::ELEPHANT},
+						{PieceType::LIGHT_HORSE, PieceType::HEAVY_HORSE}
+					};
+
+					if(_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
+						promoteToType = nextTierPieces.at(pieceType);
+				}
+				else if(pieceType == PieceType::RABBLE) // can only promote rabble, not the king
+				{
 					std::set<PieceType> availablePieceTypes;
+
 					for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
+					{
 						if(_inactivePieces.count(type) > 0)
 							availablePieceTypes.insert(type);
+					}
 
-					_match.showPromotionPieces(availablePieceTypes);
+					switch(availablePieceTypes.size())
+					{
+						case 0:
+							break;
+						case 1:
+							promoteToType = *availablePieceTypes.begin();
+							break;
+						default:
+							_match.showPromotionPieces(availablePieceTypes);
+							break;
+					}
+				}
+
+				if(promoteToType != PieceType::UNDEFINED)
+				{
+					piece->promoteTo(promoteToType);
+					sendPromotePiece(pieceType, promoteToType);
 				}
 			}
 		}

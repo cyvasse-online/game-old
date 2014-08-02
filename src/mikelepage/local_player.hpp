@@ -60,7 +60,7 @@ namespace mikelepage
 
 			void sendLeaveSetup();
 			void sendMovePiece(std::shared_ptr<Piece>, std::unique_ptr<Coordinate> oldPos);
-			void sendPromotePiece(PieceType from, PieceType to) override;
+			void sendPromotePiece(PieceType from, PieceType to);
 			void sendAddFortressReplacementTile(Coordinate);
 	};
 }
