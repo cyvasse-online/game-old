@@ -591,8 +591,7 @@ namespace mikelepage
 
 			_terrainToRender.push_back(_fortressReplacementTileHighlightings.back().get());
 
-			_bearingTable.clear();
-			_bearingTable.init();
+			_bearingTable.update();
 
 			return true;
 		}
