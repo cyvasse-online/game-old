@@ -32,7 +32,7 @@ namespace mikelepage
 		, m_quad(m_board.getTileSize())
 	{
 		static std::map<PieceType, std::string> fileNames = {
-				{PieceType::MOUNTAIN,    "mountain.png"},
+				{PieceType::MOUNTAINS,   "mountains.png"},
 				{PieceType::RABBLE,      "rabble.png"},
 				{PieceType::CROSSBOWS,   "crossbows.png"},
 				{PieceType::SPEARS,      "spears.png"},

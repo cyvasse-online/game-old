@@ -89,7 +89,7 @@ cyvasse_js_LDFLAGS = \
 	-L$(EMSCRIPTEN_PREFIX)/lib \
 	-s EXPORTED_FUNCTIONS="['_main', '_game_handlemessage']" \
 	-s FULL_ES2=1 \
-	--preload-file $(top_srcdir)/data@/
+	--embed-file $(top_srcdir)/data@/
 
 cyvasse_js_LDADD = $(game_ldadd)
 

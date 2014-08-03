@@ -152,7 +152,7 @@ namespace mikelepage
 		auto it = m_activePieces.find(coord);
 
 		if(it != m_activePieces.end() &&
-		   it->second->getType() != PieceType::MOUNTAIN)
+		   it->second->getType() != PieceType::MOUNTAINS)
 		{
 			// a piece of the player was clicked
 
@@ -216,7 +216,7 @@ namespace mikelepage
 					}
 				}
 			}
-			else if(piece->getType() != PieceType::MOUNTAIN)
+			else if(piece->getType() != PieceType::MOUNTAINS)
 			{
 				// there is a piece of the player on the clicked tile
 				auto selectedCoord = *m_selectedPiece->getCoord();
@@ -443,12 +443,12 @@ namespace mikelepage
 		static const std::array<std::vector<Position>, 2> defaultPiecePositions {{
 			{
 				// white
-				{PieceType::MOUNTAIN,    coord(0, 10)},
-				{PieceType::MOUNTAIN,    coord(1, 10)},
-				{PieceType::MOUNTAIN,    coord(2, 10)},
-				{PieceType::MOUNTAIN,    coord(3, 10)},
-				{PieceType::MOUNTAIN,    coord(4, 10)},
-				{PieceType::MOUNTAIN,    coord(5, 10)},
+				{PieceType::MOUNTAINS,    coord(0, 10)},
+				{PieceType::MOUNTAINS,    coord(1, 10)},
+				{PieceType::MOUNTAINS,    coord(2, 10)},
+				{PieceType::MOUNTAINS,    coord(3, 10)},
+				{PieceType::MOUNTAINS,    coord(4, 10)},
+				{PieceType::MOUNTAINS,    coord(5, 10)},
 
 				{PieceType::TREBUCHET,   coord(1, 8)},
 				{PieceType::TREBUCHET,   coord(2, 8)},
@@ -477,12 +477,12 @@ namespace mikelepage
 			},
 			{
 				// black
-				{PieceType::MOUNTAIN,    coord(10, 0)},
-				{PieceType::MOUNTAIN,    coord(9,  0)},
-				{PieceType::MOUNTAIN,    coord(8,  0)},
-				{PieceType::MOUNTAIN,    coord(7,  0)},
-				{PieceType::MOUNTAIN,    coord(6,  0)},
-				{PieceType::MOUNTAIN,    coord(5,  0)},
+				{PieceType::MOUNTAINS,    coord(10, 0)},
+				{PieceType::MOUNTAINS,    coord(9,  0)},
+				{PieceType::MOUNTAINS,    coord(8,  0)},
+				{PieceType::MOUNTAINS,    coord(7,  0)},
+				{PieceType::MOUNTAINS,    coord(6,  0)},
+				{PieceType::MOUNTAINS,    coord(5,  0)},
 
 				{PieceType::TREBUCHET,   coord(9, 2)},
 				{PieceType::TREBUCHET,   coord(8, 2)},
