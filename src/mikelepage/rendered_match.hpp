@@ -77,7 +77,7 @@ namespace mikelepage
 
 			std::vector<std::shared_ptr<fea::Quad>> m_fortressReplacementTileHighlightings;
 
-			std::shared_ptr<Piece> m_selectedPiece;
+			std::shared_ptr<Piece> m_hoveredPiece, m_selectedPiece;
 			std::set<Coordinate> m_possibleTargetTiles;
 
 		public:
@@ -96,6 +96,7 @@ namespace mikelepage
 
 			void tick();
 
+			void onTileMouseOver(Coordinate);
 			void onTileClicked(Coordinate);
 			void onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
@@ -119,7 +120,7 @@ namespace mikelepage
 			void removeTerrain(fea::Quad*);
 
 			void updateTurnStatus();
-			void resetSelectedTile();
+			void resetSelectedPiece();
 			void showPossibleTargetTiles();
 			void clearPossibleTargetTiles();
 

@@ -277,6 +277,8 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 
 			m_hoveredTile = std::make_pair(std::move(coord), quad);
 		}
+
+        onTileMouseOver(*coord);
 	}
 	else
 	{

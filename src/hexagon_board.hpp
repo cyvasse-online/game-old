@@ -77,6 +77,7 @@ class HexagonBoard
 		static void highlight(fea::Quad& tile, const fea::Color& base, const std::string& coloringStr)
 		{ highlight(tile, base, highlightColors.at(coloringStr)); }
 
+		std::function<void(Coordinate)> onTileMouseOver;
 		std::function<void(Coordinate)> onTileClicked;
 		std::function<void(const fea::Event::MouseMoveEvent&)> onMouseMoveOutside;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onClickedOutside;
