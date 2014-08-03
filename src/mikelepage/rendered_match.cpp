@@ -216,7 +216,7 @@ namespace mikelepage
 					}
 				}
 			}
-			else if(piece->getType() != PieceType::MOUNTAINS)
+			else if(m_setup || piece->getType() != PieceType::MOUNTAINS)
 			{
 				// there is a piece of the player on the clicked tile
 				auto selectedCoord = *m_selectedPiece->getCoord();
