@@ -42,23 +42,23 @@ class HexagonBoard
 		static const coloringMap highlightColors;
 
 	private:
-		fea::Renderer2D& _renderer;
+		fea::Renderer2D& m_renderer;
 
-		bool _upsideDown;
+		bool m_upsideDown;
 
 		// Changing one of these uvec2 variables
 		// has very weird effects on the vertical
 		// positioning of the board...
 		// altough it seems to simply work like this.
-		glm::uvec2 _size;
-		glm::uvec2 _position;
-		glm::vec2 _tileSize;
+		glm::uvec2 m_size;
+		glm::uvec2 m_position;
+		glm::vec2 m_tileSize;
 
-		TileMap _tileMap;
-		TileVec _tileVec;
+		TileMap m_tileMap;
+		TileVec m_tileVec;
 
-		Tile _hoveredTile;
-		Tile _mouseBPressTile;
+		Tile m_hoveredTile;
+		Tile m_mouseBPressTile;
 
 		static void highlight(fea::Quad& tile, const fea::Color& base,
 		                      const std::pair<fea::Color, fea::Color>& coloring)

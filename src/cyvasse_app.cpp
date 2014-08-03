@@ -39,12 +39,12 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 				{ return std::unique_ptr<Match>(new ::mikelepage::RenderedMatch(st, r, c)); }
 		}};
 
-	_window.create(fea::VideoMode(800, 600, 32), "Cyvasse");
-	_window.setFramerateLimit(60);
+	m_window.create(fea::VideoMode(800, 600, 32), "Cyvasse");
+	m_window.setFramerateLimit(60);
 
-	_renderer.setup();
+	m_renderer.setup();
 
-	auto ingameState = make_unique<IngameState>(_input, _renderer);
+	auto ingameState = make_unique<IngameState>(m_input, m_renderer);
 
 	#ifdef EMSCRIPTEN
 	EM_ASM(
@@ -61,38 +61,38 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 	auto color = PlayersColor::WHITE;
 	#endif
 
-	_ruleSet = createMatch[ruleSet](*ingameState, _renderer, color);
+	m_match = createMatch[ruleSet](*ingameState, m_renderer, color);
 
-	_stateMachine.addGameState("ingame", std::move(ingameState));
+	m_stateMachine.addGameState("ingame", std::move(ingameState));
 //#ifdef EMSCRIPTEN
-	_stateMachine.setCurrentState("ingame");
+	m_stateMachine.setCurrentState("ingame");
 //#else
-	//_stateMachine.addGameState("startpage", /* ... */);
-	//_stateMachine.setCurrentState("startpage");
+	//m_stateMachine.addGameState("startpage", /* ... */);
+	//m_stateMachine.setCurrentState("startpage");
 //#endif
 }
 
 void CyvasseApp::loop()
 {
 	// let the state machine run the current game state
-	_stateMachine.run();
+	m_stateMachine.run();
 
 	// display whatever the current game state rendered
-	_window.swapBuffers();
+	m_window.swapBuffers();
 
 	// exit the program when the state machine is finished
-	if(_stateMachine.isFinished())
+	if(m_stateMachine.isFinished())
 		quit();
 }
 
 void CyvasseApp::destroy()
 {
-	_window.close();
+	m_window.close();
 }
 
 CyvasseApp::CyvasseApp()
-	: _window(new fea::SDLWindowBackend())
-	, _input(new fea::SDLInputBackend())
-	, _renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
+	: m_window(new fea::SDLWindowBackend())
+	, m_input(new fea::SDLInputBackend())
+	, m_renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
 }

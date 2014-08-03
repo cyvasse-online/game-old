@@ -36,20 +36,20 @@ namespace mikelepage
 
 	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match)
 		: Player(color, match)
-		, _setupComplete(false)
-		, _match(match) // should probably be considered a workaround
+		, m_setupComplete(false)
+		, m_match(match) // should probably be considered a workaround
 	{
 		CyvasseWSClient::instance().handleMessage = std::bind(&RemotePlayer::handleMessage, this, _1);
 	}
 
 	void RemotePlayer::removeFortress()
 	{
-		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(_fortress);
-		_match.removeTerrain(fortress->getQuad());
+		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(m_fortress);
+		m_match.removeTerrain(fortress->getQuad());
 
 		Player::removeFortress();
 
-		_match.chooseFortressReplacementTile();
+		m_match.chooseFortressReplacementTile();
 	}
 
 	void RemotePlayer::handleMessage(Json::Value msg)
@@ -81,13 +81,13 @@ namespace mikelepage
 						throw std::runtime_error("a " + piece["type"].asString() +
 							" piece has no position on the board, this is only allowed for the dragon");
 
-					auto renderedPiece = std::make_shared<RenderedPiece>(type, make_unique(coord), _color, _match);
+					auto renderedPiece = std::make_shared<RenderedPiece>(type, make_unique(coord), m_color, m_match);
 
-					_pieceCache.push_back(renderedPiece);
+					m_pieceCache.push_back(renderedPiece);
 				}
 
-				_setupComplete = true;
-				_match.tryLeaveSetup();
+				m_setupComplete = true;
+				m_match.tryLeaveSetup();
 				break;
 			case Update::MOVE_PIECE:
 			{
@@ -109,8 +109,8 @@ namespace mikelepage
 
 				if(oldPos)
 				{
-					auto it = _match.getActivePieces().find(*oldPos);
-					if(it == _match.getActivePieces().end())
+					auto it = m_match.getActivePieces().find(*oldPos);
+					if(it == m_match.getActivePieces().end())
 						throw std::runtime_error("move of non-existent piece at " + oldPos->toString() + " requested");
 
 					piece = it->second;
@@ -120,12 +120,12 @@ namespace mikelepage
 					if(pieceType != PieceType::DRAGON)
 						throw std::runtime_error("move of piece without position that is not a dragon requested");
 
-					if(!_dragonAliveInactive)
+					if(!m_dragonAliveInactive)
 						throw std::runtime_error("bringing out the dragon requested"
 						                         "although it has been brought out already");
 
-					assert(_inactivePieces.count(PieceType::DRAGON) == 1);
-					auto it = _inactivePieces.find(PieceType::DRAGON);
+					assert(m_inactivePieces.count(PieceType::DRAGON) == 1);
+					auto it = m_inactivePieces.find(PieceType::DRAGON);
 
 					piece = it->second;
 
@@ -138,7 +138,7 @@ namespace mikelepage
 						PieceTypeToStr(piece->getType()) + " at " + oldPos->toString()
 					);
 
-				_match.tryMovePiece(piece, *newPos);
+				m_match.tryMovePiece(piece, *newPos);
 				break;
 			}
 			case Update::PROMOTE_PIECE:
@@ -146,10 +146,10 @@ namespace mikelepage
 				auto from = StrToPieceType(data["from"].asString());
 				auto to   = StrToPieceType(data["to"].asString());
 
-				if(!_fortress)
+				if(!m_fortress)
 					throw std::runtime_error("requested promotion of a piece although the fortress is ruined");
 
-				auto piece = _match.getPieceAt(_fortress->getCoord());
+				auto piece = m_match.getPieceAt(m_fortress->getCoord());
 				if(!piece)
 					throw std::runtime_error("requested promotion of a piece although there is no piece on the fortress");
 
@@ -188,7 +188,7 @@ namespace mikelepage
 					case PieceType::HEAVY_HORSE:
 						if(to != PieceType::KING)
 							throw std::runtime_error("requested promotion from " + PieceTypeToStr(from) + " to " + PieceTypeToStr(to));
-						else if(!_kingTaken)
+						else if(!m_kingTaken)
 							throw std::runtime_error("requested promotion to king when there still is a king");
 
 						break;
@@ -204,7 +204,7 @@ namespace mikelepage
 			{
 				auto coord = Coordinate::createFromStr(data["coordinate"].asString());
 
-				if(!coord || !_match.addFortressReplacementTile(*coord))
+				if(!coord || !m_match.addFortressReplacementTile(*coord))
 					throw std::runtime_error("fortress replacment tile not valid");
 
 				break;

@@ -34,24 +34,24 @@ namespace mikelepage
 	class RenderedPiece : public Piece
 	{
 		private:
-			HexagonBoard<6>& _board;
+			HexagonBoard<6>& m_board;
 
-			fea::Quad _quad;
-			fea::Texture _texture;
+			fea::Quad m_quad;
+			fea::Texture m_texture;
 
 		public:
 			RenderedPiece(PieceType, std::unique_ptr<Coordinate>, PlayersColor, RenderedMatch&);
 
 			fea::Quad* getQuad()
-			{ return &_quad; }
+			{ return &m_quad; }
 
 			const glm::vec2& getPosition() const
-			{ return _quad.getPosition(); }
+			{ return m_quad.getPosition(); }
 
 			bool moveTo(Coordinate, bool setup) final override;
 
 			void setPosition(const glm::vec2& pos)
-			{ _quad.setPosition(pos); }
+			{ m_quad.setPosition(pos); }
 	};
 
 	typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;

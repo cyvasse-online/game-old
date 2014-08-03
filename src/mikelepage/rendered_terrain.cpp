@@ -23,9 +23,9 @@ namespace mikelepage
 {
 	RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
 		: Terrain(type, coord)
-		, _board(board)
-		, _terrainMap(terrainMap)
-		, _quad(board.getTileSize())
+		, m_board(board)
+		, m_terrainMap(terrainMap)
+		, m_quad(board.getTileSize())
 	{
 		static const std::map<TerrainType, fea::Color> colors = {
 			{TerrainType::HILL, {255, 143, 0, 127}},
@@ -35,21 +35,21 @@ namespace mikelepage
 
 		assert(type != TerrainType::UNDEFINED);
 
-		_quad.setColor(colors.at(type));
-		_quad.setPosition(board.getTilePosition(coord));
+		m_quad.setColor(colors.at(type));
+		m_quad.setPosition(board.getTilePosition(coord));
 	}
 
 	void RenderedTerrain::setCoord(Coordinate coord)
 	{
-		auto it = _terrainMap.find(_coord);
-		assert(it != _terrainMap.end());
+		auto it = m_terrainMap.find(m_coord);
+		assert(it != m_terrainMap.end());
 
 		auto selfSharedPtr = it->second;
 
-		_coord = coord;
-		_quad.setPosition(_board.getTilePosition(coord));
+		m_coord = coord;
+		m_quad.setPosition(m_board.getTilePosition(coord));
 
-		_terrainMap.erase(it);
-		_terrainMap.emplace(coord, selfSharedPtr);
+		m_terrainMap.erase(it);
+		m_terrainMap.emplace(coord, selfSharedPtr);
 	}
 }

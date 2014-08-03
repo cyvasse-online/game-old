@@ -28,10 +28,10 @@
 class IngameState : public fea::GameState
 {
 	private:
-		fea::InputHandler& _input;
-		fea::Renderer2D& _renderer;
+		fea::InputHandler& m_input;
+		fea::Renderer2D& m_renderer;
 
-		fea::Quad _background;
+		fea::Quad m_background;
 
 	public:
 		IngameState(fea::InputHandler&, fea::Renderer2D&);

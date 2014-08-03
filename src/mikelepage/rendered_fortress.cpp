@@ -23,8 +23,8 @@ namespace mikelepage
 {
 	RenderedFortress::RenderedFortress(PlayersColor color, Coordinate coord, HexagonBoard<6>& board)
 		: Fortress(color, coord)
-		, _board(board)
-		, _quad(board.getTileSize())
+		, m_board(board)
+		, m_quad(board.getTileSize())
 	{
 		static const std::array<fea::Color, 2> colors {{
 			{255, 255, 255, 127},
@@ -33,13 +33,13 @@ namespace mikelepage
 
 		assert(color != PlayersColor::UNDEFINED);
 
-		_quad.setColor(colors.at(color));
-		_quad.setPosition(_board.getTilePosition(coord));
+		m_quad.setColor(colors.at(color));
+		m_quad.setPosition(m_board.getTilePosition(coord));
 	}
 
 	void RenderedFortress::setCoord(Coordinate coord)
 	{
-		_coord = coord;
-		_quad.setPosition(_board.getTilePosition(coord));
+		m_coord = coord;
+		m_quad.setPosition(m_board.getTilePosition(coord));
 	}
 }

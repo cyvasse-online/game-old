@@ -26,7 +26,7 @@
 	#include "websocket_impl_native.inl"
 #endif
 
-CyvasseWSClient* CyvasseWSClient::_instance = new CyvasseWSClient();
+CyvasseWSClient* CyvasseWSClient::s_instance = new CyvasseWSClient();
 
 void CyvasseWSClient::handleMessageWrap(const std::string& msg)
 {
@@ -56,8 +56,8 @@ CyvasseWSClient::~CyvasseWSClient()
 
 CyvasseWSClient& CyvasseWSClient::instance()
 {
-	assert(_instance);
-	return *_instance;
+	assert(s_instance);
+	return *s_instance;
 }
 
 void CyvasseWSClient::send(const std::string& str)

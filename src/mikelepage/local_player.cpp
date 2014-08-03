@@ -27,17 +27,17 @@ namespace mikelepage
 {
 	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match)
 		: Player(color, match)
-		, _setupComplete{false}
-		, _match{match}
+		, m_setupComplete{false}
+		, m_match{match}
 	{ }
 
 	void LocalPlayer::onTurnBegin()
 	{
-		if(_fortress)
+		if(m_fortress)
 		{
-			auto piece = _match.getPieceAt(_fortress->getCoord());
+			auto piece = m_match.getPieceAt(m_fortress->getCoord());
 
-			if(piece && piece->getColor() == _color && piece->getType() != PieceType::KING)
+			if(piece && piece->getColor() == m_color && piece->getType() != PieceType::KING)
 			{
 				auto baseTier = piece->getBaseTier();
 				PieceType pieceType = piece->getType();
@@ -45,10 +45,10 @@ namespace mikelepage
 
 				if(baseTier == 3)
 				{
-					if(_kingTaken)
+					if(m_kingTaken)
 					{
 						promoteToType = PieceType::KING;
-						_kingTaken = false;
+						m_kingTaken = false;
 					}
 				}
 				else if(baseTier == 2)
@@ -59,7 +59,7 @@ namespace mikelepage
 						{PieceType::LIGHT_HORSE, PieceType::HEAVY_HORSE}
 					};
 
-					if(_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
+					if(m_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
 						promoteToType = nextTierPieces.at(pieceType);
 				}
 				else if(pieceType == PieceType::RABBLE) // can only promote rabble, not the king
@@ -68,7 +68,7 @@ namespace mikelepage
 
 					for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
 					{
-						if(_inactivePieces.count(type) > 0)
+						if(m_inactivePieces.count(type) > 0)
 							availablePieceTypes.insert(type);
 					}
 
@@ -80,7 +80,7 @@ namespace mikelepage
 							promoteToType = *availablePieceTypes.begin();
 							break;
 						default:
-							_match.showPromotionPieces(availablePieceTypes);
+							m_match.showPromotionPieces(availablePieceTypes);
 							break;
 					}
 				}
@@ -96,8 +96,8 @@ namespace mikelepage
 
 	void LocalPlayer::removeFortress()
 	{
-		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(_fortress);
-		_match.removeTerrain(fortress->getQuad());
+		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(m_fortress);
+		m_match.removeTerrain(fortress->getQuad());
 
 		Player::removeFortress();
 	}
@@ -118,9 +118,9 @@ namespace mikelepage
 		data["pieces"] = Json::Value(Json::arrayValue);
 
 		Json::Value& pieces = data["pieces"];
-		for(auto it : _match.getActivePieces())
+		for(auto it : m_match.getActivePieces())
 		{
-			assert(it.second->getColor() == _color);
+			assert(it.second->getColor() == m_color);
 
 			Json::Value piece;
 			piece["type"] = PieceTypeToStr(it.second->getType());
@@ -130,10 +130,10 @@ namespace mikelepage
 		}
 
 		// after setup, if there is an inactive piece, it has to be
-		// the dragon; otherwise _inactivePieces has to be empty
-		assert(_inactivePieces.size() <= 1);
+		// the dragon; otherwise m_inactivePieces has to be empty
+		assert(m_inactivePieces.size() <= 1);
 
-		if(_inactivePieces.size() > 0)
+		if(m_inactivePieces.size() > 0)
 		{
 			Json::Value piece;
 			piece["type"] = PieceTypeToStr(PieceType::DRAGON);

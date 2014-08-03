@@ -29,12 +29,12 @@
 class CyvasseApp : public fea::Application
 {
 	private:
-		fea::Window _window;
-		fea::InputHandler _input;
-		fea::Renderer2D _renderer;
-		fea::GameStateMachine _stateMachine;
+		fea::Window m_window;
+		fea::InputHandler m_input;
+		fea::Renderer2D m_renderer;
+		fea::GameStateMachine m_stateMachine;
 
-		std::unique_ptr<cyvmath::Match> _ruleSet;
+		std::unique_ptr<cyvmath::Match> m_match;
 
 	protected:
 		void setup(const std::vector<std::string>& args) override;

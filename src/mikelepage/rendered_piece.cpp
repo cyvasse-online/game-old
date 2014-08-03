@@ -28,8 +28,8 @@ namespace mikelepage
 	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
 	                             PlayersColor color, RenderedMatch& match)
 		: Piece(color, type, std::move(coord), match)
-		, _board(match.getBoard())
-		, _quad(_board.getTileSize())
+		, m_board(match.getBoard())
+		, m_quad(m_board.getTileSize())
 	{
 		static std::map<PieceType, std::string> fileNames = {
 				{PieceType::MOUNTAIN,    "mountain.png"},
@@ -45,11 +45,11 @@ namespace mikelepage
 			};
 
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
-		_texture = makeTexture(texturePath).first;
-		_quad.setTexture(_texture);
+		m_texture = makeTexture(texturePath).first;
+		m_quad.setTexture(m_texture);
 
-		if(_coord)
-			_quad.setPosition(_board.getTilePosition(*_coord));
+		if(m_coord)
+			m_quad.setPosition(m_board.getTilePosition(*m_coord));
 	}
 
 	bool RenderedPiece::moveTo(Coordinate coord, bool setup)
@@ -57,7 +57,7 @@ namespace mikelepage
 		if(!Piece::moveTo(coord, setup))
 			return false;
 
-		_quad.setPosition(_board.getTilePosition(coord));
+		m_quad.setPosition(m_board.getTilePosition(coord));
 
 		return true;
 	}

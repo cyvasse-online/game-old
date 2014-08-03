@@ -39,9 +39,9 @@ namespace mikelepage
 	{
 		friend RenderedMatch;
 		private:
-			bool _setupComplete;
+			bool m_setupComplete;
 
-			RenderedMatch& _match;
+			RenderedMatch& m_match;
 
 			void sendGameUpdate(Update, Json::Value data);
 
@@ -49,10 +49,10 @@ namespace mikelepage
 			LocalPlayer(PlayersColor, RenderedMatch&);
 
 			bool setupComplete() final override
-			{ return _setupComplete; }
+			{ return m_setupComplete; }
 
 			void checkSetupComplete()
-			{ _setupComplete = Player::setupComplete(); }
+			{ m_setupComplete = Player::setupComplete(); }
 
 			void onTurnBegin();
 

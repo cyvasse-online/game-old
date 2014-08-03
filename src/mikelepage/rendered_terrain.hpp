@@ -32,16 +32,16 @@ namespace mikelepage
 	class RenderedTerrain : public Terrain
 	{
 		private:
-			HexagonBoard<6>& _board;
-			TerrainMap& _terrainMap;
+			HexagonBoard<6>& m_board;
+			TerrainMap& m_terrainMap;
 
-			fea::Quad _quad;
+			fea::Quad m_quad;
 
 		public:
 			RenderedTerrain(TerrainType, Coordinate, HexagonBoard<6>&, TerrainMap&);
 
 			fea::Quad* getQuad()
-			{ return &_quad; }
+			{ return &m_quad; }
 
 			void setCoord(Coordinate) final override;
 	};

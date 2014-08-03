@@ -31,15 +31,15 @@ namespace mikelepage
 	class RenderedFortress : public Fortress
 	{
 		private:
-			HexagonBoard<6>& _board;
+			HexagonBoard<6>& m_board;
 
-			fea::Quad _quad;
+			fea::Quad m_quad;
 
 		public:
 			RenderedFortress(PlayersColor, Coordinate, HexagonBoard<6>&);
 
 			fea::Quad* getQuad()
-			{ return &_quad; }
+			{ return &m_quad; }
 
 			void setCoord(Coordinate) final override;
 	};

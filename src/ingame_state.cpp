@@ -24,21 +24,21 @@
 using namespace cyvmath;
 
 IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& renderer)
-	: _input(inputHandler)
-	, _renderer(renderer)
-	, _background(renderer.getViewport().getSize())
+	: m_input(inputHandler)
+	, m_renderer(renderer)
+	, m_background(renderer.getViewport().getSize())
 {
 }
 
 void IngameState::setup()
 {
-	_background.setColor({255, 255, 255});
+	m_background.setColor({255, 255, 255});
 }
 
 std::string IngameState::run()
 {
 	fea::Event event;
-	while(_input.pollEvent(event))
+	while(m_input.pollEvent(event))
 	{
 		// calling all event handler functors unconditionally
 		// means they all have to have a callable set because
@@ -69,14 +69,14 @@ std::string IngameState::run()
 
 	// after events were processed
 	// * clear the rendered content from the last frame
-	_renderer.clear();
+	m_renderer.clear();
 
 	// * queue something to render
-	_renderer.queue(_background);
+	m_renderer.queue(m_background);
 	tick();
 
 	// * render everything
-	_renderer.render();
+	m_renderer.render();
 
 	// keep running the same state
 	return std::string();

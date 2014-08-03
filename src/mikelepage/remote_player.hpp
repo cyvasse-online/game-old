@@ -33,27 +33,27 @@ namespace mikelepage
 	class RemotePlayer : public cyvmath::mikelepage::Player
 	{
 		private:
-			bool _setupComplete;
+			bool m_setupComplete;
 
 			// contains all pieces before
 			// leaving setup, is empty afterwards
-			RenderedPieceVec _pieceCache;
+			RenderedPieceVec m_pieceCache;
 
-			RenderedMatch& _match;
+			RenderedMatch& m_match;
 
 		public:
 			RemotePlayer(PlayersColor, RenderedMatch&);
 
 			bool setupComplete() final override
-			{ return _setupComplete; }
+			{ return m_setupComplete; }
 
 			void removeFortress() final override;
 
 			RenderedPieceVec& getPieceCache()
-			{ return _pieceCache; }
+			{ return m_pieceCache; }
 
 			void clearPieceCache()
-			{ _pieceCache.clear(); }
+			{ m_pieceCache.clear(); }
 
 			void handleMessage(Json::Value);
 	};

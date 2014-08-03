@@ -45,40 +45,40 @@ namespace mikelepage
 			typedef HexagonBoard<6> Board;
 
 		private:
-			fea::Renderer2D& _renderer;
-			IngameState& _ingameState;
+			fea::Renderer2D& m_renderer;
+			IngameState& m_ingameState;
 
-			Board _board;
+			Board m_board;
 
-			bool _gameEnded;
-			std::string _status;
+			bool m_gameEnded;
+			std::string m_status;
 
-			std::shared_ptr<LocalPlayer> _self;
-			std::shared_ptr<Player> _op;
+			std::shared_ptr<LocalPlayer> m_self;
+			std::shared_ptr<Player> m_op;
 
-			const PlayersColor _ownColor, _opColor;
+			const PlayersColor m_ownColor, m_opColor;
 
-			std::vector<fea::Quad*> _piecesToRender;
-			std::vector<fea::Quad*> _terrainToRender;
+			std::vector<fea::Quad*> m_piecesToRender;
+			std::vector<fea::Quad*> m_terrainToRender;
 
-			bool _setupAccepted;
+			bool m_setupAccepted;
 
-			fea::Texture _buttonSetupDoneTexture;
-			fea::Quad _buttonSetupDone;
+			fea::Texture m_buttonSetupDoneTexture;
+			fea::Quad m_buttonSetupDone;
 
-			std::array<fea::Quad, 2> _dragonTiles;
-			std::array<bool, 2> _hoveringDragonTile;
+			std::array<fea::Quad, 2> m_dragonTiles;
+			std::array<bool, 2> m_hoveringDragonTile;
 
-			std::array<fea::Quad, 3> _piecePromotionBackground;
-			std::array<fea::Quad*, 3> _piecePromotionPieces;
-			std::array<PieceType, 3> _piecePromotionTypes;
-			uint_least8_t _renderPiecePromotionBgs;
-			uint_least8_t _piecePromotionHover, _piecePromotionMousePress;
+			std::array<fea::Quad, 3> m_piecePromotionBackground;
+			std::array<fea::Quad*, 3> m_piecePromotionPieces;
+			std::array<PieceType, 3> m_piecePromotionTypes;
+			uint_least8_t m_renderPiecePromotionBgs;
+			uint_least8_t m_piecePromotionHover, m_piecePromotionMousePress;
 
-			std::vector<std::shared_ptr<fea::Quad>> _fortressReplacementTileHighlightings;
+			std::vector<std::shared_ptr<fea::Quad>> m_fortressReplacementTileHighlightings;
 
-			std::shared_ptr<Piece> _selectedPiece;
-			std::set<Coordinate> _possibleTargetTiles;
+			std::shared_ptr<Piece> m_selectedPiece;
+			std::set<Coordinate> m_possibleTargetTiles;
 
 		public:
 			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor);
@@ -88,9 +88,10 @@ namespace mikelepage
 			const RenderedMatch& operator= (const RenderedMatch&) = delete;
 
 			Board& getBoard()
-			{ return _board; }
+			{ return m_board; }
 
-			const std::string& getStatus();
+			const std::string& getStatus()
+			{ return m_status; }
 			void setStatus(const std::string&);
 
 			void tick();

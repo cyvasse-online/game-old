@@ -29,7 +29,7 @@ class CyvasseWSClient
 
 		// implemented as singleton because one game can only
 		// be connected to one websocket remote end at once
-		static CyvasseWSClient* _instance;
+		static CyvasseWSClient* s_instance;
 
 	public:
 		CyvasseWSClient();

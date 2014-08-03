@@ -46,46 +46,46 @@ typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
 
 template <int l>
 HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
-	: _renderer(renderer)
-	, _upsideDown(color == cyvmath::PlayersColor::WHITE ? false : true)
-	, _hoveredTile(noTile())
-	, _mouseBPressTile(noTile())
+	: m_renderer(renderer)
+	, m_upsideDown(color == cyvmath::PlayersColor::WHITE ? false : true)
+	, m_hoveredTile(noTile())
+	, m_mouseBPressTile(noTile())
 {
 	const glm::uvec2 windowSize = renderer.getViewport().getSize();
 
 	unsigned padding = std::min(windowSize.x, windowSize.y) / 20;
 
-	_size = {windowSize.x - padding * 2, windowSize.y - padding * 2};
+	m_size = {windowSize.x - padding * 2, windowSize.y - padding * 2};
 
-	if(_size.x / _size.y < 4.0f / 3.0f) // wider than 4:3
+	if(m_size.x / m_size.y < 4.0f / 3.0f) // wider than 4:3
 	{
-		_tileSize.y = _size.y / static_cast<float>(l * 2 - 1);
-		_tileSize.x = _tileSize.y / 3.0f * 4.0f;
+		m_tileSize.y = m_size.y / static_cast<float>(l * 2 - 1);
+		m_tileSize.x = m_tileSize.y / 3.0f * 4.0f;
 
-		_size.x = _tileSize.x * (l * 2 - 1);
+		m_size.x = m_tileSize.x * (l * 2 - 1);
 
-		_position = {(windowSize.x - _size.x) / 2.0f, padding};
+		m_position = {(windowSize.x - m_size.x) / 2.0f, padding};
 	}
 	else
 	{
-		_tileSize.x = _size.x / static_cast<float>(l * 2 - 1);
-		_tileSize.y = _tileSize.x / 4.0f * 3.0f;
+		m_tileSize.x = m_size.x / static_cast<float>(l * 2 - 1);
+		m_tileSize.y = m_tileSize.x / 4.0f * 3.0f;
 
-		_size.y = _tileSize.x * (l * 2 - 1);
+		m_size.y = m_tileSize.x * (l * 2 - 1);
 
-		_position = {padding, (windowSize.y - _size.y) / 2.0f};
+		m_position = {padding, (windowSize.y - m_size.y) / 2.0f};
 	}
 
 	for(Coordinate c : Hexagon::getAllCoordinates())
 	{
-		fea::Quad* quad = new fea::Quad(_tileSize);
+		fea::Quad* quad = new fea::Quad(m_tileSize);
 
 		quad->setPosition(getTilePosition(c));
 		quad->setColor(getTileColor(c, true));
 
 		// add the tile to the map and vector
-		_tileVec.push_back(quad);
-		std::pair<typename TileMap::iterator, bool> res = _tileMap.insert({c, quad});
+		m_tileVec.push_back(quad);
+		std::pair<typename TileMap::iterator, bool> res = m_tileMap.insert({c, quad});
 
 		assert(res.second); // assert the insertion was successful
 	}
@@ -94,20 +94,20 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor c
 template <int l>
 HexagonBoard<l>::~HexagonBoard()
 {
-	for(fea::Quad* it : _tileVec)
+	for(fea::Quad* it : m_tileVec)
 		delete it;
 }
 
 template <int l>
 glm::uvec2 HexagonBoard<l>::getSize()
 {
-	return _size;
+	return m_size;
 }
 
 template <int l>
 glm::uvec2 HexagonBoard<l>::getPosition()
 {
-	return _position;
+	return m_position;
 }
 
 template <int l>
@@ -115,35 +115,35 @@ glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c)
 {
 	glm::vec2 ret;
 
-	if(!_upsideDown) // 'normal' orientation first
+	if(!m_upsideDown) // 'normal' orientation first
 	{
-		ret.x = _position.x // padding
+		ret.x = m_position.x // padding
 			// normal horizontal position offset
-			+ _tileSize.x * c.x()
+			+ m_tileSize.x * c.x()
 			// additional horizontal offset due to non-orthogonal y axis
-			+ (_tileSize.x / 2.0f) * (c.y() - (l - 1));
+			+ (m_tileSize.x / 2.0f) * (c.y() - (l - 1));
 
-		ret.y = _position.y // padding
+		ret.y = m_position.y // padding
 			// inverted normal vertical offset
 			// because coordinate y = 0 should be on the bottom
 			// but Feather Kit has y = 0 on the top
-			+ (_size.y - (_tileSize.y * c.y()))
+			+ (m_size.y - (m_tileSize.y * c.y()))
 			// to get correct origin point with inverted offsets
-			- _tileSize.y;
+			- m_tileSize.y;
 	}
 	else // upsideDown
 	{
-		ret.x = _position.x // padding
+		ret.x = m_position.x // padding
 			// inverted normal horizontal position offset
-			+ (_size.x - (_tileSize.x * c.x()))
+			+ (m_size.x - (m_tileSize.x * c.x()))
 			// to get correct origin point with inverted offsets
-			- _tileSize.x
+			- m_tileSize.x
 			// additional horizontal offset due to non-orthogonal y axis
-			- (_tileSize.x / 2.0f) * (c.y() - (l - 1));
+			- (m_tileSize.x / 2.0f) * (c.y() - (l - 1));
 
-		ret.y = _position.y // padding
+		ret.y = m_position.y // padding
 			// twice-inverted -> normal vertical offset
-			+ _tileSize.y * c.y();
+			+ m_tileSize.y * c.y();
 	}
 
 	return ret;
@@ -152,7 +152,7 @@ glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c)
 template <int l>
 const glm::vec2& HexagonBoard<l>::getTileSize() const
 {
-	return _tileSize;
+	return m_tileSize;
 }
 
 template <int l>
@@ -160,8 +160,8 @@ fea::Color HexagonBoard<l>::getTileColor(Coordinate c, bool setup)
 {
 	int8_t index = (((c.x() - c.y()) % 3) + 3) % 3;
 
-	if(setup && ((!_upsideDown && c.y() >= (l - 1)) ||
-	              (_upsideDown && c.y() <= (l - 1))))
+	if(setup && ((!m_upsideDown && c.y() >= (l - 1)) ||
+	              (m_upsideDown && c.y() <= (l - 1))))
 		return tileColorsDark[index];
 	else
 		return tileColors[index];
@@ -171,34 +171,34 @@ template <int l>
 std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(glm::ivec2 tilePosition)
 {
 	// remove padding - we're just altering a temporary variable
-	tilePosition -= glm::ivec2(_position.x, _position.y);
+	tilePosition -= glm::ivec2(m_position.x, m_position.y);
 
 	float x, y;
 
-	if(!_upsideDown) // 'normal' orientation first
+	if(!m_upsideDown) // 'normal' orientation first
 	{
 		// y = (maximal y) - ('inverted' coord y)
 		y = (l * 2 - 1)
-			- tilePosition.y / _tileSize.y;
+			- tilePosition.y / m_tileSize.y;
 
 		x = (
 				tilePosition.x
-				+ ((l - static_cast<int>(y)) * _tileSize.x / 2.0f)
-				- _tileSize.x / 2.0f
+				+ ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
+				- m_tileSize.x / 2.0f
 			)
-			/ _tileSize.x;
+			/ m_tileSize.x;
 	}
 	else // upsideDown
 	{
-		y = tilePosition.y / _tileSize.y;
+		y = tilePosition.y / m_tileSize.y;
 
 		x = (l * 2 - 1)
 			- ((
 					tilePosition.x
-					- ((l - static_cast<int>(y)) * _tileSize.x / 2.0f)
-					+ _tileSize.x / 2.0f
+					- ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
+					+ m_tileSize.x / 2.0f
 				)
-				/ _tileSize.x
+				/ m_tileSize.x
 			);
 	}
 
@@ -211,8 +211,8 @@ std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordi
 template <int l>
 fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 {
-	typename TileMap::iterator it = _tileMap.find(c);
-	if(it == _tileMap.end())
+	typename TileMap::iterator it = m_tileMap.find(c);
+	if(it == m_tileMap.end())
 		return nullptr;
 
 	return it->second;
@@ -234,7 +234,7 @@ void HexagonBoard<l>::resetTileColor(Coordinate coord, bool setup)
 	assert(quad);
 
 	fea::Color color = getTileColor(coord, setup);
-	if(_hoveredTile.first && *_hoveredTile.first == coord)
+	if(m_hoveredTile.first && *m_hoveredTile.first == coord)
 		color += hoverColor;
 
 	quad->setColor(color);
@@ -244,7 +244,7 @@ template <int l>
 void HexagonBoard<l>::resetTileColors(int8_t fromRow, int8_t toRow, bool setup)
 {
 	assert(fromRow <= toRow);
-	for(auto it : _tileMap)
+	for(auto it : m_tileMap)
 	{
 		if(it.first.y() >= fromRow && it.first.y() <= toRow)
 			it.second->setColor(getTileColor(it.first, setup));
@@ -254,8 +254,8 @@ void HexagonBoard<l>::resetTileColors(int8_t fromRow, int8_t toRow, bool setup)
 template <int l>
 void HexagonBoard<l>::tick()
 {
-	for(const fea::Quad* it : _tileVec)
-		_renderer.queue(*it);
+	for(const fea::Quad* it : m_tileVec)
+		m_renderer.queue(*it);
 }
 
 template <int l>
@@ -267,24 +267,24 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 	{
 		fea::Quad* quad = getTileAt(*coord);
 
-		if(!_hoveredTile.first || *coord != *_hoveredTile.first)
+		if(!m_hoveredTile.first || *coord != *m_hoveredTile.first)
 		{
 			// reset color of old hovered tile
-			if(_hoveredTile.first)
-				_hoveredTile.second->setColor(_hoveredTile.second->getColor() - hoverColor);
+			if(m_hoveredTile.first)
+				m_hoveredTile.second->setColor(m_hoveredTile.second->getColor() - hoverColor);
 
 			quad->setColor(quad->getColor() + hoverColor);
 
-			_hoveredTile = std::make_pair(std::move(coord), quad);
+			m_hoveredTile = std::make_pair(std::move(coord), quad);
 		}
 	}
 	else
 	{
-		if(_hoveredTile.first)
+		if(m_hoveredTile.first)
 		{
 			// mouse is outside the board and one tile is still marked with the hover effect
-			_hoveredTile.second->setColor(_hoveredTile.second->getColor() - hoverColor);
-			_hoveredTile = noTile();
+			m_hoveredTile.second->setColor(m_hoveredTile.second->getColor() - hoverColor);
+			m_hoveredTile = noTile();
 		}
 
 		onMouseMoveOutside(mouseMove);
@@ -294,7 +294,7 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 template <int l>
 void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if(mouseButton.button != fea::Mouse::Button::LEFT || _mouseBPressTile.first)
+	if(mouseButton.button != fea::Mouse::Button::LEFT || m_mouseBPressTile.first)
 		return;
 
 	auto coord = getCoordinate({mouseButton.x, mouseButton.y});
@@ -303,7 +303,7 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 	{
 		fea::Quad* quad = getTileAt(*coord);
 
-		_mouseBPressTile = std::make_pair(std::move(coord), quad);
+		m_mouseBPressTile = std::make_pair(std::move(coord), quad);
 	}
 	else
 		onClickedOutside(mouseButton);
@@ -312,13 +312,13 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 template <int l>
 void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if(_mouseBPressTile.first)
+	if(m_mouseBPressTile.first)
 	{
 		auto coord = getCoordinate({mouseButton.x, mouseButton.y});
 
-		if(coord && *coord == *_mouseBPressTile.first)
+		if(coord && *coord == *m_mouseBPressTile.first)
 			onTileClicked(*coord);
 
-		_mouseBPressTile = noTile();
+		m_mouseBPressTile = noTile();
 	}
 }
