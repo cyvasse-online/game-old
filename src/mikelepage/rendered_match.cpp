@@ -184,7 +184,9 @@ namespace mikelepage
 			// search for a piece on the clicked tile
 			auto it = m_activePieces.find(coord);
 
-			if(it != m_activePieces.end() && it->second->getColor() == m_ownColor)
+			if(it != m_activePieces.end() &&
+			   it->second->getColor() == m_ownColor &&
+			   (m_setup || it->second->getType() != PieceType::MOUNTAINS))
 			{
 				// a piece of the player was clicked
 				m_selectedPiece = it->second;
@@ -257,13 +259,16 @@ namespace mikelepage
 					m_dragonTiles[color].setColor(m_dragonTiles[color].getColor() + Board::hoverColor);
 					m_hoveringDragonTile[color] = true;
 
-					auto& inactivePieces = m_players[color]->getInactivePieces();
-					auto dragonIt = inactivePieces.find(PieceType::DRAGON);
-					assert(dragonIt != inactivePieces.end());
+					if(!m_setup && !m_selectedPiece)
+					{
+						auto& inactivePieces = m_players[color]->getInactivePieces();
+						auto dragonIt = inactivePieces.find(PieceType::DRAGON);
+						assert(dragonIt != inactivePieces.end());
 
-					m_hoveredPiece = dragonIt->second;
-					if(!m_setup)
+						m_hoveredPiece = dragonIt->second;
+
 						showPossibleTargetTiles();
+					}
 				}
 			}
 			else if(m_hoveringDragonTile[color])
@@ -271,10 +276,11 @@ namespace mikelepage
 				m_dragonTiles[color].setColor(m_dragonTiles[color].getColor() - Board::hoverColor);
 				m_hoveringDragonTile[color] = false;
 
-				assert(m_hoveredPiece);
-
-				if(!m_hoveredPiece)
+				if(!m_setup && !m_selectedPiece)
+				{
+					assert(m_hoveredPiece);
 					clearPossibleTargetTiles();
+				}
 			}
 		}
 
@@ -284,15 +290,6 @@ namespace mikelepage
 
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
-		// a piece is selected
-		if(m_selectedPiece)
-		{
-			resetSelectedPiece();
-			clearPossibleTargetTiles();
-
-			m_selectedPiece.reset();
-		}
-
 		// 'Setup done' button clicked (while being visible)
 		if(m_self->setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
 		{
@@ -306,16 +303,33 @@ namespace mikelepage
 			   mouseOver(m_dragonTiles[m_ownColor], {event.x, event.y}) &&
 			   (m_setup || m_activePlayer == m_ownColor))
 		{
-			assert(m_self->getInactivePieces().count(PieceType::DRAGON) == 1);
-			auto it = m_self->getInactivePieces().find(PieceType::DRAGON);
+			PieceType selectedPieceType = (m_selectedPiece ? m_selectedPiece->getType() : PieceType::UNDEFINED);
 
-			m_selectedPiece = it->second;
-			m_hoveredPiece = it->second;
+			if(m_selectedPiece)
+				resetSelectedPiece();
 
-			Board::highlight(m_dragonTiles[m_ownColor], Board::tileColors[1], "red");
+			// only select the dragon if it isn't selected, otherwise unselect it
+			if(selectedPieceType != PieceType::DRAGON)
+			{
+				assert(m_self->getInactivePieces().count(PieceType::DRAGON) == 1);
+				auto it = m_self->getInactivePieces().find(PieceType::DRAGON);
 
-			if(!m_setup)
-				showPossibleTargetTiles();
+				m_selectedPiece = it->second;
+				m_hoveredPiece = it->second;
+
+				Board::highlight(m_dragonTiles[m_ownColor], Board::tileColors[1], "red");
+
+				if(!m_setup)
+				{
+					clearPossibleTargetTiles();
+					showPossibleTargetTiles();
+				}
+			}
+		}
+		else if(m_selectedPiece)
+		{
+			resetSelectedPiece();
+			clearPossibleTargetTiles();
 		}
 	}
 
@@ -399,15 +413,20 @@ namespace mikelepage
 		if(piece->getCoord()) // not null - a piece on the board
 		{
 			Coordinate coord = *piece->getCoord();
+			PieceType pieceType = piece->getType();
 
 			m_activePieces.emplace(coord, piece);
 
-			if(piece->getType() == PieceType::KING)
+			if(pieceType == PieceType::KING)
 			{
 				auto fortress = std::make_shared<RenderedFortress>(color, coord, m_board);
 
 				player->setFortress(fortress);
 				m_terrainToRender.push_back(fortress->getQuad());
+			}
+			else if(pieceType == PieceType::DRAGON)
+			{
+				player->dragonBroughtOut();
 			}
 			else
 			{
@@ -531,10 +550,6 @@ namespace mikelepage
 				return;
 
 		m_setup = false;
-
-		// temporary variable to hold the dragon piece if it isn't
-		// "brought out" to the board (else this variable will remain unchanged)
-		std::shared_ptr<Piece> unpositionedDragon;
 
 		// TODO: rewrite the following stuff when adding a bot
 		std::shared_ptr<RemotePlayer> op = std::dynamic_pointer_cast<RemotePlayer>(m_op);
