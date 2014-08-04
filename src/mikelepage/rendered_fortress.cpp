@@ -18,28 +18,34 @@
 
 #include <array>
 #include "hexagon_board.hpp"
+#include "texturemaker.hpp" // lodepng helper function
 
 namespace mikelepage
 {
 	RenderedFortress::RenderedFortress(PlayersColor color, Coordinate coord, HexagonBoard<6>& board)
 		: Fortress(color, coord)
 		, m_board(board)
-		, m_quad(board.getTileSize())
 	{
-		static const std::array<fea::Color, 2> colors {{
-			{255, 255, 255, 127},
-			{0, 0, 0, 127}
-		}};
-
 		assert(color != PlayersColor::UNDEFINED);
 
-		m_quad.setColor(colors.at(color));
-		m_quad.setPosition(m_board.getTilePosition(coord));
+		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/fortress.png";
+		m_texture = makeTexture(texturePath).first;
+		m_quad.setTexture(m_texture);
+
+		glm::vec2 tileSize = board.getTileSize();
+		glm::vec2 tilePos = board.getTilePosition(coord);
+
+		m_offset = (tileSize.x * 4.0f / 60.0f);
+
+		m_quad.setSize({tileSize.x + (m_offset * 2), tileSize.y + (m_offset * 2)});
+		m_quad.setPosition({tilePos.x - m_offset, tilePos.y - m_offset});
 	}
 
 	void RenderedFortress::setCoord(Coordinate coord)
 	{
 		m_coord = coord;
-		m_quad.setPosition(m_board.getTilePosition(coord));
+
+		glm::vec2 tilePos = m_board.getTilePosition(coord);
+		m_quad.setPosition({tilePos.x - m_offset, tilePos.y - m_offset});
 	}
 }

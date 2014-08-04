@@ -97,7 +97,7 @@ namespace mikelepage
 	void LocalPlayer::removeFortress()
 	{
 		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(m_fortress);
-		m_match.removeTerrain(fortress->getQuad());
+		m_match.removeFortress(fortress->getQuad());
 
 		Player::removeFortress();
 	}

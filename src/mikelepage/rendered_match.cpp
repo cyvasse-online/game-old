@@ -124,6 +124,8 @@ namespace mikelepage
 
 		for(fea::Quad* it : m_terrainToRender)
 			m_renderer.queue(*it);
+		for(fea::Quad* it : m_fortressesToRender)
+			m_renderer.queue(*it);
 		for(fea::Quad* it : m_piecesToRender)
 			m_renderer.queue(*it);
 
@@ -422,7 +424,7 @@ namespace mikelepage
 				auto fortress = std::make_shared<RenderedFortress>(color, coord, m_board);
 
 				player->setFortress(fortress);
-				m_terrainToRender.push_back(fortress->getQuad());
+				m_fortressesToRender.push_back(fortress->getQuad());
 			}
 			else if(pieceType == PieceType::DRAGON)
 			{
@@ -676,11 +678,11 @@ namespace mikelepage
 		return false;
 	}
 
-	void RenderedMatch::removeTerrain(fea::Quad* quad)
+	void RenderedMatch::removeFortress(fea::Quad* quad)
 	{
-		auto it = std::find(m_terrainToRender.begin(), m_terrainToRender.end(), quad);
-		assert(it != m_terrainToRender.end());
-		m_terrainToRender.erase(it);
+		auto it = std::find(m_fortressesToRender.begin(), m_fortressesToRender.end(), quad);
+		assert(it != m_fortressesToRender.end());
+		m_fortressesToRender.erase(it);
 	}
 
 	void RenderedMatch::updateTurnStatus()

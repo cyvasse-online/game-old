@@ -60,6 +60,7 @@ namespace mikelepage
 
 			std::vector<fea::Quad*> m_piecesToRender;
 			std::vector<fea::Quad*> m_terrainToRender;
+			std::vector<fea::Quad*> m_fortressesToRender;
 
 			bool m_setupAccepted;
 
@@ -117,7 +118,7 @@ namespace mikelepage
 			void removeFromBoard(std::shared_ptr<Piece>) final override;
 
 			bool addFortressReplacementTile(Coordinate);
-			void removeTerrain(fea::Quad*);
+			void removeFortress(fea::Quad*);
 
 			void updateTurnStatus();
 			void resetSelectedPiece();
