@@ -687,7 +687,7 @@ namespace mikelepage
 
 	void RenderedMatch::updateTurnStatus()
 	{
-		std::string status = PlayersColorToStr(m_activePlayer) + " players turn";
+		std::string status = PlayersColorToStr(m_activePlayer) + " player's turn";
 		status[0] -= ('a' - 'A'); // lowercase to uppercase
 
 		setStatus(status);
@@ -716,6 +716,9 @@ namespace mikelepage
 	{
 		assert(!m_setup);
 		assert(m_hoveredPiece);
+
+		if(m_gameEnded)
+			return;
 
 		// the tile clicked on holds a piece of the player
 		for(auto targetTile : m_hoveredPiece->getPossibleTargetTiles())
