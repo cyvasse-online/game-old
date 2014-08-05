@@ -279,10 +279,7 @@ namespace mikelepage
 				m_hoveringDragonTile[color] = false;
 
 				if(!m_setup && !m_selectedPiece)
-				{
-					assert(m_hoveredPiece);
 					clearPossibleTargetTiles();
-				}
 			}
 		}
 
