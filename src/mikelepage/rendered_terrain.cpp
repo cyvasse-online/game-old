@@ -27,9 +27,9 @@ namespace mikelepage
 		, m_terrainMap(terrainMap)
 		, m_quad(board.getTileSize())
 	{
-		static const std::map<TerrainType, fea::Color> colors = {
-			{TerrainType::HILL, {255, 143, 0, 127}},
-			{TerrainType::FOREST, {0, 127, 0, 127}},
+		static const std::map<TerrainType, fea::Color> colors {
+			{TerrainType::HILL, {255, 191, 0, 127}},
+			{TerrainType::FOREST, {0, 95, 0, 127}},
 			{TerrainType::GRASSLAND, {0, 255, 0, 127}}
 		};
 
