@@ -712,8 +712,12 @@ namespace mikelepage
 	void RenderedMatch::showPossibleTargetTiles()
 	{
 		assert(!m_setup);
-		assert(m_hoveredPiece);
 
+		if(!m_hoveredPiece)
+			return;
+
+		// should this be removed?
+		// if not, merge with the above
 		if(m_gameEnded)
 			return;
 

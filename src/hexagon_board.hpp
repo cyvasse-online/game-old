@@ -95,6 +95,12 @@ class HexagonBoard
 
 		void highlightTile(Coordinate coord, const std::string& coloringStr, bool setup);
 
+		template<class InputIterator>
+		void highlightTiles(InputIterator first, InputIterator last, const std::string& coloringStr, const std::string& tileSetId)
+		{
+			// TODO
+		}
+
 		void resetTileColor(Coordinate, bool setup);
 		void resetTileColors(int8_t fromRow, int8_t toRow, bool setup = false);
 

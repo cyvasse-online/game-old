@@ -15,7 +15,7 @@
  */
 
 template <int l>
-const fea::Color HexagonBoard<l>::tileColors[3] = {
+const fea::Color HexagonBoard<l>::tileColors[3] {
 	{125,  81,  55},
 	{167, 108,  73},
 	{191, 140, 109}
@@ -23,7 +23,7 @@ const fea::Color HexagonBoard<l>::tileColors[3] = {
 
 
 template <int l>
-const fea::Color HexagonBoard<l>::tileColorsDark[3] = {
+const fea::Color HexagonBoard<l>::tileColorsDark[3] {
 	{ 50,  32,  22},
 	{ 67,  43,  29},
 	{ 76,  56,  44}
@@ -33,7 +33,7 @@ template <int l>
 const fea::Color HexagonBoard<l>::hoverColor = fea::Color(48, 48, 48, 0);
 
 template <int l>
-const typename HexagonBoard<l>::coloringMap HexagonBoard<l>::highlightColors = {
+const typename HexagonBoard<l>::coloringMap HexagonBoard<l>::highlightColors {
 	{"red",  {{192, 0, 0, 0}, {0, 64, 64, 0}}},
 	{"blue", {{0, 0, 192, 0}, {64, 64, 0, 0}}}
 };
