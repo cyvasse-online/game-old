@@ -116,7 +116,7 @@ namespace mikelepage
 
 	void RenderedMatch::tick()
 	{
-		m_board.tick();
+		m_board.queueTileRendering();
 
 		for(auto player : m_players)
 			if(player->dragonAliveInactive())
@@ -124,6 +124,9 @@ namespace mikelepage
 
 		for(fea::Quad* it : m_terrainToRender)
 			m_renderer.queue(*it);
+
+		m_board.queueHighlightingRendering();
+
 		for(fea::Quad* it : m_fortressesToRender)
 			m_renderer.queue(*it);
 		for(fea::Quad* it : m_piecesToRender)
@@ -162,14 +165,13 @@ namespace mikelepage
 			{
 				m_hoveredPiece = it->second;
 
-				clearPossibleTargetTiles();
 				showPossibleTargetTiles();
 			}
 		}
 		else if(m_hoveredPiece)
 		{
 			m_hoveredPiece.reset();
-			clearPossibleTargetTiles();
+			m_board.clearHighlighting(HighlightingId::PTT);
 		}
 	}
 
@@ -193,7 +195,7 @@ namespace mikelepage
 				// a piece of the player was clicked
 				m_selectedPiece = it->second;
 
-				m_board.highlightTile(coord, "red", m_setup);
+				m_board.highlightTile(coord, {255, 0, 0, 127}, HighlightingId::SEL);
 
 				// assert target tiles are already shown through the hover stuff
 			}
@@ -211,20 +213,20 @@ namespace mikelepage
 			{
 				if(tryMovePiece(m_selectedPiece, coord))
 				{
-					resetSelectedPiece();
+					m_selectedPiece.reset();
+					m_board.clearHighlighting(HighlightingId::SEL);
 
 					if(!m_setup)
-					{
-						clearPossibleTargetTiles();
 						showPossibleTargetTiles();
-					}
 				}
 			}
 			else if(m_setup || piece->getType() != PieceType::MOUNTAINS)
 			{
 				// there is a piece of the player on the clicked tile
 				auto selectedCoord = *m_selectedPiece->getCoord();
-				resetSelectedPiece();
+
+				m_selectedPiece.reset();
+				m_board.clearHighlighting(HighlightingId::SEL);
 
 				if(coord != selectedCoord)
 				{
@@ -232,12 +234,9 @@ namespace mikelepage
 					m_selectedPiece = piece;
 					m_hoveredPiece = piece;
 
-					m_board.highlightTile(coord, "red", m_setup);
+					m_board.highlightTile(coord, {255, 0, 0, 127}, HighlightingId::SEL);
 					if(!m_setup)
-					{
-						clearPossibleTargetTiles();
 						showPossibleTargetTiles();
-					}
 				}
 			}
 		}
@@ -279,12 +278,12 @@ namespace mikelepage
 				m_hoveringDragonTile[color] = false;
 
 				if(!m_setup && !m_selectedPiece)
-					clearPossibleTargetTiles();
+					m_board.clearHighlighting(HighlightingId::PTT);
 			}
 		}
 
 		if(!hoveringDragon && m_hoveredPiece && !m_selectedPiece)
-			clearPossibleTargetTiles();
+			m_board.clearHighlighting(HighlightingId::PTT);
 	}
 
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
@@ -305,7 +304,7 @@ namespace mikelepage
 			PieceType selectedPieceType = (m_selectedPiece ? m_selectedPiece->getType() : PieceType::UNDEFINED);
 
 			if(m_selectedPiece)
-				resetSelectedPiece();
+				m_selectedPiece.reset();
 
 			// only select the dragon if it isn't selected, otherwise unselect it
 			if(selectedPieceType != PieceType::DRAGON)
@@ -316,19 +315,17 @@ namespace mikelepage
 				m_selectedPiece = it->second;
 				m_hoveredPiece = it->second;
 
-				Board::highlight(m_dragonTiles[m_ownColor], Board::tileColors[1], "red");
+				m_board.highlightTileOffBoard(m_dragonTiles[m_ownColor].getPosition(), {255, 0, 0, 127}, HighlightingId::SEL);
 
 				if(!m_setup)
-				{
-					clearPossibleTargetTiles();
 					showPossibleTargetTiles();
-				}
 			}
 		}
 		else if(m_selectedPiece)
 		{
-			resetSelectedPiece();
-			clearPossibleTargetTiles();
+			m_selectedPiece.reset();
+			m_board.clearHighlighting(HighlightingId::SEL);
+			m_board.clearHighlighting(HighlightingId::PTT);
 		}
 	}
 
@@ -590,9 +587,7 @@ namespace mikelepage
 					m_self->checkSetupComplete();
 			}
 
-			clearPossibleTargetTiles();
-			if(oldCoord)
-				m_board.resetTileColor(*oldCoord, m_setup);
+			m_board.clearHighlighting(HighlightingId::PTT);
 
 			if(!m_setup)
 			{
@@ -690,25 +685,6 @@ namespace mikelepage
 		setStatus(status);
 	}
 
-	void RenderedMatch::resetSelectedPiece()
-	{
-		assert(m_selectedPiece);
-
-		if(m_selectedPiece->getCoord())
-		{
-			m_board.resetTileColor(*m_selectedPiece->getCoord(), m_setup);
-		}
-		else
-		{
-			assert(m_selectedPiece->getType() == PieceType::DRAGON);
-			assert(m_selectedPiece->getColor() == m_ownColor);
-
-			m_dragonTiles[m_ownColor].setColor(Board::tileColors[1]);
-		}
-
-		m_selectedPiece.reset();
-	}
-
 	void RenderedMatch::showPossibleTargetTiles()
 	{
 		assert(!m_setup);
@@ -722,20 +698,8 @@ namespace mikelepage
 			return;
 
 		// the tile clicked on holds a piece of the player
-		for(auto targetTile : m_hoveredPiece->getPossibleTargetTiles())
-		{
-			m_board.highlightTile(targetTile, "blue", false);
-
-			m_possibleTargetTiles.emplace(targetTile);
-		}
-	}
-
-	void RenderedMatch::clearPossibleTargetTiles()
-	{
-		for(auto it : m_possibleTargetTiles)
-			m_board.resetTileColor(it, m_setup);
-
-		m_possibleTargetTiles.clear();
+		auto pTT = m_hoveredPiece->getPossibleTargetTiles();
+		m_board.highlightTiles(pTT.begin(), pTT.end(), {0, 0, 255, 127}, HighlightingId::PTT);
 	}
 
 	void RenderedMatch::showPromotionPieces(std::set<PieceType> pieceTypes)
@@ -794,7 +758,7 @@ namespace mikelepage
 
 		setStatus(status);
 
-		clearPossibleTargetTiles();
+		m_board.clearHighlighting(HighlightingId::PTT);
 
 		m_ingameState.onMouseMoved          = [](const fea::Event::MouseMoveEvent&) { };
 		m_ingameState.onMouseButtonPressed  = [](const fea::Event::MouseButtonEvent&) { };

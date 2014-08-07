@@ -33,10 +33,15 @@ template <int l>
 const fea::Color HexagonBoard<l>::hoverColor = fea::Color(48, 48, 48, 0);
 
 template <int l>
-const typename HexagonBoard<l>::coloringMap HexagonBoard<l>::highlightColors {
-	{"red",  {{192, 0, 0, 0}, {0, 64, 64, 0}}},
-	{"blue", {{0, 0, 192, 0}, {64, 64, 0, 0}}}
-};
+std::shared_ptr<fea::Quad> HexagonBoard<l>::createHighlightQuad(glm::vec2 pos, const fea::Color& color)
+{
+	auto ret = std::make_shared<fea::Quad>(getTileSize());
+
+	ret->setPosition(pos);
+	ret->setColor(color);
+
+	return ret;
+}
 
 template <int l>
 typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
@@ -219,43 +224,61 @@ fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
-void HexagonBoard<l>::highlightTile(Coordinate coord, const std::string& coloringStr, bool setup)
+void HexagonBoard<l>::highlightTile(Coordinate coord, const fea::Color& color, HighlightingId id)
 {
-	fea::Quad* quad = getTileAt(coord);
-	assert(quad);
+	auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
+	auto& quadVec = res.first->second;
 
-	highlight(*quad, getTileColor(coord, setup), coloringStr);
+	if(!res.second)
+		quadVec.clear();
+
+	quadVec.push_back(createHighlightQuad(getTilePosition(coord), color));
 }
 
 template <int l>
-void HexagonBoard<l>::resetTileColor(Coordinate coord, bool setup)
+void HexagonBoard<l>::highlightTileOffBoard(glm::vec2 pos, const fea::Color& color, HighlightingId id)
 {
-	fea::Quad* quad = getTileAt(coord);
-	assert(quad);
+	auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
+	auto& quadVec = res.first->second;
 
-	fea::Color color = getTileColor(coord, setup);
-	if(m_hoveredTile.first && *m_hoveredTile.first == coord)
-		color += hoverColor;
+	if(!res.second)
+		quadVec.clear();
 
-	quad->setColor(color);
+	quadVec.push_back(createHighlightQuad(pos, color));
 }
 
 template <int l>
-void HexagonBoard<l>::resetTileColors(int8_t fromRow, int8_t toRow, bool setup)
+void HexagonBoard<l>::clearHighlighting(HighlightingId id)
+{
+	auto res = m_highlightQuads.find(id);
+	if(res != m_highlightQuads.end())
+		res->second.clear();
+}
+
+template <int l>
+void HexagonBoard<l>::resetTileColors(int8_t fromRow, int8_t toRow)
 {
 	assert(fromRow <= toRow);
 	for(auto it : m_tileMap)
 	{
 		if(it.first.y() >= fromRow && it.first.y() <= toRow)
-			it.second->setColor(getTileColor(it.first, setup));
+			it.second->setColor(getTileColor(it.first, false));
 	}
 }
 
 template <int l>
-void HexagonBoard<l>::tick()
+void HexagonBoard<l>::queueTileRendering()
 {
-	for(const fea::Quad* it : m_tileVec)
-		m_renderer.queue(*it);
+    for(const fea::Quad* it : m_tileVec)
+        m_renderer.queue(*it);
+}
+
+template <int l>
+void HexagonBoard<l>::queueHighlightingRendering()
+{
+	for(auto& vecIt : m_highlightQuads)
+		for(auto quadIt : vecIt.second)
+			m_renderer.queue(*quadIt);
 }
 
 template <int l>

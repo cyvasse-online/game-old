@@ -76,10 +76,10 @@ namespace mikelepage
 			uint_least8_t m_renderPiecePromotionBgs;
 			uint_least8_t m_piecePromotionHover, m_piecePromotionMousePress;
 
+			// TODO: may be doable through the highlighting stuff, so maybe replace this
 			std::vector<std::shared_ptr<fea::Quad>> m_fortressReplacementTileHighlightings;
 
 			std::shared_ptr<Piece> m_hoveredPiece, m_selectedPiece;
-			std::set<Coordinate> m_possibleTargetTiles;
 
 		public:
 			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor);
@@ -121,9 +121,7 @@ namespace mikelepage
 			void removeFortress(fea::Quad*);
 
 			void updateTurnStatus();
-			void resetSelectedPiece();
 			void showPossibleTargetTiles();
-			void clearPossibleTargetTiles();
 
 			void showPromotionPieces(std::set<PieceType>);
 			void chooseFortressReplacementTile();
