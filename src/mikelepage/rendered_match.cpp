@@ -21,6 +21,7 @@
 	#include <emscripten.h>
 #endif
 #include "common.hpp"
+#include "hexagon_board.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
 #include "rendered_fortress.hpp"
@@ -37,12 +38,12 @@ namespace mikelepage
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
 		: m_renderer{renderer}
 		, m_ingameState(ingameState)
-		, m_board(renderer, color)
+		, m_board{make_unique<Board>(renderer, color)}
 		, m_gameEnded{false}
 		, m_ownColor{color}
 		, m_opColor{!color}
 		, m_setupAccepted{false}
-		, m_dragonTiles{{m_board.getTileSize(), m_board.getTileSize()}}
+		, m_dragonTiles{{m_board->getTileSize(), m_board->getTileSize()}}
 		, m_hoveringDragonTile{{false, false}}
 		, m_piecePromotionBackground{{glm::vec2{100, 100}, glm::vec2{100, 100}, glm::vec2{100, 100}}}
 		, m_piecePromotionTypes{{PieceType::UNDEFINED, PieceType::UNDEFINED, PieceType::UNDEFINED}}
@@ -58,9 +59,9 @@ namespace mikelepage
 
 		assert(m_self);
 
-		glm::uvec2 boardSize = m_board.getSize();
-		glm::uvec2 boardPos = m_board.getPosition();
-		glm::uvec2 tileSize = m_board.getTileSize();
+		glm::uvec2 boardSize = m_board->getSize();
+		glm::uvec2 boardPos = m_board->getPosition();
+		glm::uvec2 tileSize = m_board->getTileSize();
 
 		auto tmpTexture = makeTexture("setup-done.png");
 
@@ -69,15 +70,16 @@ namespace mikelepage
 		m_buttonSetupDone.setSize(tmpTexture.second); // hardcoded for now, can be done properly somewhen else
 		m_buttonSetupDone.setTexture(m_buttonSetupDoneTexture);
 
-		m_dragonTiles[m_ownColor].setColor(Board::tileColors[1]);
+		m_dragonTiles[m_ownColor].setColor(Board::tileColors[2]);
+		m_dragonTiles[m_opColor].setColor(Board::tileColors[2]);
+
 		m_dragonTiles[m_ownColor].setPosition(
 			{boardPos.x, boardPos.y + boardSize.y - tileSize.y}
 		);
 
-		m_dragonTiles[m_opColor].setColor(Board::tileColorsDark[1]);
-		m_dragonTiles[m_opColor].setPosition(
-			{boardPos.x + boardSize.x - tileSize.x, boardPos.y}
-		);
+		glm::vec2 tmpPos {boardPos.x + boardSize.x - tileSize.x, boardPos.y};
+		m_dragonTiles[m_opColor].setPosition(tmpPos);
+		m_board->highlightTile(tmpPos, HighlightingId::DIM, false);
 
 		for(auto& quad : m_piecePromotionBackground)
 			quad.setColor({95, 95, 95});
@@ -86,16 +88,16 @@ namespace mikelepage
 		placePiecesSetup();
 
 		ingameState.tick                  = std::bind(&RenderedMatch::tick, this);
-		ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, &m_board, _1);
-		ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, &m_board, _1);
-		ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &m_board, _1);
+		ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, m_board.get(), _1);
+		ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, m_board.get(), _1);
+		ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, m_board.get(), _1);
 		ingameState.onKeyPressed          = [](const fea::Event::KeyEvent&) { };
 		ingameState.onKeyReleased         = [](const fea::Event::KeyEvent&) { };
 
-		m_board.onTileMouseOver    = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
-		m_board.onTileClicked      = std::bind(&RenderedMatch::onTileClicked, this, _1);
-		m_board.onMouseMoveOutside = std::bind(&RenderedMatch::onMouseMoveOutsideBoard, this, _1);
-		m_board.onClickedOutside   = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
+		m_board->onTileMouseOver    = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
+		m_board->onTileClicked      = std::bind(&RenderedMatch::onTileClicked, this, _1);
+		m_board->onMouseMoveOutside = std::bind(&RenderedMatch::onMouseMoveOutsideBoard, this, _1);
+		m_board->onClickedOutside   = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
 
 		setStatus("Setup");
 	}
@@ -116,7 +118,7 @@ namespace mikelepage
 
 	void RenderedMatch::tick()
 	{
-		m_board.queueTileRendering();
+		m_board->queueTileRendering();
 
 		for(auto player : m_players)
 			if(player->dragonAliveInactive())
@@ -125,7 +127,7 @@ namespace mikelepage
 		for(fea::Quad* it : m_terrainToRender)
 			m_renderer.queue(*it);
 
-		m_board.queueHighlightingRendering();
+		m_board->queueHighlightingRendering();
 
 		for(fea::Quad* it : m_fortressesToRender)
 			m_renderer.queue(*it);
@@ -171,7 +173,7 @@ namespace mikelepage
 		else if(m_hoveredPiece)
 		{
 			m_hoveredPiece.reset();
-			m_board.clearHighlighting(HighlightingId::PTT);
+			m_board->clearHighlighting(HighlightingId::PTT);
 		}
 	}
 
@@ -195,7 +197,7 @@ namespace mikelepage
 				// a piece of the player was clicked
 				m_selectedPiece = it->second;
 
-				m_board.highlightTile(coord, {255, 0, 0, 127}, HighlightingId::SEL);
+				m_board->highlightTile(coord, HighlightingId::SEL);
 
 				// assert target tiles are already shown through the hover stuff
 			}
@@ -214,7 +216,7 @@ namespace mikelepage
 				if(tryMovePiece(m_selectedPiece, coord))
 				{
 					m_selectedPiece.reset();
-					m_board.clearHighlighting(HighlightingId::SEL);
+					m_board->clearHighlighting(HighlightingId::SEL);
 
 					if(!m_setup)
 						showPossibleTargetTiles();
@@ -226,7 +228,7 @@ namespace mikelepage
 				auto selectedCoord = *m_selectedPiece->getCoord();
 
 				m_selectedPiece.reset();
-				m_board.clearHighlighting(HighlightingId::SEL);
+				m_board->clearHighlighting(HighlightingId::SEL);
 
 				if(coord != selectedCoord)
 				{
@@ -234,7 +236,7 @@ namespace mikelepage
 					m_selectedPiece = piece;
 					m_hoveredPiece = piece;
 
-					m_board.highlightTile(coord, {255, 0, 0, 127}, HighlightingId::SEL);
+					m_board->highlightTile(coord, HighlightingId::SEL);
 					if(!m_setup)
 						showPossibleTargetTiles();
 				}
@@ -257,7 +259,7 @@ namespace mikelepage
 
 				if(!m_hoveringDragonTile[color])
 				{
-					m_dragonTiles[color].setColor(m_dragonTiles[color].getColor() + Board::hoverColor);
+					m_board->highlightTile(m_dragonTiles[color].getPosition(), HighlightingId::HOVER);
 					m_hoveringDragonTile[color] = true;
 
 					if(!m_setup && !m_selectedPiece)
@@ -274,16 +276,16 @@ namespace mikelepage
 			}
 			else if(m_hoveringDragonTile[color])
 			{
-				m_dragonTiles[color].setColor(m_dragonTiles[color].getColor() - Board::hoverColor);
+				m_board->clearHighlighting(HighlightingId::HOVER);
 				m_hoveringDragonTile[color] = false;
 
 				if(!m_setup && !m_selectedPiece)
-					m_board.clearHighlighting(HighlightingId::PTT);
+					m_board->clearHighlighting(HighlightingId::PTT);
 			}
 		}
 
 		if(!hoveringDragon && m_hoveredPiece && !m_selectedPiece)
-			m_board.clearHighlighting(HighlightingId::PTT);
+			m_board->clearHighlighting(HighlightingId::PTT);
 	}
 
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
@@ -315,7 +317,7 @@ namespace mikelepage
 				m_selectedPiece = it->second;
 				m_hoveredPiece = it->second;
 
-				m_board.highlightTileOffBoard(m_dragonTiles[m_ownColor].getPosition(), {255, 0, 0, 127}, HighlightingId::SEL);
+				m_board->highlightTile(m_dragonTiles[m_ownColor].getPosition(), HighlightingId::SEL);
 
 				if(!m_setup)
 					showPossibleTargetTiles();
@@ -324,8 +326,8 @@ namespace mikelepage
 		else if(m_selectedPiece)
 		{
 			m_selectedPiece.reset();
-			m_board.clearHighlighting(HighlightingId::SEL);
-			m_board.clearHighlighting(HighlightingId::PTT);
+			m_board->clearHighlighting(HighlightingId::SEL);
+			m_board->clearHighlighting(HighlightingId::PTT);
 		}
 	}
 
@@ -380,9 +382,9 @@ namespace mikelepage
 			m_renderPiecePromotionBgs = 0;
 			m_piecePromotionPieces.fill(nullptr);
 
-			m_ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, &m_board, _1);
-			m_ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, &m_board, _1);
-			m_ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, &m_board, _1);
+			m_ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, m_board.get(), _1);
+			m_ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, m_board.get(), _1);
+			m_ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, m_board.get(), _1);
 		}
 
 		m_piecePromotionMousePress = 0;
@@ -397,8 +399,8 @@ namespace mikelepage
 			updateTurnStatus();
 
 			m_self->sendAddFortressReplacementTile(coord);
-			m_board.onTileMouseOver = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
-			m_board.onTileClicked   = std::bind(&RenderedMatch::onTileClicked, this, _1);
+			m_board->onTileMouseOver = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
+			m_board->onTileClicked   = std::bind(&RenderedMatch::onTileClicked, this, _1);
 		}
 	}
 
@@ -415,7 +417,7 @@ namespace mikelepage
 
 			if(pieceType == PieceType::KING)
 			{
-				auto fortress = std::make_shared<RenderedFortress>(color, coord, m_board);
+				auto fortress = std::make_shared<RenderedFortress>(color, coord, *m_board);
 
 				player->setFortress(fortress);
 				m_fortressesToRender.push_back(fortress->getQuad());
@@ -429,7 +431,7 @@ namespace mikelepage
 				TerrainType tType = piece->getSetupTerrain();
 				if(tType != TerrainType::UNDEFINED)
 				{
-					auto terrain = std::make_shared<RenderedTerrain>(tType, coord, m_board, m_terrain);
+					auto terrain = std::make_shared<RenderedTerrain>(tType, coord, *m_board, m_terrain);
 
 					m_terrain.emplace(coord, terrain);
 					m_terrainToRender.push_back(terrain->getQuad());
@@ -558,12 +560,7 @@ namespace mikelepage
 
 		m_bearingTable.init();
 
-		if(m_ownColor == PlayersColor::WHITE)
-			m_board.resetTileColors(5, 11);
-		else
-			m_board.resetTileColors(0, 5);
-
-		m_dragonTiles[m_opColor].setColor(Board::tileColors[1]);
+		m_board->clearHighlighting(HighlightingId::DIM);
 
 		updateTurnStatus();
 	}
@@ -587,7 +584,7 @@ namespace mikelepage
 					m_self->checkSetupComplete();
 			}
 
-			m_board.clearHighlighting(HighlightingId::PTT);
+			m_board->clearHighlighting(HighlightingId::PTT);
 
 			if(!m_setup)
 			{
@@ -616,7 +613,7 @@ namespace mikelepage
 		auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(getPieceAt(coord));
 		assert(rPiece);
 
-		rPiece->setPosition(m_board.getTileAt(coord)->getPosition());
+		rPiece->setPosition(m_board->getTileAt(coord)->getPosition());
 
 		m_piecesToRender.push_back(rPiece->getQuad());
 	}
@@ -656,9 +653,9 @@ namespace mikelepage
 		{
 			m_fortressReplaceCorners.insert(coord);
 
-			m_fortressReplacementTileHighlightings.push_back(std::make_shared<fea::Quad>(m_board.getTileSize()));
+			m_fortressReplacementTileHighlightings.push_back(std::make_shared<fea::Quad>(m_board->getTileSize()));
 			m_fortressReplacementTileHighlightings.back()->setColor({127, 0, 191, 127});
-			m_fortressReplacementTileHighlightings.back()->setPosition(m_board.getTilePosition(coord));
+			m_fortressReplacementTileHighlightings.back()->setPosition(m_board->getTilePosition(coord));
 
 			m_terrainToRender.push_back(m_fortressReplacementTileHighlightings.back().get());
 
@@ -699,7 +696,7 @@ namespace mikelepage
 
 		// the tile clicked on holds a piece of the player
 		auto pTT = m_hoveredPiece->getPossibleTargetTiles();
-		m_board.highlightTiles(pTT.begin(), pTT.end(), {0, 0, 255, 127}, HighlightingId::PTT);
+		m_board->highlightTiles(pTT.begin(), pTT.end(), HighlightingId::PTT);
 	}
 
 	void RenderedMatch::showPromotionPieces(std::set<PieceType> pieceTypes)
@@ -746,9 +743,11 @@ namespace mikelepage
 
 	void RenderedMatch::chooseFortressReplacementTile()
 	{
+		// TODO: Dim all tiles except the corners
+
 		setStatus("Select fortress replacement corner");
-		m_board.onTileMouseOver = [](Coordinate) { };
-		m_board.onTileClicked   = std::bind(&RenderedMatch::onTileClickedFortressReplaceSelect, this, _1);
+		m_board->onTileMouseOver = [](Coordinate) { };
+		m_board->onTileClicked   = std::bind(&RenderedMatch::onTileClickedFortressReplaceSelect, this, _1);
 	}
 
 	void RenderedMatch::endGame(PlayersColor winner)
@@ -758,7 +757,8 @@ namespace mikelepage
 
 		setStatus(status);
 
-		m_board.clearHighlighting(HighlightingId::PTT);
+		m_board->clearHighlighting(HighlightingId::PTT);
+		m_board->clearHighlighting(HighlightingId::HOVER);
 
 		m_ingameState.onMouseMoved          = [](const fea::Event::MouseMoveEvent&) { };
 		m_ingameState.onMouseButtonPressed  = [](const fea::Event::MouseButtonEvent&) { };

@@ -23,8 +23,9 @@
 #include <set>
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
-#include "hexagon_board.hpp"
+#include <fea/ui/event.hpp>
 
+template <int l> class HexagonBoard;
 class IngameState;
 
 namespace mikelepage
@@ -48,7 +49,7 @@ namespace mikelepage
 			fea::Renderer2D& m_renderer;
 			IngameState& m_ingameState;
 
-			Board m_board;
+			std::unique_ptr<Board> m_board;
 
 			bool m_gameEnded;
 			std::string m_status;
@@ -89,10 +90,11 @@ namespace mikelepage
 			const RenderedMatch& operator= (const RenderedMatch&) = delete;
 
 			Board& getBoard()
-			{ return m_board; }
+			{ return *m_board; }
 
 			const std::string& getStatus()
 			{ return m_status; }
+
 			void setStatus(const std::string&);
 
 			void tick();

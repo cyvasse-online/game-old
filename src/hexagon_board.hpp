@@ -25,10 +25,14 @@
 #include <cyvmath/hexagon.hpp>
 #include <cyvmath/players_color.hpp>
 
+// order of elements here determines order of
+// queuing for rendering -> visual z-order
 enum class HighlightingId
 {
+	DIM,
 	SEL, // selected piece
-	PTT // possible target tiles
+	PTT, // possible target tiles
+	HOVER
 };
 
 template<int l>
@@ -37,17 +41,17 @@ class HexagonBoard
 	public:
 		typedef typename cyvmath::Hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
-		typedef typename std::pair<std::unique_ptr<Coordinate>, fea::Quad*> Tile;
+		typedef typename std::pair<Coordinate, fea::Quad*> Tile;
 		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
 		typedef std::vector<fea::Quad*> TileVec;
 		typedef std::vector<std::shared_ptr<fea::Quad>> ManagedQuadVec;
 		typedef std::map<HighlightingId, ManagedQuadVec> HighlightQuadMap;
 
 		static const fea::Color tileColors[3];
-		static const fea::Color tileColorsDark[3];
-		static const fea::Color hoverColor;
 
 	private:
+		static const std::map<HighlightingId, fea::Color> highlightingColors;
+
 		fea::Renderer2D& m_renderer;
 
 		bool m_upsideDown;
@@ -63,12 +67,13 @@ class HexagonBoard
 		TileMap m_tileMap;
 		TileVec m_tileVec;
 
-		Tile m_hoveredTile;
-		Tile m_mouseBPressTile;
+		std::unique_ptr<Tile> m_hoveredTile;
+		std::unique_ptr<Tile> m_mouseBPressTile;
 
 		HighlightQuadMap m_highlightQuads;
 
-		std::shared_ptr<fea::Quad> createHighlightQuad(glm::vec2 pos, const fea::Color&);
+		fea::Color getTileColor(Coordinate);
+		std::shared_ptr<fea::Quad> createHighlightQuad(glm::vec2 pos, HighlightingId);
 
 	public:
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
@@ -77,8 +82,6 @@ class HexagonBoard
 		// non-copyable
 		HexagonBoard(const HexagonBoard&) = delete;
 		const HexagonBoard& operator= (const HexagonBoard&) = delete;
-
-		static Tile noTile();
 
 		std::function<void(Coordinate)> onTileMouseOver;
 		std::function<void(Coordinate)> onTileClicked;
@@ -90,17 +93,16 @@ class HexagonBoard
 
 		glm::vec2 getTilePosition(Coordinate);
 		const glm::vec2& getTileSize() const;
-		// TODO: remove setup parameter
-		fea::Color getTileColor(Coordinate, bool setup);
 
 		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition);
 
 		fea::Quad* getTileAt(Coordinate);
 
-		void highlightTile(Coordinate, const fea::Color&, HighlightingId);
+		void highlightTile(Coordinate, HighlightingId, bool removeExisting = true);
+		void highlightTile(glm::vec2, HighlightingId, bool removeExisting = true);
 
 		template<class InputIterator>
-		void highlightTiles(InputIterator first, InputIterator last, const fea::Color& color, HighlightingId id)
+		void highlightTiles(InputIterator first, InputIterator last, HighlightingId id, bool removeExisting = true)
 		{
 			static_assert(
 				std::is_convertible<typename std::iterator_traits<InputIterator>::value_type, Coordinate>::value,
@@ -110,21 +112,17 @@ class HexagonBoard
 			auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
 			auto& quadVec = res.first->second;
 
-			if(!res.second)
+			if(removeExisting && !res.second)
 				quadVec.clear();
 
 			while(first != last)
 			{
-				quadVec.push_back(createHighlightQuad(getTilePosition(*first), color));
+				quadVec.push_back(createHighlightQuad(getTilePosition(*first), id));
 				++first;
 			}
 		}
 
-		void highlightTileOffBoard(glm::vec2, const fea::Color&, HighlightingId);
 		void clearHighlighting(HighlightingId);
-
-		// TODO: replace this with the new highlighting functionality
-		void resetTileColors(int8_t fromRow, int8_t toRow);
 
 		void queueTileRendering();
 		void queueHighlightingRendering();

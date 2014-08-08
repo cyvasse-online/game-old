@@ -16,49 +16,45 @@
 
 template <int l>
 const fea::Color HexagonBoard<l>::tileColors[3] {
+	{191, 140, 109},
 	{125,  81,  55},
-	{167, 108,  73},
-	{191, 140, 109}
-};
-
-
-template <int l>
-const fea::Color HexagonBoard<l>::tileColorsDark[3] {
-	{ 50,  32,  22},
-	{ 67,  43,  29},
-	{ 76,  56,  44}
+	{167, 108,  73}
 };
 
 template <int l>
-const fea::Color HexagonBoard<l>::hoverColor = fea::Color(48, 48, 48, 0);
+const std::map<HighlightingId, fea::Color> HexagonBoard<l>::highlightingColors {
+	{HighlightingId::DIM,   {  0,   0,   0, 127}},
+	{HighlightingId::SEL,   {255,   0,   0, 127}},
+	{HighlightingId::PTT,   {  0,   0, 255, 127}},
+	{HighlightingId::HOVER, {255, 255, 255,  63}}
+};
 
 template <int l>
-std::shared_ptr<fea::Quad> HexagonBoard<l>::createHighlightQuad(glm::vec2 pos, const fea::Color& color)
+fea::Color HexagonBoard<l>::getTileColor(Coordinate c)
+{
+	auto i = (((c.x() - c.y()) % 3) + 3) % 3;
+	return tileColors[i];
+}
+
+template <int l>
+std::shared_ptr<fea::Quad> HexagonBoard<l>::createHighlightQuad(glm::vec2 pos, HighlightingId id)
 {
 	auto ret = std::make_shared<fea::Quad>(getTileSize());
 
 	ret->setPosition(pos);
-	ret->setColor(color);
+	ret->setColor(highlightingColors.at(id));
 
 	return ret;
-}
-
-template <int l>
-typename HexagonBoard<l>::Tile HexagonBoard<l>::noTile()
-{
-	return std::make_pair(std::unique_ptr<HexagonBoard<l>::Coordinate>(), nullptr);
 }
 
 template <int l>
 HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
 	: m_renderer(renderer)
 	, m_upsideDown(color == cyvmath::PlayersColor::WHITE ? false : true)
-	, m_hoveredTile(noTile())
-	, m_mouseBPressTile(noTile())
 {
 	const glm::uvec2 windowSize = renderer.getViewport().getSize();
 
-	unsigned padding = std::min(windowSize.x, windowSize.y) / 20;
+	unsigned padding = std::min(windowSize.x, windowSize.y) / 40;
 
 	m_size = {windowSize.x - padding * 2, windowSize.y - padding * 2};
 
@@ -81,12 +77,19 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor c
 		m_position = {padding, (windowSize.y - m_size.y) / 2.0f};
 	}
 
+	std::vector<Coordinate> tmpVec;
+	tmpVec.reserve(Hexagon::tileCount + (Hexagon::edgeLength * 2) - 1);
+
 	for(Coordinate c : Hexagon::getAllCoordinates())
 	{
 		fea::Quad* quad = new fea::Quad(m_tileSize);
 
 		quad->setPosition(getTilePosition(c));
-		quad->setColor(getTileColor(c, true));
+		quad->setColor(getTileColor(c));
+
+		if((!m_upsideDown && c.y() >= (l - 1)) ||
+		   (m_upsideDown && c.y() <= (l - 1)))
+			tmpVec.push_back(c);
 
 		// add the tile to the map and vector
 		m_tileVec.push_back(quad);
@@ -94,6 +97,8 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor c
 
 		assert(res.second); // assert the insertion was successful
 	}
+
+	highlightTiles(tmpVec.begin(), tmpVec.end(), HighlightingId::DIM);
 }
 
 template <int l>
@@ -161,18 +166,6 @@ const glm::vec2& HexagonBoard<l>::getTileSize() const
 }
 
 template <int l>
-fea::Color HexagonBoard<l>::getTileColor(Coordinate c, bool setup)
-{
-	int8_t index = (((c.x() - c.y()) % 3) + 3) % 3;
-
-	if(setup && ((!m_upsideDown && c.y() >= (l - 1)) ||
-	              (m_upsideDown && c.y() <= (l - 1))))
-		return tileColorsDark[index];
-	else
-		return tileColors[index];
-}
-
-template <int l>
 std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(glm::ivec2 tilePosition)
 {
 	// remove padding - we're just altering a temporary variable
@@ -224,27 +217,27 @@ fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
-void HexagonBoard<l>::highlightTile(Coordinate coord, const fea::Color& color, HighlightingId id)
+void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id, bool removeExisting)
 {
 	auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
 	auto& quadVec = res.first->second;
 
-	if(!res.second)
+	if(removeExisting && !res.second)
 		quadVec.clear();
 
-	quadVec.push_back(createHighlightQuad(getTilePosition(coord), color));
+	quadVec.push_back(createHighlightQuad(getTilePosition(coord), id));
 }
 
 template <int l>
-void HexagonBoard<l>::highlightTileOffBoard(glm::vec2 pos, const fea::Color& color, HighlightingId id)
+void HexagonBoard<l>::highlightTile(glm::vec2 pos, HighlightingId id, bool removeExisting)
 {
 	auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
 	auto& quadVec = res.first->second;
 
-	if(!res.second)
+	if(removeExisting && !res.second)
 		quadVec.clear();
 
-	quadVec.push_back(createHighlightQuad(pos, color));
+	quadVec.push_back(createHighlightQuad(pos, id));
 }
 
 template <int l>
@@ -253,17 +246,6 @@ void HexagonBoard<l>::clearHighlighting(HighlightingId id)
 	auto res = m_highlightQuads.find(id);
 	if(res != m_highlightQuads.end())
 		res->second.clear();
-}
-
-template <int l>
-void HexagonBoard<l>::resetTileColors(int8_t fromRow, int8_t toRow)
-{
-	assert(fromRow <= toRow);
-	for(auto it : m_tileMap)
-	{
-		if(it.first.y() >= fromRow && it.first.y() <= toRow)
-			it.second->setColor(getTileColor(it.first, false));
-	}
 }
 
 template <int l>
@@ -290,26 +272,21 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 	{
 		fea::Quad* quad = getTileAt(*coord);
 
-		if(!m_hoveredTile.first || *coord != *m_hoveredTile.first)
+		if(!m_hoveredTile || *coord != m_hoveredTile->first)
 		{
-			// reset color of old hovered tile
-			if(m_hoveredTile.first)
-				m_hoveredTile.second->setColor(m_hoveredTile.second->getColor() - hoverColor);
-
-			quad->setColor(quad->getColor() + hoverColor);
-
-			m_hoveredTile = std::make_pair(std::move(coord), quad);
+			highlightTile(*coord, HighlightingId::HOVER);
+			m_hoveredTile = make_unique<Tile>(*coord, quad);
 		}
 
         onTileMouseOver(*coord);
 	}
 	else
 	{
-		if(m_hoveredTile.first)
+		if(m_hoveredTile)
 		{
 			// mouse is outside the board and one tile is still marked with the hover effect
-			m_hoveredTile.second->setColor(m_hoveredTile.second->getColor() - hoverColor);
-			m_hoveredTile = noTile();
+			clearHighlighting(HighlightingId::HOVER);
+			m_hoveredTile.reset();
 		}
 
 		onMouseMoveOutside(mouseMove);
@@ -319,17 +296,13 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 template <int l>
 void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if(mouseButton.button != fea::Mouse::Button::LEFT || m_mouseBPressTile.first)
+	if(mouseButton.button != fea::Mouse::Button::LEFT || m_mouseBPressTile)
 		return;
 
 	auto coord = getCoordinate({mouseButton.x, mouseButton.y});
 
 	if(coord)
-	{
-		fea::Quad* quad = getTileAt(*coord);
-
-		m_mouseBPressTile = std::make_pair(std::move(coord), quad);
-	}
+		m_mouseBPressTile = make_unique<Tile>(*coord, getTileAt(*coord));
 	else
 		onClickedOutside(mouseButton);
 }
@@ -337,13 +310,13 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 template <int l>
 void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if(m_mouseBPressTile.first)
+	if(m_mouseBPressTile)
 	{
 		auto coord = getCoordinate({mouseButton.x, mouseButton.y});
 
-		if(coord && *coord == *m_mouseBPressTile.first)
+		if(coord && *coord == m_mouseBPressTile->first)
 			onTileClicked(*coord);
 
-		m_mouseBPressTile = noTile();
+		m_mouseBPressTile.reset();
 	}
 }
