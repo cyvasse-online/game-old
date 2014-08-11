@@ -30,6 +30,7 @@
 enum class HighlightingId
 {
 	DIM,
+	LAST_MOVE,
 	SEL, // selected piece
 	PTT, // possible target tiles
 	HOVER

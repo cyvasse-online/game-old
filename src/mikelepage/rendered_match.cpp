@@ -598,6 +598,9 @@ namespace mikelepage
 
 				if(m_activePlayer == m_ownColor)
 					m_self->onTurnBegin();
+
+				m_board->highlightTile(coord, HighlightingId::LAST_MOVE, true);
+				m_board->highlightTile(*oldCoord, HighlightingId::LAST_MOVE, false);
 			}
 
 			return true;

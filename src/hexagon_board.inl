@@ -23,10 +23,11 @@ const fea::Color HexagonBoard<l>::tileColors[3] {
 
 template <int l>
 const std::map<HighlightingId, fea::Color> HexagonBoard<l>::highlightingColors {
-	{HighlightingId::DIM,   {  0,   0,   0, 127}},
-	{HighlightingId::SEL,   {255,   0,   0, 127}},
-	{HighlightingId::PTT,   {  0,   0, 255, 127}},
-	{HighlightingId::HOVER, {255, 255, 255,  63}}
+	{HighlightingId::DIM,       {  0,   0,   0, 127}},
+	{HighlightingId::LAST_MOVE, {  0, 255, 255, 127}},
+	{HighlightingId::SEL,       {255,   0,   0, 127}},
+	{HighlightingId::PTT,       {  0,   0, 255, 127}},
+	{HighlightingId::HOVER,     {255, 255, 255,  63}}
 };
 
 template <int l>
