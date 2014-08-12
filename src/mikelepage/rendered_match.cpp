@@ -84,7 +84,6 @@ namespace mikelepage
 		for(auto& quad : m_piecePromotionBackground)
 			quad.setColor({95, 95, 95});
 
-
 		placePiecesSetup();
 
 		ingameState.tick                  = std::bind(&RenderedMatch::tick, this);
@@ -225,12 +224,13 @@ namespace mikelepage
 			else if(m_setup || piece->getType() != PieceType::MOUNTAINS)
 			{
 				// there is a piece of the player on the clicked tile
-				auto selectedCoord = *m_selectedPiece->getCoord();
+				auto selectedCoord = m_selectedPiece->getCoord();
+				assert(selectedCoord);
 
 				m_selectedPiece.reset();
 				m_board->clearHighlighting(HighlightingId::SEL);
 
-				if(coord != selectedCoord)
+				if(coord != *selectedCoord)
 				{
 					// another piece clicked, create a new highlightning
 					m_selectedPiece = piece;
@@ -406,18 +406,17 @@ namespace mikelepage
 
 	void RenderedMatch::placePiece(std::shared_ptr<RenderedPiece> piece, std::shared_ptr<Player> player)
 	{
-		PlayersColor color = player->getColor();
+		auto color = player->getColor();
+		auto coord = piece->getCoord();
+		auto pieceType = piece->getType();
 
-		if(piece->getCoord()) // not null - a piece on the board
+		if(coord) // not null - a piece on the board
 		{
-			Coordinate coord = *piece->getCoord();
-			PieceType pieceType = piece->getType();
-
-			m_activePieces.emplace(coord, piece);
+			m_activePieces.emplace(*coord, piece);
 
 			if(pieceType == PieceType::KING)
 			{
-				auto fortress = std::make_shared<RenderedFortress>(color, coord, *m_board);
+				auto fortress = std::make_shared<RenderedFortress>(color, *coord, *m_board);
 
 				player->setFortress(fortress);
 				m_fortressesToRender.push_back(fortress->getQuad());
@@ -429,18 +428,19 @@ namespace mikelepage
 			else
 			{
 				TerrainType tType = piece->getSetupTerrain();
+
 				if(tType != TerrainType::UNDEFINED)
 				{
-					auto terrain = std::make_shared<RenderedTerrain>(tType, coord, *m_board, m_terrain);
+					auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
 
-					m_terrain.emplace(coord, terrain);
+					m_terrain.emplace(*coord, terrain);
 					m_terrainToRender.push_back(terrain->getQuad());
 				}
 			}
 		}
 		else // null - dragon outside the board
 		{
-			assert(piece->getType() == PieceType::DRAGON);
+			assert(pieceType == PieceType::DRAGON);
 			assert(player->getInactivePieces().empty());
 
 			piece->setPosition(m_dragonTiles[color].getPosition());

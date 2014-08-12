@@ -42,11 +42,10 @@ class HexagonBoard
 	public:
 		typedef typename cyvmath::Hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
-		typedef typename std::pair<Coordinate, fea::Quad*> Tile;
-		typedef typename std::map<Coordinate, fea::Quad*> TileMap;
-		typedef std::vector<fea::Quad*> TileVec;
-		typedef std::vector<std::shared_ptr<fea::Quad>> ManagedQuadVec;
-		typedef std::map<HighlightingId, ManagedQuadVec> HighlightQuadMap;
+		typedef typename std::pair<Coordinate, std::shared_ptr<fea::Quad>> Tile;
+		typedef typename std::map<Coordinate, std::shared_ptr<fea::Quad>> TileMap;
+		typedef std::vector<std::shared_ptr<fea::Quad>> QuadVec;
+		typedef std::map<HighlightingId, QuadVec> HighlightQuadMap;
 
 		static const fea::Color tileColors[3];
 
@@ -66,8 +65,9 @@ class HexagonBoard
 		glm::vec2 m_tileSize;
 
 		TileMap m_tileMap;
-		TileVec m_tileVec;
+		QuadVec m_quadVec;
 
+		// TODO: change to std::optional [C++14]
 		std::unique_ptr<Tile> m_hoveredTile;
 		std::unique_ptr<Tile> m_mouseBPressTile;
 
@@ -78,7 +78,6 @@ class HexagonBoard
 
 	public:
 		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
-		~HexagonBoard();
 
 		// non-copyable
 		HexagonBoard(const HexagonBoard&) = delete;
@@ -95,9 +94,48 @@ class HexagonBoard
 		glm::vec2 getTilePosition(Coordinate);
 		const glm::vec2& getTileSize() const;
 
-		std::unique_ptr<Coordinate> getCoordinate(glm::ivec2 tilePosition);
+		template<class... Args>
+		std::unique_ptr<Coordinate> getCoordinate(Args&&... args)
+		{
+			// remove padding
+			glm::uvec2 tilePos = glm::uvec2(std::forward<Args>(args)...) - m_position;
 
-		fea::Quad* getTileAt(Coordinate);
+			float x, y;
+
+			if(!m_upsideDown) // 'normal' orientation first
+			{
+				// y = (maximal y) - ('inverted' coord y)
+				y = (l * 2 - 1)
+					- tilePos.y / m_tileSize.y;
+
+				x = (
+						tilePos.x
+						+ ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
+						- m_tileSize.x / 2.0f
+					)
+					/ m_tileSize.x;
+			}
+			else // upsideDown
+			{
+				y = tilePos.y / m_tileSize.y;
+
+				x = (l * 2 - 1)
+					- ((
+							tilePos.x
+							- ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
+							+ m_tileSize.x / 2.0f
+						)
+						/ m_tileSize.x
+					);
+			}
+
+			if(x < 0.0f || y < 0.0f)
+				return nullptr;
+
+			return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
+		}
+
+		std::shared_ptr<fea::Quad> getTileAt(Coordinate);
 
 		void highlightTile(Coordinate, HighlightingId, bool removeExisting = true);
 		void highlightTile(glm::vec2, HighlightingId, bool removeExisting = true);
@@ -110,7 +148,7 @@ class HexagonBoard
 				"The iterators first and last have to be convertible to Coordinate"
 			);
 
-			auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
+			auto res = m_highlightQuads.emplace(id, QuadVec());
 			auto& quadVec = res.first->second;
 
 			if(removeExisting && !res.second)

@@ -83,7 +83,7 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor c
 
 	for(Coordinate c : Hexagon::getAllCoordinates())
 	{
-		fea::Quad* quad = new fea::Quad(m_tileSize);
+		auto quad = std::make_shared<fea::Quad>(m_tileSize);
 
 		quad->setPosition(getTilePosition(c));
 		quad->setColor(getTileColor(c));
@@ -93,20 +93,13 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor c
 			tmpVec.push_back(c);
 
 		// add the tile to the map and vector
-		m_tileVec.push_back(quad);
-		std::pair<typename TileMap::iterator, bool> res = m_tileMap.insert({c, quad});
+		m_quadVec.push_back(quad);
+		auto res = m_tileMap.emplace(c, quad);
 
 		assert(res.second); // assert the insertion was successful
 	}
 
 	highlightTiles(tmpVec.begin(), tmpVec.end(), HighlightingId::DIM);
-}
-
-template <int l>
-HexagonBoard<l>::~HexagonBoard()
-{
-	for(fea::Quad* it : m_tileVec)
-		delete it;
 }
 
 template <int l>
@@ -167,48 +160,7 @@ const glm::vec2& HexagonBoard<l>::getTileSize() const
 }
 
 template <int l>
-std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(glm::ivec2 tilePosition)
-{
-	// remove padding - we're just altering a temporary variable
-	tilePosition -= glm::ivec2(m_position.x, m_position.y);
-
-	float x, y;
-
-	if(!m_upsideDown) // 'normal' orientation first
-	{
-		// y = (maximal y) - ('inverted' coord y)
-		y = (l * 2 - 1)
-			- tilePosition.y / m_tileSize.y;
-
-		x = (
-				tilePosition.x
-				+ ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
-				- m_tileSize.x / 2.0f
-			)
-			/ m_tileSize.x;
-	}
-	else // upsideDown
-	{
-		y = tilePosition.y / m_tileSize.y;
-
-		x = (l * 2 - 1)
-			- ((
-					tilePosition.x
-					- ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
-					+ m_tileSize.x / 2.0f
-				)
-				/ m_tileSize.x
-			);
-	}
-
-	if(x < 0.0f || y < 0.0f)
-		return nullptr;
-
-	return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
-}
-
-template <int l>
-fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
+std::shared_ptr<fea::Quad> HexagonBoard<l>::getTileAt(Coordinate c)
 {
 	typename TileMap::iterator it = m_tileMap.find(c);
 	if(it == m_tileMap.end())
@@ -220,7 +172,7 @@ fea::Quad* HexagonBoard<l>::getTileAt(Coordinate c)
 template <int l>
 void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id, bool removeExisting)
 {
-	auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
+	auto res = m_highlightQuads.emplace(id, QuadVec());
 	auto& quadVec = res.first->second;
 
 	if(removeExisting && !res.second)
@@ -232,7 +184,7 @@ void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id, bool re
 template <int l>
 void HexagonBoard<l>::highlightTile(glm::vec2 pos, HighlightingId id, bool removeExisting)
 {
-	auto res = m_highlightQuads.emplace(id, ManagedQuadVec());
+	auto res = m_highlightQuads.emplace(id, QuadVec());
 	auto& quadVec = res.first->second;
 
 	if(removeExisting && !res.second)
@@ -252,7 +204,7 @@ void HexagonBoard<l>::clearHighlighting(HighlightingId id)
 template <int l>
 void HexagonBoard<l>::queueTileRendering()
 {
-    for(const fea::Quad* it : m_tileVec)
+    for(auto it : m_quadVec)
         m_renderer.queue(*it);
 }
 
@@ -267,11 +219,11 @@ void HexagonBoard<l>::queueHighlightingRendering()
 template <int l>
 void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 {
-	auto coord = getCoordinate({mouseMove.x, mouseMove.y});
+	auto coord = getCoordinate(mouseMove.x, mouseMove.y);
 
 	if(coord) // mouse hovers on tile (*coord)
 	{
-		fea::Quad* quad = getTileAt(*coord);
+		auto quad = getTileAt(*coord);
 
 		if(!m_hoveredTile || *coord != m_hoveredTile->first)
 		{
@@ -300,7 +252,7 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 	if(mouseButton.button != fea::Mouse::Button::LEFT || m_mouseBPressTile)
 		return;
 
-	auto coord = getCoordinate({mouseButton.x, mouseButton.y});
+	auto coord = getCoordinate(mouseButton.x, mouseButton.y);
 
 	if(coord)
 		m_mouseBPressTile = make_unique<Tile>(*coord, getTileAt(*coord));
@@ -313,7 +265,7 @@ void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& 
 {
 	if(m_mouseBPressTile)
 	{
-		auto coord = getCoordinate({mouseButton.x, mouseButton.y});
+		auto coord = getCoordinate(mouseButton.x, mouseButton.y);
 
 		if(coord && *coord == m_mouseBPressTile->first)
 			onTileClicked(*coord);
