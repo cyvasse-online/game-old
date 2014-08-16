@@ -160,7 +160,7 @@ namespace mikelepage
 		if(it != m_activePieces.end() &&
 		   it->second->getType() != PieceType::MOUNTAINS)
 		{
-			// a piece of the player was clicked
+			// a piece of the player was hovered
 
 			if(it->second != m_hoveredPiece)
 			{
@@ -259,8 +259,8 @@ namespace mikelepage
 
 				if(!m_hoveringDragonTile[color])
 				{
-					m_board->highlightTile(m_dragonTiles[color].getPosition(), HighlightingId::HOVER);
 					m_hoveringDragonTile[color] = true;
+					m_board->highlightTile(m_dragonTiles[color].getPosition(), HighlightingId::HOVER);
 
 					if(!m_setup && !m_selectedPiece)
 					{
@@ -276,16 +276,16 @@ namespace mikelepage
 			}
 			else if(m_hoveringDragonTile[color])
 			{
-				m_board->clearHighlighting(HighlightingId::HOVER);
 				m_hoveringDragonTile[color] = false;
-
-				if(!m_setup && !m_selectedPiece)
-					m_board->clearHighlighting(HighlightingId::PTT);
+				m_board->clearHighlighting(HighlightingId::HOVER);
 			}
 		}
 
 		if(!hoveringDragon && m_hoveredPiece && !m_selectedPiece)
+		{
+			m_hoveredPiece.reset();
 			m_board->clearHighlighting(HighlightingId::PTT);
+		}
 	}
 
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
@@ -303,13 +303,8 @@ namespace mikelepage
 			   mouseOver(m_dragonTiles[m_ownColor], {event.x, event.y}) &&
 			   (m_setup || m_activePlayer == m_ownColor))
 		{
-			PieceType selectedPieceType = (m_selectedPiece ? m_selectedPiece->getType() : PieceType::UNDEFINED);
-
-			if(m_selectedPiece)
-				m_selectedPiece.reset();
-
 			// only select the dragon if it isn't selected, otherwise unselect it
-			if(selectedPieceType != PieceType::DRAGON)
+			if(!m_selectedPiece || m_selectedPiece->getType() != PieceType::DRAGON)
 			{
 				assert(m_self->getInactivePieces().count(PieceType::DRAGON) == 1);
 				auto it = m_self->getInactivePieces().find(PieceType::DRAGON);
@@ -321,6 +316,11 @@ namespace mikelepage
 
 				if(!m_setup)
 					showPossibleTargetTiles();
+			}
+			else
+			{
+				m_selectedPiece.reset();
+				m_board->clearHighlighting(HighlightingId::SEL);
 			}
 		}
 		else if(m_selectedPiece)

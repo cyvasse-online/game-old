@@ -204,8 +204,8 @@ void HexagonBoard<l>::clearHighlighting(HighlightingId id)
 template <int l>
 void HexagonBoard<l>::queueTileRendering()
 {
-    for(auto it : m_quadVec)
-        m_renderer.queue(*it);
+	for(auto it : m_quadVec)
+		m_renderer.queue(*it);
 }
 
 template <int l>
@@ -229,9 +229,9 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 		{
 			highlightTile(*coord, HighlightingId::HOVER);
 			m_hoveredTile = make_unique<Tile>(*coord, quad);
-		}
 
-        onTileMouseOver(*coord);
+			onTileMouseOver(*coord);
+		}
 	}
 	else
 	{
