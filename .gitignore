@@ -19,11 +19,13 @@ Makefile.in
 cyvasse-game
 cyvasse.data
 cyvasse.js
-cyvasse.js.map
 cyvmath-tests
+libcyvdb.a
 libcyvmath.a
 
 *.o
+*.js.map
+*.js.mem
 
 # Other
 
