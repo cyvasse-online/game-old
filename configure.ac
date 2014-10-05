@@ -11,7 +11,7 @@ AM_CONDITIONAL([USING_EMSCRIPTEN], [test -n "$EMMAKEN_JUST_CONFIGURE"])
 
 AC_ARG_VAR([EMSCRIPTEN_PREFIX], [prefix in which to search for library bitcode for emscripten])
 
-AC_CONFIG_SUBDIRS([cyvmath])
+AC_CONFIG_SUBDIRS([cyvasse-common])
 AC_CONFIG_FILES([
 	Makefile
 ])

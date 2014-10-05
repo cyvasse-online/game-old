@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-SUBDIRS = cyvmath .
+SUBDIRS = cyvasse-common .
 
 game_sources = \
 	lodepng/lodepng.cpp \
@@ -35,7 +35,7 @@ game_sources = \
 # in Feather Kit in the future, so [TODO] this
 # folder should be removed then.
 game_cppflags = \
-	-I$(top_srcdir)/cyvmath/include \
+	-I$(top_srcdir)/cyvasse-common/include \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/lodepng
 
@@ -43,7 +43,7 @@ game_cxxflags = \
 	-std=c++11
 
 game_ldadd = \
-	$(top_builddir)/cyvmath/libcyvmath.a \
+	$(top_builddir)/cyvasse-common/libcyvmath.a \
 	-lfea-structure \
 	-lfea-ui \
 	-lfea-rendering \
