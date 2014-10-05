@@ -25,9 +25,9 @@ using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
-	RenderedPiece::RenderedPiece(PieceType type, std::unique_ptr<Coordinate> coord,
+	RenderedPiece::RenderedPiece(PieceType type, Coordinate coord,
 	                             PlayersColor color, RenderedMatch& match)
-		: Piece(color, type, std::move(coord), match)
+		: Piece(color, type, coord, match)
 		, m_board(match.getBoard())
 		, m_quad(m_board.getTileSize())
 	{

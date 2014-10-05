@@ -43,8 +43,6 @@ namespace mikelepage
 		, m_ownColor{color}
 		, m_opColor{!color}
 		, m_setupAccepted{false}
-		, m_dragonTiles{{m_board->getTileSize(), m_board->getTileSize()}}
-		, m_hoveringDragonTile{{false, false}}
 		, m_piecePromotionBackground{{glm::vec2{100, 100}, glm::vec2{100, 100}, glm::vec2{100, 100}}}
 		, m_piecePromotionTypes{{PieceType::UNDEFINED, PieceType::UNDEFINED, PieceType::UNDEFINED}}
 		, m_renderPiecePromotionBgs{0}
@@ -61,7 +59,6 @@ namespace mikelepage
 
 		glm::uvec2 boardSize = m_board->getSize();
 		glm::uvec2 boardPos = m_board->getPosition();
-		glm::uvec2 tileSize = m_board->getTileSize();
 
 		auto tmpTexture = makeTexture("setup-done.png");
 
@@ -69,17 +66,6 @@ namespace mikelepage
 		m_buttonSetupDone.setPosition(boardPos + boardSize - tmpTexture.second);
 		m_buttonSetupDone.setSize(tmpTexture.second); // hardcoded for now, can be done properly somewhen else
 		m_buttonSetupDone.setTexture(m_buttonSetupDoneTexture);
-
-		m_dragonTiles[m_ownColor].setColor(Board::tileColors[2]);
-		m_dragonTiles[m_opColor].setColor(Board::tileColors[2]);
-
-		m_dragonTiles[m_ownColor].setPosition(
-			{boardPos.x, boardPos.y + boardSize.y - tileSize.y}
-		);
-
-		glm::vec2 tmpPos {boardPos.x + boardSize.x - tileSize.x, boardPos.y};
-		m_dragonTiles[m_opColor].setPosition(tmpPos);
-		m_board->highlightTile(tmpPos, HighlightingId::DIM, false);
 
 		for(auto& quad : m_piecePromotionBackground)
 			quad.setColor({95, 95, 95});
@@ -95,7 +81,7 @@ namespace mikelepage
 
 		m_board->onTileMouseOver    = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
 		m_board->onTileClicked      = std::bind(&RenderedMatch::onTileClicked, this, _1);
-		m_board->onMouseMoveOutside = std::bind(&RenderedMatch::onMouseMoveOutsideBoard, this, _1);
+		m_board->onMouseMoveOutside = [](const fea::Event::MouseMoveEvent&) { };
 		m_board->onClickedOutside   = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
 
 		setStatus("Setup");
@@ -118,10 +104,6 @@ namespace mikelepage
 	void RenderedMatch::tick()
 	{
 		m_board->queueTileRendering();
-
-		for(auto player : m_players)
-			if(player->dragonAliveInactive())
-				m_renderer.queue(m_dragonTiles[player->getColor()]);
 
 		for(fea::Quad* it : m_terrainToRender)
 			m_renderer.queue(*it);
@@ -244,50 +226,6 @@ namespace mikelepage
 		}
 	}
 
-	void RenderedMatch::onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent& event)
-	{
-		bool hoveringDragon = false;
-
-		for(auto player : m_players)
-		{
-			PlayersColor color = player->getColor();
-
-			if(player->dragonAliveInactive() &&
-			   mouseOver(m_dragonTiles[color], {event.x, event.y}))
-			{
-				hoveringDragon = true;
-
-				if(!m_hoveringDragonTile[color])
-				{
-					m_hoveringDragonTile[color] = true;
-					m_board->highlightTile(m_dragonTiles[color].getPosition(), HighlightingId::HOVER);
-
-					if(!m_setup && !m_selectedPiece)
-					{
-						auto& inactivePieces = m_players[color]->getInactivePieces();
-						auto dragonIt = inactivePieces.find(PieceType::DRAGON);
-						assert(dragonIt != inactivePieces.end());
-
-						m_hoveredPiece = dragonIt->second;
-
-						showPossibleTargetTiles();
-					}
-				}
-			}
-			else if(m_hoveringDragonTile[color])
-			{
-				m_hoveringDragonTile[color] = false;
-				m_board->clearHighlighting(HighlightingId::HOVER);
-			}
-		}
-
-		if(!hoveringDragon && m_hoveredPiece && !m_selectedPiece)
-		{
-			m_hoveredPiece.reset();
-			m_board->clearHighlighting(HighlightingId::PTT);
-		}
-	}
-
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
 		// 'Setup done' button clicked (while being visible)
@@ -299,31 +237,8 @@ namespace mikelepage
 			m_self->sendLeaveSetup();
 			tryLeaveSetup();
 		}
-		else if(m_self->dragonAliveInactive() &&
-			   mouseOver(m_dragonTiles[m_ownColor], {event.x, event.y}) &&
-			   (m_setup || m_activePlayer == m_ownColor))
-		{
-			// only select the dragon if it isn't selected, otherwise unselect it
-			if(!m_selectedPiece || m_selectedPiece->getType() != PieceType::DRAGON)
-			{
-				assert(m_self->getInactivePieces().count(PieceType::DRAGON) == 1);
-				auto it = m_self->getInactivePieces().find(PieceType::DRAGON);
 
-				m_selectedPiece = it->second;
-				m_hoveredPiece = it->second;
-
-				m_board->highlightTile(m_dragonTiles[m_ownColor].getPosition(), HighlightingId::SEL);
-
-				if(!m_setup)
-					showPossibleTargetTiles();
-			}
-			else
-			{
-				m_selectedPiece.reset();
-				m_board->clearHighlighting(HighlightingId::SEL);
-			}
-		}
-		else if(m_selectedPiece)
+		if(m_selectedPiece)
 		{
 			m_selectedPiece.reset();
 			m_board->clearHighlighting(HighlightingId::SEL);
@@ -410,41 +325,28 @@ namespace mikelepage
 		auto coord = piece->getCoord();
 		auto pieceType = piece->getType();
 
-		if(coord) // not null - a piece on the board
+		assert(coord);
+
+		m_activePieces.emplace(*coord, piece);
+
+		if(pieceType == PieceType::KING)
 		{
-			m_activePieces.emplace(*coord, piece);
+			auto fortress = std::make_shared<RenderedFortress>(color, *coord, *m_board);
 
-			if(pieceType == PieceType::KING)
-			{
-				auto fortress = std::make_shared<RenderedFortress>(color, *coord, *m_board);
-
-				player->setFortress(fortress);
-				m_fortressesToRender.push_back(fortress->getQuad());
-			}
-			else if(pieceType == PieceType::DRAGON)
-			{
-				player->dragonBroughtOut();
-			}
-			else
-			{
-				TerrainType tType = piece->getSetupTerrain();
-
-				if(tType != TerrainType::UNDEFINED)
-				{
-					auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
-
-					m_terrain.emplace(*coord, terrain);
-					m_terrainToRender.push_back(terrain->getQuad());
-				}
-			}
+			player->setFortress(fortress);
+			m_fortressesToRender.push_back(fortress->getQuad());
 		}
-		else // null - dragon outside the board
+		else
 		{
-			assert(pieceType == PieceType::DRAGON);
-			assert(player->getInactivePieces().empty());
+			TerrainType tType = piece->getSetupTerrain();
 
-			piece->setPosition(m_dragonTiles[color].getPosition());
-			player->getInactivePieces().emplace(piece->getType(), piece);
+			if(tType != TerrainType::UNDEFINED)
+			{
+				auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
+
+				m_terrain.emplace(*coord, terrain);
+				m_terrainToRender.push_back(terrain->getQuad());
+			}
 		}
 
 		m_piecesToRender.push_back(piece->getQuad());
@@ -452,87 +354,86 @@ namespace mikelepage
 
 	void RenderedMatch::placePiecesSetup()
 	{
-		#define coord(x, y) \
-			Coordinate::create((x), (y))
+		typedef std::pair<PieceType, Coordinate> Position;
 
-		typedef std::pair<PieceType, std::shared_ptr<Coordinate>> Position;
+		auto C = [](int_least8_t x, int_least8_t y) {
+			auto coord = Coordinate::create(x, y);
+			assert(coord);
+			return *coord;
+		};
 
 		static const std::array<std::vector<Position>, 2> defaultPiecePositions {{
 			{
 				// white
-				{PieceType::MOUNTAINS,    coord(0, 10)},
-				{PieceType::MOUNTAINS,    coord(1, 10)},
-				{PieceType::MOUNTAINS,    coord(2, 10)},
-				{PieceType::MOUNTAINS,    coord(3, 10)},
-				{PieceType::MOUNTAINS,    coord(4, 10)},
-				{PieceType::MOUNTAINS,    coord(5, 10)},
+				{PieceType::DRAGON,      C(3, 9)},
 
-				{PieceType::TREBUCHET,   coord(1, 8)},
-				{PieceType::TREBUCHET,   coord(2, 8)},
-				{PieceType::ELEPHANT,    coord(3, 8)},
-				{PieceType::ELEPHANT,    coord(4, 8)},
-				{PieceType::HEAVY_HORSE, coord(5, 8)},
-				{PieceType::HEAVY_HORSE, coord(6, 8)},
+				{PieceType::MOUNTAINS,   C(0, 8)},
+				{PieceType::MOUNTAINS,   C(0, 7)},
+				{PieceType::MOUNTAINS,   C(1, 6)},
+				{PieceType::MOUNTAINS,   C(7, 8)},
+				{PieceType::MOUNTAINS,   C(8, 7)},
+				{PieceType::MOUNTAINS,   C(8, 6)},
 
-				{PieceType::RABBLE,      coord(1, 7)},
-				{PieceType::RABBLE,      coord(2, 7)},
-				{PieceType::RABBLE,      coord(3, 7)},
-				{PieceType::KING,        coord(4, 7)},
-				{PieceType::RABBLE,      coord(5, 7)},
-				{PieceType::RABBLE,      coord(6, 7)},
-				{PieceType::RABBLE,      coord(7, 7)},
+				{PieceType::TREBUCHET,   C(1, 8)},
+				{PieceType::TREBUCHET,   C(2, 8)},
+				{PieceType::ELEPHANT,    C(3, 8)},
+				{PieceType::ELEPHANT,    C(4, 8)},
+				{PieceType::HEAVY_HORSE, C(5, 8)},
+				{PieceType::HEAVY_HORSE, C(6, 8)},
 
-				{PieceType::CROSSBOWS,   coord(2, 6)},
-				{PieceType::CROSSBOWS,   coord(3, 6)},
-				{PieceType::SPEARS,      coord(4, 6)},
-				{PieceType::SPEARS,      coord(5, 6)},
-				{PieceType::LIGHT_HORSE, coord(6, 6)},
-				{PieceType::LIGHT_HORSE, coord(7, 6)},
+				{PieceType::CROSSBOWS,   C(1, 7)},
+				{PieceType::CROSSBOWS,   C(2, 7)},
+				{PieceType::SPEARS,      C(3, 7)},
+				{PieceType::KING,        C(4, 7)},
+				{PieceType::SPEARS,      C(5, 7)},
+				{PieceType::LIGHT_HORSE, C(6, 7)},
+				{PieceType::LIGHT_HORSE, C(7, 7)},
 
-				// dragon starts outside the board
-				{PieceType::DRAGON,      nullptr}
+				{PieceType::RABBLE,      C(2, 6)},
+				{PieceType::RABBLE,      C(3, 6)},
+				{PieceType::RABBLE,      C(4, 6)},
+				{PieceType::RABBLE,      C(5, 6)},
+				{PieceType::RABBLE,      C(6, 6)},
+				{PieceType::RABBLE,      C(7, 6)}
 			},
 			{
 				// black
-				{PieceType::MOUNTAINS,    coord(10, 0)},
-				{PieceType::MOUNTAINS,    coord(9,  0)},
-				{PieceType::MOUNTAINS,    coord(8,  0)},
-				{PieceType::MOUNTAINS,    coord(7,  0)},
-				{PieceType::MOUNTAINS,    coord(6,  0)},
-				{PieceType::MOUNTAINS,    coord(5,  0)},
+				{PieceType::DRAGON,      C(7, 1)},
 
-				{PieceType::TREBUCHET,   coord(9, 2)},
-				{PieceType::TREBUCHET,   coord(8, 2)},
-				{PieceType::ELEPHANT,    coord(7, 2)},
-				{PieceType::ELEPHANT,    coord(6, 2)},
-				{PieceType::HEAVY_HORSE, coord(5, 2)},
-				{PieceType::HEAVY_HORSE, coord(4, 2)},
+				{PieceType::MOUNTAINS,   C(10, 2)},
+				{PieceType::MOUNTAINS,   C(10, 3)},
+				{PieceType::MOUNTAINS,   C(9, 4)},
+				{PieceType::MOUNTAINS,   C(3, 2)},
+				{PieceType::MOUNTAINS,   C(2, 3)},
+				{PieceType::MOUNTAINS,   C(2, 4)},
 
-				{PieceType::RABBLE,      coord(9, 3)},
-				{PieceType::RABBLE,      coord(8, 3)},
-				{PieceType::RABBLE,      coord(7, 3)},
-				{PieceType::KING,        coord(6, 3)},
-				{PieceType::RABBLE,      coord(5, 3)},
-				{PieceType::RABBLE,      coord(4, 3)},
-				{PieceType::RABBLE,      coord(3, 3)},
+				{PieceType::TREBUCHET,   C(9, 2)},
+				{PieceType::TREBUCHET,   C(8, 2)},
+				{PieceType::ELEPHANT,    C(7, 2)},
+				{PieceType::ELEPHANT,    C(6, 2)},
+				{PieceType::HEAVY_HORSE, C(5, 2)},
+				{PieceType::HEAVY_HORSE, C(4, 2)},
 
-				{PieceType::CROSSBOWS,   coord(8, 4)},
-				{PieceType::CROSSBOWS,   coord(7, 4)},
-				{PieceType::SPEARS,      coord(6, 4)},
-				{PieceType::SPEARS,      coord(5, 4)},
-				{PieceType::LIGHT_HORSE, coord(4, 4)},
-				{PieceType::LIGHT_HORSE, coord(3, 4)},
+				{PieceType::CROSSBOWS,   C(9, 3)},
+				{PieceType::CROSSBOWS,   C(8, 3)},
+				{PieceType::SPEARS,      C(7, 3)},
+				{PieceType::KING,        C(6, 3)},
+				{PieceType::SPEARS,      C(5, 3)},
+				{PieceType::LIGHT_HORSE, C(4, 3)},
+				{PieceType::LIGHT_HORSE, C(3, 3)},
 
-				// dragon starts outside the board
-				{PieceType::DRAGON,      nullptr}
+				{PieceType::RABBLE,      C(8, 4)},
+				{PieceType::RABBLE,      C(7, 4)},
+				{PieceType::RABBLE,      C(6, 4)},
+				{PieceType::RABBLE,      C(5, 4)},
+				{PieceType::RABBLE,      C(4, 4)},
+				{PieceType::RABBLE,      C(3, 4)}
 			}}};
-
-		#undef coord
 
 		for(auto& it : defaultPiecePositions.at(m_ownColor))
 		{
 			auto tmpPiece = std::make_shared<RenderedPiece>(
-				it.first, make_unique(it.second), m_ownColor, *this
+				it.first, it.second, m_ownColor, *this
 			);
 
 			placePiece(tmpPiece, m_self);
@@ -578,7 +479,7 @@ namespace mikelepage
 			if(piece->getColor() == m_ownColor)
 			{
 				if(!m_setup)
-					m_self->sendMovePiece(piece, make_unique(oldCoord));
+					m_self->sendMovePiece(piece, *oldCoord);
 
 				if(!m_setupAccepted)
 					m_self->checkSetupComplete();

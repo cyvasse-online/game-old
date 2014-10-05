@@ -40,7 +40,7 @@ namespace mikelepage
 			fea::Texture m_texture;
 
 		public:
-			RenderedPiece(PieceType, std::unique_ptr<Coordinate>, PlayersColor, RenderedMatch&);
+			RenderedPiece(PieceType, Coordinate, PlayersColor, RenderedMatch&);
 
 			fea::Quad* getQuad()
 			{ return &m_quad; }

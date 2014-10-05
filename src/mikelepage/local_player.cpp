@@ -129,29 +129,20 @@ namespace mikelepage
 			pieces.append(piece);
 		}
 
-		// after setup, if there is an inactive piece, it has to be
-		// the dragon; otherwise m_inactivePieces has to be empty
-		assert(m_inactivePieces.size() <= 1);
-
-		if(m_inactivePieces.size() > 0)
-		{
-			Json::Value piece;
-			piece["type"] = PieceTypeToStr(PieceType::DRAGON);
-			piece["position"] = Json::Value(); // null
-
-			pieces.append(piece);
-		}
+		// every piece has to be on the board
+		assert(m_inactivePieces.empty());
+		assert(m_match.getActivePieces().size() == 26);
 
 		sendGameUpdate(Update::LEAVE_SETUP, data);
 	}
 
-	void LocalPlayer::sendMovePiece(std::shared_ptr<Piece> piece, std::unique_ptr<Coordinate> oldPos)
+	void LocalPlayer::sendMovePiece(std::shared_ptr<Piece> piece, Coordinate oldPos)
 	{
 		assert(piece->getCoord());
 
 		Json::Value data;
 		data["piece type"]   = PieceTypeToStr(piece->getType()); // not really relevant, only for debugging
-		data["old position"] = oldPos ? oldPos->toString() : Json::Value();
+		data["old position"] = oldPos.toString();
 		data["new position"] = piece->getCoord()->toString();
 
 		sendGameUpdate(Update::MOVE_PIECE, data);

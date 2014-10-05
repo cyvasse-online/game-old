@@ -68,9 +68,6 @@ namespace mikelepage
 			fea::Texture m_buttonSetupDoneTexture;
 			fea::Quad m_buttonSetupDone;
 
-			std::array<fea::Quad, 2> m_dragonTiles;
-			std::array<bool, 2> m_hoveringDragonTile;
-
 			std::array<fea::Quad, 3> m_piecePromotionBackground;
 			std::array<fea::Quad*, 3> m_piecePromotionPieces;
 			std::array<PieceType, 3> m_piecePromotionTypes;
@@ -101,7 +98,6 @@ namespace mikelepage
 
 			void onTileMouseOver(Coordinate);
 			void onTileClicked(Coordinate);
-			void onMouseMoveOutsideBoard(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
 			void tickPromotionPieceSelect();

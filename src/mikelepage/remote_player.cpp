@@ -77,11 +77,10 @@ namespace mikelepage
 
 					if(type == PieceType::UNDEFINED)
 						throw std::runtime_error("got unknown piece type " + piece["type"].asString());
-					if(!coord && type != PieceType::DRAGON)
-						throw std::runtime_error("a " + piece["type"].asString() +
-							" piece has no position on the board, this is only allowed for the dragon");
+					if(!coord)
+						throw std::runtime_error("got invalid position " + piece["position"].asString());
 
-					auto renderedPiece = std::make_shared<RenderedPiece>(type, make_unique(coord), m_color, m_match);
+					auto renderedPiece = std::make_shared<RenderedPiece>(type, *coord, m_color, m_match);
 
 					m_pieceCache.push_back(renderedPiece);
 				}
@@ -107,30 +106,14 @@ namespace mikelepage
 
 				std::shared_ptr<Piece> piece;
 
-				if(oldPos)
-				{
-					auto it = m_match.getActivePieces().find(*oldPos);
-					if(it == m_match.getActivePieces().end())
-						throw std::runtime_error("move of non-existent piece at " + oldPos->toString() + " requested");
+				if(!oldPos)
+					throw std::runtime_error("move of piece without position requested");
 
-					piece = it->second;
-				}
-				else
-				{
-					if(pieceType != PieceType::DRAGON)
-						throw std::runtime_error("move of piece without position that is not a dragon requested");
+				auto it = m_match.getActivePieces().find(*oldPos);
+				if(it == m_match.getActivePieces().end())
+					throw std::runtime_error("move of non-existent piece at " + oldPos->toString() + " requested");
 
-					if(!m_dragonAliveInactive)
-						throw std::runtime_error("bringing out the dragon requested"
-						                         "although it has been brought out already");
-
-					assert(m_inactivePieces.count(PieceType::DRAGON) == 1);
-					auto it = m_inactivePieces.find(PieceType::DRAGON);
-
-					piece = it->second;
-
-					assert(piece);
-				}
+				piece = it->second;
 
 				if(piece->getType() != pieceType)
 					throw std::runtime_error(
