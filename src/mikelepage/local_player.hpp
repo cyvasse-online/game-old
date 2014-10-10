@@ -21,8 +21,8 @@
 
 #include <memory>
 #include <json/value.h>
-#include <cyvmath/mikelepage/fortress.hpp>
 #include <server_message.hpp>
+#include "rendered_fortress.hpp"
 
 namespace mikelepage
 {
@@ -46,7 +46,8 @@ namespace mikelepage
 			void sendGameUpdate(Update, Json::Value data);
 
 		public:
-			LocalPlayer(PlayersColor, RenderedMatch&);
+			LocalPlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress>);
+			virtual ~LocalPlayer() = default;
 
 			bool setupComplete() final override
 			{ return m_setupComplete; }
@@ -55,8 +56,6 @@ namespace mikelepage
 			{ m_setupComplete = Player::setupComplete(); }
 
 			void onTurnBegin();
-
-			void removeFortress() final override;
 
 			void sendLeaveSetup();
 			void sendMovePiece(std::shared_ptr<Piece>, Coordinate oldPos);

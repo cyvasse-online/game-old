@@ -19,6 +19,7 @@
 
 #include <cyvmath/mikelepage/player.hpp>
 #include <json/value.h>
+#include "rendered_fortress.hpp"
 #include "hexagon_board.hpp"
 
 namespace mikelepage
@@ -42,12 +43,11 @@ namespace mikelepage
 			RenderedMatch& m_match;
 
 		public:
-			RemotePlayer(PlayersColor, RenderedMatch&);
+			RemotePlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress>);
+			virtual ~RemotePlayer() = default;
 
 			bool setupComplete() final override
 			{ return m_setupComplete; }
-
-			void removeFortress() final override;
 
 			RenderedPieceVec& getPieceCache()
 			{ return m_pieceCache; }

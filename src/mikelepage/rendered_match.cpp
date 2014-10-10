@@ -49,8 +49,18 @@ namespace mikelepage
 		, m_piecePromotionHover{0}
 		, m_piecePromotionMousePress{0}
 	{
-		m_players[m_ownColor] = std::make_shared<LocalPlayer>(m_ownColor, *this);
-		m_players[m_opColor]  = std::make_shared<RemotePlayer>(m_opColor, *this);
+		// hardcoded temporarily [TODO]
+		const std::map<PlayersColor, Coordinate> fortressStartCoords {
+			{PlayersColor::WHITE, *Coordinate::create(4, 7)},
+			{PlayersColor::BLACK, *Coordinate::create(6, 3)}
+		};
+
+		auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), *m_board);
+		m_fortressesToRender.push_back(ownFortress->getQuad());
+
+		m_players[m_ownColor] = std::make_shared<LocalPlayer>(m_ownColor, *this, std::move(ownFortress));
+		m_players[m_opColor]  = std::make_shared<RemotePlayer>(m_opColor, *this,
+			make_unique<RenderedFortress>(m_opColor, fortressStartCoords.at(m_opColor), *m_board));
 
 		m_self = std::dynamic_pointer_cast<LocalPlayer>(m_players[m_ownColor]);
 		m_op   = m_players[m_opColor];
@@ -283,9 +293,7 @@ namespace mikelepage
 
 		if(m_piecePromotionMousePress == m_piecePromotionHover)
 		{
-			assert(m_self->getFortress());
-
-			auto piece = getPieceAt(m_self->getFortress()->getCoord());
+			auto piece = getPieceAt(m_self->getFortress().getCoord());
 			assert(piece);
 
 			PieceType oldType = piece->getType();
@@ -305,48 +313,21 @@ namespace mikelepage
 		m_piecePromotionMousePress = 0;
 	}
 
-	void RenderedMatch::onTileClickedFortressReplaceSelect(Coordinate coord)
+	void RenderedMatch::placePiece(std::shared_ptr<RenderedPiece> piece)
 	{
-		if(addFortressReplacementTile(coord))
-		{
-			// another ugly hack... pure laziness
-			setStatus("");
-			updateTurnStatus();
-
-			m_self->sendAddFortressReplacementTile(coord);
-			m_board->onTileMouseOver = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
-			m_board->onTileClicked   = std::bind(&RenderedMatch::onTileClicked, this, _1);
-		}
-	}
-
-	void RenderedMatch::placePiece(std::shared_ptr<RenderedPiece> piece, std::shared_ptr<Player> player)
-	{
-		auto color = player->getColor();
 		auto coord = piece->getCoord();
-		auto pieceType = piece->getType();
-
 		assert(coord);
 
 		m_activePieces.emplace(*coord, piece);
 
-		if(pieceType == PieceType::KING)
+		TerrainType tType = piece->getSetupTerrain();
+
+		if(tType != TerrainType::UNDEFINED)
 		{
-			auto fortress = std::make_shared<RenderedFortress>(color, *coord, *m_board);
+			auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
 
-			player->setFortress(fortress);
-			m_fortressesToRender.push_back(fortress->getQuad());
-		}
-		else
-		{
-			TerrainType tType = piece->getSetupTerrain();
-
-			if(tType != TerrainType::UNDEFINED)
-			{
-				auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
-
-				m_terrain.emplace(*coord, terrain);
-				m_terrainToRender.push_back(terrain->getQuad());
-			}
+			m_terrain.emplace(*coord, terrain);
+			m_terrainToRender.push_back(terrain->getQuad());
 		}
 
 		m_piecesToRender.push_back(piece->getQuad());
@@ -436,7 +417,7 @@ namespace mikelepage
 				it.first, it.second, m_ownColor, *this
 			);
 
-			placePiece(tmpPiece, m_self);
+			placePiece(tmpPiece);
 		}
 	}
 
@@ -454,8 +435,11 @@ namespace mikelepage
 		std::shared_ptr<RemotePlayer> op = std::dynamic_pointer_cast<RemotePlayer>(m_op);
 		assert(op);
 
+		auto& opFortress = dynamic_cast<RenderedFortress&>(op->getFortress());
+		m_fortressesToRender.push_back(opFortress.getQuad());
+
 		for(auto piece : op->getPieceCache())
-			placePiece(piece, op);
+			placePiece(piece);
 
 		op->clearPieceCache();
 
@@ -538,44 +522,8 @@ namespace mikelepage
 
 		PlayersColor pieceColor = piece->getColor();
 
-		if(piece->getType() == PieceType::KING && !m_players.at(pieceColor)->getFortress())
+		if(piece->getType() == PieceType::KING && m_players.at(pieceColor)->getFortress().isRuined)
 			endGame(!pieceColor);
-	}
-
-	bool RenderedMatch::addFortressReplacementTile(Coordinate coord)
-	{
-		static const std::set<Coordinate> cornerTiles {
-			*Coordinate::create( 0, 10),
-			*Coordinate::create( 5, 10),
-			*Coordinate::create(10,  5),
-			*Coordinate::create(10,  0),
-			*Coordinate::create( 5,  0),
-			*Coordinate::create( 0,  5)
-		};
-
-		if(cornerTiles.find(coord) != cornerTiles.end())
-		{
-			m_fortressReplaceCorners.insert(coord);
-
-			m_fortressReplacementTileHighlightings.push_back(std::make_shared<fea::Quad>(m_board->getTileSize()));
-			m_fortressReplacementTileHighlightings.back()->setColor({127, 0, 191, 127});
-			m_fortressReplacementTileHighlightings.back()->setPosition(m_board->getTilePosition(coord));
-
-			m_terrainToRender.push_back(m_fortressReplacementTileHighlightings.back().get());
-
-			m_bearingTable.update();
-
-			return true;
-		}
-
-		return false;
-	}
-
-	void RenderedMatch::removeFortress(fea::Quad* quad)
-	{
-		auto it = std::find(m_fortressesToRender.begin(), m_fortressesToRender.end(), quad);
-		assert(it != m_fortressesToRender.end());
-		m_fortressesToRender.erase(it);
 	}
 
 	void RenderedMatch::updateTurnStatus()
@@ -643,15 +591,6 @@ namespace mikelepage
 		m_ingameState.onMouseMoved          = std::bind(&RenderedMatch::onMouseMovedPromotionPieceSelect, this, _1);
 		m_ingameState.onMouseButtonPressed  = std::bind(&RenderedMatch::onMouseButtonPressedPromotionPieceSelect, this, _1);
 		m_ingameState.onMouseButtonReleased = std::bind(&RenderedMatch::onMouseButtonReleasedPromotionPieceSelect, this, _1);
-	}
-
-	void RenderedMatch::chooseFortressReplacementTile()
-	{
-		// TODO: Dim all tiles except the corners
-
-		setStatus("Select fortress replacement corner");
-		m_board->onTileMouseOver = [](Coordinate) { };
-		m_board->onTileClicked   = std::bind(&RenderedMatch::onTileClickedFortressReplaceSelect, this, _1);
 	}
 
 	void RenderedMatch::endGame(PlayersColor winner)

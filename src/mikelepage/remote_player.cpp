@@ -34,22 +34,12 @@ namespace mikelepage
 	using std::placeholders::_1;
 	using cyvmath::mikelepage::Coordinate;
 
-	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match)
-		: Player(color, match)
+	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
+		: Player(color, match, std::move(fortress))
 		, m_setupComplete(false)
 		, m_match(match) // should probably be considered a workaround
 	{
 		CyvasseWSClient::instance().handleMessage = std::bind(&RemotePlayer::handleMessage, this, _1);
-	}
-
-	void RemotePlayer::removeFortress()
-	{
-		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(m_fortress);
-		m_match.removeFortress(fortress->getQuad());
-
-		Player::removeFortress();
-
-		m_match.chooseFortressReplacementTile();
 	}
 
 	void RemotePlayer::handleMessage(Json::Value msg)
@@ -79,6 +69,9 @@ namespace mikelepage
 						throw std::runtime_error("got unknown piece type " + piece["type"].asString());
 					if(!coord)
 						throw std::runtime_error("got invalid position " + piece["position"].asString());
+
+					if(type == PieceType::KING)
+						m_fortress->setCoord(*coord);
 
 					auto renderedPiece = std::make_shared<RenderedPiece>(type, *coord, m_color, m_match);
 
@@ -129,7 +122,7 @@ namespace mikelepage
 				auto from = StrToPieceType(data["from"].asString());
 				auto to   = StrToPieceType(data["to"].asString());
 
-				if(!m_fortress)
+				if(m_fortress->isRuined)
 					throw std::runtime_error("requested promotion of a piece although the fortress is ruined");
 
 				auto piece = m_match.getPieceAt(m_fortress->getCoord());
@@ -180,15 +173,6 @@ namespace mikelepage
 				}
 
 				piece->promoteTo(to);
-
-				break;
-			}
-			case Update::ADD_FORTRESS_REPLACEMENT_TILE:
-			{
-				auto coord = Coordinate::createFromStr(data["coordinate"].asString());
-
-				if(!coord || !m_match.addFortressReplacementTile(*coord))
-					throw std::runtime_error("fortress replacment tile not valid");
 
 				break;
 			}

@@ -48,4 +48,12 @@ namespace mikelepage
 		glm::vec2 tilePos = m_board.getTilePosition(coord);
 		m_quad.setPosition({tilePos.x - m_offset, tilePos.y - m_offset});
 	}
+
+	void RenderedFortress::ruined()
+	{
+		Fortress::ruined();
+
+		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(m_color))) + "/fortress_ruined.png";
+		m_texture = makeTexture(texturePath).first;
+	}
 }

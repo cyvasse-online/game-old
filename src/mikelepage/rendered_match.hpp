@@ -74,9 +74,6 @@ namespace mikelepage
 			uint_least8_t m_renderPiecePromotionBgs;
 			uint_least8_t m_piecePromotionHover, m_piecePromotionMousePress;
 
-			// TODO: may be doable through the highlighting stuff, so maybe replace this
-			std::vector<std::shared_ptr<fea::Quad>> m_fortressReplacementTileHighlightings;
-
 			std::shared_ptr<Piece> m_hoveredPiece, m_selectedPiece;
 
 		public:
@@ -105,9 +102,8 @@ namespace mikelepage
 			void onMouseMovedPromotionPieceSelect(const fea::Event::MouseMoveEvent&);
 			void onMouseButtonPressedPromotionPieceSelect(const fea::Event::MouseButtonEvent&);
 			void onMouseButtonReleasedPromotionPieceSelect(const fea::Event::MouseButtonEvent&);
-			void onTileClickedFortressReplaceSelect(Coordinate);
 
-			void placePiece(std::shared_ptr<RenderedPiece>, std::shared_ptr<Player>);
+			void placePiece(std::shared_ptr<RenderedPiece>);
 			void placePiecesSetup();
 
 			void tryLeaveSetup();
@@ -115,14 +111,10 @@ namespace mikelepage
 			void addToBoard(PieceType, PlayersColor, Coordinate) final override;
 			void removeFromBoard(std::shared_ptr<Piece>) final override;
 
-			bool addFortressReplacementTile(Coordinate);
-			void removeFortress(fea::Quad*);
-
 			void updateTurnStatus();
 			void showPossibleTargetTiles();
 
 			void showPromotionPieces(std::set<PieceType>);
-			void chooseFortressReplacementTile();
 			void endGame(PlayersColor winner) final override;
 	};
 }

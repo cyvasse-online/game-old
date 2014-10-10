@@ -45,6 +45,8 @@ namespace mikelepage
 			{ return &m_quad; }
 
 			void setCoord(Coordinate) final override;
+
+			void ruined() final override;
 	};
 }
 

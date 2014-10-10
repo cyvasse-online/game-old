@@ -25,81 +25,70 @@ using namespace cyvmath;
 
 namespace mikelepage
 {
-	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match)
-		: Player(color, match)
+	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
+		: Player(color, match, std::move(fortress))
 		, m_setupComplete{false}
 		, m_match{match}
 	{ }
 
 	void LocalPlayer::onTurnBegin()
 	{
-		if(m_fortress)
+		if(m_fortress->isRuined)
+			return;
+
+		auto piece = m_match.getPieceAt(m_fortress->getCoord());
+
+		if(piece && piece->getColor() == m_color && piece->getType() != PieceType::KING)
 		{
-			auto piece = m_match.getPieceAt(m_fortress->getCoord());
+			auto baseTier = piece->getBaseTier();
+			PieceType pieceType = piece->getType();
+			PieceType promoteToType = PieceType::UNDEFINED;
 
-			if(piece && piece->getColor() == m_color && piece->getType() != PieceType::KING)
+			if(baseTier == 3)
 			{
-				auto baseTier = piece->getBaseTier();
-				PieceType pieceType = piece->getType();
-				PieceType promoteToType = PieceType::UNDEFINED;
+				if(m_kingTaken)
+					promoteToType = PieceType::KING;
+			}
+			else if(baseTier == 2)
+			{
+				static const std::map<PieceType, PieceType> nextTierPieces {
+					{PieceType::CROSSBOWS, PieceType::TREBUCHET},
+					{PieceType::SPEARS, PieceType::ELEPHANT},
+					{PieceType::LIGHT_HORSE, PieceType::HEAVY_HORSE}
+				};
 
-				if(baseTier == 3)
+				if(m_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
+					promoteToType = nextTierPieces.at(pieceType);
+			}
+			else if(pieceType == PieceType::RABBLE) // can only promote rabble, not the king
+			{
+				std::set<PieceType> availablePieceTypes;
+
+				for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
 				{
-					if(m_kingTaken)
-					{
-						promoteToType = PieceType::KING;
-						m_kingTaken = false;
-					}
-				}
-				else if(baseTier == 2)
-				{
-					static const std::map<PieceType, PieceType> nextTierPieces {
-						{PieceType::CROSSBOWS, PieceType::TREBUCHET},
-						{PieceType::SPEARS, PieceType::ELEPHANT},
-						{PieceType::LIGHT_HORSE, PieceType::HEAVY_HORSE}
-					};
-
-					if(m_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
-						promoteToType = nextTierPieces.at(pieceType);
-				}
-				else if(pieceType == PieceType::RABBLE) // can only promote rabble, not the king
-				{
-					std::set<PieceType> availablePieceTypes;
-
-					for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
-					{
-						if(m_inactivePieces.count(type) > 0)
-							availablePieceTypes.insert(type);
-					}
-
-					switch(availablePieceTypes.size())
-					{
-						case 0:
-							break;
-						case 1:
-							promoteToType = *availablePieceTypes.begin();
-							break;
-						default:
-							m_match.showPromotionPieces(availablePieceTypes);
-							break;
-					}
+					if(m_inactivePieces.count(type) > 0)
+						availablePieceTypes.insert(type);
 				}
 
-				if(promoteToType != PieceType::UNDEFINED)
+				switch(availablePieceTypes.size())
 				{
-					piece->promoteTo(promoteToType);
-					sendPromotePiece(pieceType, promoteToType);
+					case 0:
+						break;
+					case 1:
+						promoteToType = *availablePieceTypes.begin();
+						break;
+					default:
+						m_match.showPromotionPieces(availablePieceTypes);
+						break;
 				}
 			}
+
+			if(promoteToType != PieceType::UNDEFINED)
+			{
+				piece->promoteTo(promoteToType);
+				sendPromotePiece(pieceType, promoteToType);
+			}
 		}
-	}
-
-	void LocalPlayer::removeFortress()
-	{
-		auto fortress = std::dynamic_pointer_cast<RenderedFortress>(m_fortress);
-		m_match.removeFortress(fortress->getQuad());
-
-		Player::removeFortress();
 	}
 
 	void LocalPlayer::sendGameUpdate(Update update, Json::Value data)
@@ -158,13 +147,5 @@ namespace mikelepage
 		data["to"]   = PieceTypeToStr(to);
 
 		sendGameUpdate(Update::PROMOTE_PIECE, data);
-	}
-
-	void LocalPlayer::sendAddFortressReplacementTile(Coordinate coord)
-	{
-		Json::Value data;
-		data["coordinate"] = coord.toString();
-
-		sendGameUpdate(Update::ADD_FORTRESS_REPLACEMENT_TILE, data);
 	}
 }
