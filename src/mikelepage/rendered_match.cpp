@@ -528,11 +528,6 @@ namespace mikelepage
 		auto it = std::find(m_piecesToRender.begin(), m_piecesToRender.end(), rPiece->getQuad());
 		assert(it != m_piecesToRender.end());
 		m_piecesToRender.erase(it);
-
-		PlayersColor pieceColor = piece->getColor();
-
-		if(piece->getType() == PieceType::KING && m_players.at(pieceColor)->getFortress().isRuined)
-			endGame(!pieceColor);
 	}
 
 	void RenderedMatch::updateTurnStatus()
