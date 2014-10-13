@@ -95,6 +95,7 @@ namespace mikelepage
 
 			void onTileMouseOver(Coordinate);
 			void onTileClicked(Coordinate);
+			void onMouseMoveOutside(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
 			void tickPromotionPieceSelect();

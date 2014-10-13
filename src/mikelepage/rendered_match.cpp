@@ -91,7 +91,7 @@ namespace mikelepage
 
 		m_board->onTileMouseOver    = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
 		m_board->onTileClicked      = std::bind(&RenderedMatch::onTileClicked, this, _1);
-		m_board->onMouseMoveOutside = [](const fea::Event::MouseMoveEvent&) { };
+		m_board->onMouseMoveOutside = std::bind(&RenderedMatch::onMouseMoveOutside, this, _1);
 		m_board->onClickedOutside   = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
 
 		setStatus("Setup");
@@ -139,11 +139,9 @@ namespace mikelepage
 
 	void RenderedMatch::onTileMouseOver(Coordinate coord)
 	{
-		// if the player left the setup but the opponent isn't ready yet
-		if(m_setup || !m_setupAccepted)
-			return;
-
-		if(m_selectedPiece) // a piece is selected
+		// if one of the players is still in setup,
+		// or a piece is selected, do nothing
+		if(m_setup || m_selectedPiece)
 			return;
 
 		// search for a piece on the clicked tile
@@ -170,7 +168,9 @@ namespace mikelepage
 
 	void RenderedMatch::onTileClicked(Coordinate coord)
 	{
-		if(m_setup == m_setupAccepted)
+		// if the local player finished setting up,
+		// but the remote player didn't yet
+		if(m_setupAccepted && m_setup)
 			return;
 
 		if(!m_setup && m_activePlayer != m_ownColor)
@@ -233,6 +233,17 @@ namespace mikelepage
 						showPossibleTargetTiles();
 				}
 			}
+		}
+	}
+
+	void RenderedMatch::onMouseMoveOutside(const fea::Event::MouseMoveEvent&)
+	{
+		if(m_hoveredPiece)
+		{
+			m_hoveredPiece.reset();
+
+			if(!m_selectedPiece)
+				m_board->clearHighlighting(HighlightingId::PTT);
 		}
 	}
 
@@ -477,9 +488,7 @@ namespace mikelepage
 
 				m_activePlayer = !m_activePlayer;
 
-				// ugly hack [TODO]
-				if(m_activePlayer == m_opColor || getStatus() != "Select fortress replacement corner")
-					updateTurnStatus();
+				updateTurnStatus();
 
 				if(m_activePlayer == m_ownColor)
 					m_self->onTurnBegin();
