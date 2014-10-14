@@ -170,27 +170,16 @@ std::shared_ptr<fea::Quad> HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
-void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id, bool removeExisting)
+void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id)
 {
 	auto res = m_highlightQuads.emplace(id, QuadVec());
 	auto& quadVec = res.first->second;
 
-	if(removeExisting && !res.second)
+	// the check could maybe be removed
+	if(!res.second)
 		quadVec.clear();
 
 	quadVec.push_back(createHighlightQuad(getTilePosition(coord), id));
-}
-
-template <int l>
-void HexagonBoard<l>::highlightTile(glm::vec2 pos, HighlightingId id, bool removeExisting)
-{
-	auto res = m_highlightQuads.emplace(id, QuadVec());
-	auto& quadVec = res.first->second;
-
-	if(removeExisting && !res.second)
-		quadVec.clear();
-
-	quadVec.push_back(createHighlightQuad(pos, id));
 }
 
 template <int l>
@@ -202,17 +191,13 @@ void HexagonBoard<l>::clearHighlighting(HighlightingId id)
 }
 
 template <int l>
-void HexagonBoard<l>::queueTileRendering()
+void HexagonBoard<l>::tick()
 {
-	for(auto it : m_quadVec)
+	for(auto&& it : m_quadVec)
 		m_renderer.queue(*it);
-}
 
-template <int l>
-void HexagonBoard<l>::queueHighlightingRendering()
-{
-	for(auto& vecIt : m_highlightQuads)
-		for(auto quadIt : vecIt.second)
+	for(auto&& vecIt : m_highlightQuads)
+		for(auto&& quadIt : vecIt.second)
 			m_renderer.queue(*quadIt);
 }
 

@@ -25,6 +25,14 @@
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/ui/event.hpp>
 
+// higher priority (bigger enum value) means rendered later -> on top
+enum class RenderPriority
+{
+	TERRAIN,
+	PIECE,
+	FORTRESS
+};
+
 template <int l> class HexagonBoard;
 class IngameState;
 
@@ -59,9 +67,7 @@ namespace mikelepage
 
 			const PlayersColor m_ownColor, m_opColor;
 
-			std::vector<fea::Quad*> m_piecesToRender;
-			std::vector<fea::Quad*> m_terrainToRender;
-			std::vector<fea::Quad*> m_fortressesToRender;
+			std::map<RenderPriority, std::vector<fea::Drawable2D*>> m_renderedEntities;
 
 			bool m_setupAccepted;
 
@@ -81,7 +87,7 @@ namespace mikelepage
 
 			// non-copyable
 			RenderedMatch(const RenderedMatch&) = delete;
-			const RenderedMatch& operator= (const RenderedMatch&) = delete;
+			RenderedMatch& operator=(const RenderedMatch&) = delete;
 
 			Board& getBoard()
 			{ return *m_board; }

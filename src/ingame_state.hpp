@@ -38,7 +38,7 @@ class IngameState : public fea::GameState
 
 		// non-copyable
 		IngameState(const IngameState&) = delete;
-		const IngameState& operator= (const IngameState&) = delete;
+		IngameState& operator=(const IngameState&) = delete;
 
 		std::function<void()> tick;
 

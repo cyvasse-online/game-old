@@ -35,6 +35,9 @@ class CyvasseWSClient
 		CyvasseWSClient();
 		~CyvasseWSClient();
 
+		CyvasseWSClient(const CyvasseWSClient&) = delete;
+		CyvasseWSClient& operator=(const CyvasseWSClient&) = delete;
+
 		std::function<void(const Json::Value&)> handleMessage;
 
 		static CyvasseWSClient& instance();

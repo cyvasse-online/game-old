@@ -37,7 +37,7 @@ namespace mikelepage
 {
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
 		: m_renderer{renderer}
-		, m_ingameState(ingameState)
+		, m_ingameState{ingameState}
 		, m_board{make_unique<Board>(renderer, color)}
 		, m_gameEnded{false}
 		, m_ownColor{color}
@@ -56,7 +56,7 @@ namespace mikelepage
 		};
 
 		auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), *m_board);
-		m_fortressesToRender.push_back(ownFortress->getQuad());
+		m_renderedEntities[RenderPriority::FORTRESS].push_back(ownFortress->getQuad());
 
 		m_players[m_ownColor] = std::make_shared<LocalPlayer>(m_ownColor, *this, std::move(ownFortress));
 		m_players[m_opColor]  = std::make_shared<RemotePlayer>(m_opColor, *this,
@@ -113,18 +113,13 @@ namespace mikelepage
 
 	void RenderedMatch::tick()
 	{
-		m_board->queueTileRendering();
+		m_board->tick();
 
-		for(fea::Quad* it : m_terrainToRender)
-			m_renderer.queue(*it);
+		for(auto&& entityVecIt : m_renderedEntities)
+			for(auto&& it : entityVecIt.second)
+				m_renderer.queue(*it);
 
-		m_board->queueHighlightingRendering();
-
-		for(fea::Quad* it : m_fortressesToRender)
-			m_renderer.queue(*it);
-		for(fea::Quad* it : m_piecesToRender)
-			m_renderer.queue(*it);
-
+		// Move the logic bit to the backend
 		if(m_setup && m_self->setupComplete() && !m_setupAccepted)
 			m_renderer.queue(m_buttonSetupDone);
 		else if(m_renderPiecePromotionBgs > 0)
@@ -338,10 +333,10 @@ namespace mikelepage
 			auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
 
 			m_terrain.emplace(*coord, terrain);
-			m_terrainToRender.push_back(terrain->getQuad());
+			m_renderedEntities[RenderPriority::TERRAIN].push_back(terrain->getQuad());
 		}
 
-		m_piecesToRender.push_back(piece->getQuad());
+		m_renderedEntities[RenderPriority::PIECE].push_back(piece->getQuad());
 	}
 
 	void RenderedMatch::placePiecesSetup()
@@ -447,7 +442,7 @@ namespace mikelepage
 		assert(op);
 
 		auto& opFortress = dynamic_cast<RenderedFortress&>(op->getFortress());
-		m_fortressesToRender.push_back(opFortress.getQuad());
+		m_renderedEntities[RenderPriority::FORTRESS].push_back(opFortress.getQuad());
 
 		for(auto piece : op->getPieceCache())
 			placePiece(piece);
@@ -493,8 +488,8 @@ namespace mikelepage
 				if(m_activePlayer == m_ownColor)
 					m_self->onTurnBegin();
 
-				m_board->highlightTile(coord, HighlightingId::LAST_MOVE, true);
-				m_board->highlightTile(*oldCoord, HighlightingId::LAST_MOVE, false);
+				std::array<Coordinate, 2> coords = {{coord, *oldCoord}};
+				m_board->highlightTiles(coords.begin(), coords.end(), HighlightingId::LAST_MOVE);
 			}
 
 			return true;
@@ -512,7 +507,7 @@ namespace mikelepage
 
 		rPiece->setPosition(m_board->getTileAt(coord)->getPosition());
 
-		m_piecesToRender.push_back(rPiece->getQuad());
+		m_renderedEntities[RenderPriority::PIECE].push_back(rPiece->getQuad());
 	}
 
 	void RenderedMatch::removeFromBoard(std::shared_ptr<Piece> piece)
@@ -525,17 +520,16 @@ namespace mikelepage
 		auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(piece);
 		assert(rPiece);
 
-		auto it = std::find(m_piecesToRender.begin(), m_piecesToRender.end(), rPiece->getQuad());
-		assert(it != m_piecesToRender.end());
-		m_piecesToRender.erase(it);
+		auto& piecesToRender = m_renderedEntities[RenderPriority::PIECE];
+
+		auto it = std::find(piecesToRender.begin(), piecesToRender.end(), rPiece->getQuad());
+		assert(it != piecesToRender.end());
+		piecesToRender.erase(it);
 	}
 
 	void RenderedMatch::updateTurnStatus()
 	{
-		std::string status = PlayersColorToStr(m_activePlayer) + " player's turn";
-		status[0] -= ('a' - 'A'); // lowercase to uppercase
-
-		setStatus(status);
+		setStatus(PlayersColorToPrettyStr(m_activePlayer) + "'s turn");
 	}
 
 	void RenderedMatch::showPossibleTargetTiles()
@@ -599,10 +593,7 @@ namespace mikelepage
 
 	void RenderedMatch::endGame(PlayersColor winner)
 	{
-		std::string status = PlayersColorToStr(winner) + " player won!";
-		status[0] -= ('a' - 'A'); // lowercase to uppercase
-
-		setStatus(status);
+		setStatus(PlayersColorToPrettyStr(winner) + " won!");
 
 		m_board->clearHighlighting(HighlightingId::PTT);
 		m_board->clearHighlighting(HighlightingId::HOVER);

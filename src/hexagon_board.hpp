@@ -137,11 +137,10 @@ class HexagonBoard
 
 		std::shared_ptr<fea::Quad> getTileAt(Coordinate);
 
-		void highlightTile(Coordinate, HighlightingId, bool removeExisting = true);
-		void highlightTile(glm::vec2, HighlightingId, bool removeExisting = true);
+		void highlightTile(Coordinate, HighlightingId);
 
 		template<class InputIterator>
-		void highlightTiles(InputIterator first, InputIterator last, HighlightingId id, bool removeExisting = true)
+		void highlightTiles(InputIterator first, InputIterator last, HighlightingId id)
 		{
 			static_assert(
 				std::is_convertible<typename std::iterator_traits<InputIterator>::value_type, Coordinate>::value,
@@ -151,7 +150,8 @@ class HexagonBoard
 			auto res = m_highlightQuads.emplace(id, QuadVec());
 			auto& quadVec = res.first->second;
 
-			if(removeExisting && !res.second)
+			// the check could maybe be removed
+			if(!res.second)
 				quadVec.clear();
 
 			while(first != last)
@@ -163,8 +163,7 @@ class HexagonBoard
 
 		void clearHighlighting(HighlightingId);
 
-		void queueTileRendering();
-		void queueHighlightingRendering();
+		void tick();
 
 		void onMouseMoved(const fea::Event::MouseMoveEvent&);
 		void onMouseButtonPressed(const fea::Event::MouseButtonEvent&);
