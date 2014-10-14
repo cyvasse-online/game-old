@@ -1,8 +1,11 @@
 AC_INIT([cyvasse-game],[0.1],[mail@jonasplatte.de])
 AC_CONFIG_AUX_DIR([.])
+AC_CONFIG_MACRO_DIRS([m4])
 AM_INIT_AUTOMAKE([1.11 foreign])
 AM_SILENT_RULES([yes])
 AC_PROG_CXX
+AC_LANG(C++)
+AX_CXX_COMPILE_STDCXX_11(noext, mandatory)
 
 AC_CHECK_FUNCS([sigaction])
 

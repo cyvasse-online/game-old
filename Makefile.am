@@ -39,9 +39,6 @@ game_cppflags = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/lodepng
 
-game_cxxflags = \
-	-std=c++11
-
 game_ldadd = \
 	$(top_builddir)/cyvasse-common/libcyvmath.a \
 	-lfea-structure \
