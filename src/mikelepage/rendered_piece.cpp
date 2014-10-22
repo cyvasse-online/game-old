@@ -46,10 +46,9 @@ namespace mikelepage
 
 		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
 		m_texture = makeTexture(texturePath).first;
-		m_quad.setTexture(m_texture);
 
-		if(m_coord)
-			m_quad.setPosition(m_board.getTilePosition(*m_coord));
+		m_quad.setTexture(m_texture);
+		m_quad.setPosition(m_board.getTilePosition(*m_coord));
 	}
 
 	bool RenderedPiece::moveTo(Coordinate coord, bool setup)

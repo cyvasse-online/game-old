@@ -36,6 +36,7 @@ namespace mikelepage
 			TerrainMap& m_terrainMap;
 
 			fea::Quad m_quad;
+			fea::Texture m_texture;
 
 		public:
 			RenderedTerrain(TerrainType, Coordinate, HexagonBoard<6>&, TerrainMap&);

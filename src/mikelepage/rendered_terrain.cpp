@@ -18,6 +18,7 @@
 
 #include <map>
 #include "hexagon_board.hpp"
+#include "texturemaker.hpp" // lodepng helper function
 
 namespace mikelepage
 {
@@ -27,15 +28,12 @@ namespace mikelepage
 		, m_terrainMap(terrainMap)
 		, m_quad(board.getTileSize())
 	{
-		static const std::map<TerrainType, fea::Color> colors {
-			{TerrainType::HILL, {255, 191, 0, 127}},
-			{TerrainType::FOREST, {0, 95, 0, 127}},
-			{TerrainType::GRASSLAND, {0, 255, 0, 127}}
-		};
-
 		assert(type != TerrainType::UNDEFINED);
 
-		m_quad.setColor(colors.at(type));
+		std::string texturePath = "icons/" + TerrainTypeToStr(type) + ".png";
+		m_texture = makeTexture(texturePath).first;
+
+		m_quad.setTexture(m_texture);
 		m_quad.setPosition(board.getTilePosition(coord));
 	}
 
