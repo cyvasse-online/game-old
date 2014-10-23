@@ -33,8 +33,6 @@ namespace mikelepage
 		private:
 			HexagonBoard<6>& m_board;
 
-			float m_offset;
-
 			fea::Quad m_quad;
 			fea::Texture m_texture;
 

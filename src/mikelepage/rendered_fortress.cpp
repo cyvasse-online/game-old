@@ -35,10 +35,8 @@ namespace mikelepage
 		glm::vec2 tileSize = board.getTileSize();
 		glm::vec2 tilePos = board.getTilePosition(coord);
 
-		m_offset = (tileSize.x * 4.0f / 60.0f);
-
-		m_quad.setSize({tileSize.x + (m_offset * 2), tileSize.y + (m_offset * 2)});
-		m_quad.setPosition({tilePos.x - m_offset, tilePos.y - m_offset});
+		m_quad.setSize({tileSize.x, tileSize.y});
+		m_quad.setPosition({tilePos.x, tilePos.y});
 	}
 
 	void RenderedFortress::setCoord(Coordinate coord)
@@ -46,7 +44,7 @@ namespace mikelepage
 		m_coord = coord;
 
 		glm::vec2 tilePos = m_board.getTilePosition(coord);
-		m_quad.setPosition({tilePos.x - m_offset, tilePos.y - m_offset});
+		m_quad.setPosition({tilePos.x, tilePos.y});
 	}
 
 	void RenderedFortress::ruined()
