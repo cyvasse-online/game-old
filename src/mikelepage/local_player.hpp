@@ -46,10 +46,10 @@ namespace mikelepage
 			void sendGameUpdate(Update, Json::Value data);
 
 		public:
-			LocalPlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress>);
+			LocalPlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
 			virtual ~LocalPlayer() = default;
 
-			bool setupComplete() final override
+			bool setupComplete() const final override
 			{ return m_setupComplete; }
 
 			void checkSetupComplete()

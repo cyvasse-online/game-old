@@ -43,10 +43,10 @@ namespace mikelepage
 			RenderedMatch& m_match;
 
 		public:
-			RemotePlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress>);
+			RemotePlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
 			virtual ~RemotePlayer() = default;
 
-			bool setupComplete() final override
+			bool setupComplete() const final override
 			{ return m_setupComplete; }
 
 			RenderedPieceVec& getPieceCache()

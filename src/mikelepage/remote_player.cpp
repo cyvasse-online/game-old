@@ -35,7 +35,7 @@ namespace mikelepage
 	using cyvmath::mikelepage::Coordinate;
 
 	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
-		: Player(color, match, std::move(fortress))
+		: Player(match, color, std::move(fortress) /*, id */) // TODO
 		, m_setupComplete(false)
 		, m_match(match) // should probably be considered a workaround
 	{

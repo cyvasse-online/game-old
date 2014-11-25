@@ -26,7 +26,7 @@ using namespace cyvmath;
 namespace mikelepage
 {
 	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
-		: Player(color, match, std::move(fortress))
+		: Player(match, color, std::move(fortress) /*, id */) // TODO
 		, m_setupComplete{false}
 		, m_match{match}
 	{ }

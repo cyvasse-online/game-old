@@ -24,6 +24,7 @@
 #include "hexagon_board.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
+#include "make_unique.hpp"
 #include "rendered_fortress.hpp"
 #include "rendered_piece.hpp"
 #include "rendered_terrain.hpp"
@@ -35,13 +36,33 @@ using namespace cyvmath::mikelepage;
 
 namespace mikelepage
 {
+	static Match::playerArray createPlayerArray(PlayersColor localPlayersColor, RenderedMatch& match)
+	{
+		auto remotePlayersColor = !localPlayersColor;
+
+		auto localPlayer  = make_unique<LocalPlayer>(localPlayersColor, match);
+		auto remotePlayer = make_unique<RemotePlayer>(remotePlayersColor, match);
+
+		/*return localPlayersColor < remotePlayersColor
+			? {{std::move(localPlayer), std::move(remotePlayer)}}
+			: {{std::move(remotePlayer), std::move(localPlayer)}};*/
+
+		if(localPlayersColor < remotePlayersColor)
+			return {{std::move(localPlayer), std::move(remotePlayer)}};
+		else
+			return {{std::move(remotePlayer), std::move(localPlayer)}};
+	}
+
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
-		: m_renderer{renderer}
+		: mikelepage::Match({}, false, false, createPlayerArray(color, *this)) // TODO
+		, m_renderer{renderer}
 		, m_ingameState{ingameState}
 		, m_board{make_unique<Board>(renderer, color)}
 		, m_gameEnded{false}
 		, m_ownColor{color}
 		, m_opColor{!color}
+		, m_self{dynamic_cast<LocalPlayer&>(*m_players[m_ownColor])}
+		, m_op{dynamic_cast<RemotePlayer&>(*m_players[m_opColor])}
 		, m_setupAccepted{false}
 		, m_piecePromotionBackground{{glm::vec2{100, 100}, glm::vec2{100, 100}, glm::vec2{100, 100}}}
 		, m_piecePromotionTypes{{PieceType::UNDEFINED, PieceType::UNDEFINED, PieceType::UNDEFINED}}
@@ -50,7 +71,7 @@ namespace mikelepage
 		, m_piecePromotionMousePress{0}
 	{
 		// hardcoded temporarily [TODO]
-		const std::map<PlayersColor, Coordinate> fortressStartCoords {
+		static const std::map<PlayersColor, Coordinate> fortressStartCoords {
 			{PlayersColor::WHITE, *Coordinate::create(4, 7)},
 			{PlayersColor::BLACK, *Coordinate::create(6, 3)}
 		};
@@ -58,14 +79,8 @@ namespace mikelepage
 		auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), *m_board);
 		m_renderedEntities[RenderPriority::FORTRESS].push_back(ownFortress->getQuad());
 
-		m_players[m_ownColor] = std::make_shared<LocalPlayer>(m_ownColor, *this, std::move(ownFortress));
-		m_players[m_opColor]  = std::make_shared<RemotePlayer>(m_opColor, *this,
-			make_unique<RenderedFortress>(m_opColor, fortressStartCoords.at(m_opColor), *m_board));
-
-		m_self = std::dynamic_pointer_cast<LocalPlayer>(m_players[m_ownColor]);
-		m_op   = m_players[m_opColor];
-
-		assert(m_self);
+		m_self.setFortress(std::move(ownFortress));
+		m_op.setFortress(make_unique<RenderedFortress>(m_opColor, fortressStartCoords.at(m_opColor), *m_board));
 
 		glm::uvec2 boardSize = m_board->getSize();
 		glm::uvec2 boardPos = m_board->getPosition();
@@ -120,7 +135,7 @@ namespace mikelepage
 				m_renderer.queue(*it);
 
 		// Move the logic bit to the backend
-		if(m_setup && m_self->setupComplete() && !m_setupAccepted)
+		if(m_setup && m_self.setupComplete() && !m_setupAccepted)
 			m_renderer.queue(m_buttonSetupDone);
 		else if(m_renderPiecePromotionBgs > 0)
 		{
@@ -245,12 +260,12 @@ namespace mikelepage
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
 		// 'Setup done' button clicked (while being visible)
-		if(m_self->setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
+		if(m_self.setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
 		{
 			m_setupAccepted = true;
 			// send before modifying m_activePieces, so the map doesn't
 			// have to be filtered for only black / white pieces
-			m_self->sendLeaveSetup();
+			m_self.sendLeaveSetup();
 			tryLeaveSetup();
 		}
 
@@ -299,14 +314,14 @@ namespace mikelepage
 
 		if(m_piecePromotionMousePress == m_piecePromotionHover)
 		{
-			auto piece = getPieceAt(m_self->getFortress().getCoord());
+			auto piece = getPieceAt(m_self.getFortress().getCoord());
 			assert(piece);
 
 			PieceType oldType = piece->getType();
 			PieceType newType = m_piecePromotionTypes[m_piecePromotionMousePress-1];
 
 			piece->promoteTo(newType);
-			m_self->sendPromotePiece(oldType, newType);
+			m_self.sendPromotePiece(oldType, newType);
 
 			m_renderPiecePromotionBgs = 0;
 			m_piecePromotionPieces.fill(nullptr);
@@ -431,23 +446,22 @@ namespace mikelepage
 	{
 		if(!m_setupAccepted) return;
 
-		for(auto player : m_players)
+		for(auto&& player : m_players)
 			if(!player->setupComplete())
 				return;
 
 		m_setup = false;
 
 		// TODO: rewrite the following stuff when adding a bot
-		std::shared_ptr<RemotePlayer> op = std::dynamic_pointer_cast<RemotePlayer>(m_op);
-		assert(op);
+		auto& op = dynamic_cast<RemotePlayer&>(m_op);
 
-		auto& opFortress = dynamic_cast<RenderedFortress&>(op->getFortress());
+		auto& opFortress = dynamic_cast<RenderedFortress&>(op.getFortress());
 		m_renderedEntities[RenderPriority::FORTRESS].push_back(opFortress.getQuad());
 
-		for(auto piece : op->getPieceCache())
+		for(auto&& piece : op.getPieceCache())
 			placePiece(piece);
 
-		op->clearPieceCache();
+		op.clearPieceCache();
 
 		m_bearingTable.init();
 
@@ -469,24 +483,24 @@ namespace mikelepage
 			if(piece->getColor() == m_ownColor)
 			{
 				if(!m_setup)
-					m_self->sendMovePiece(piece, *oldCoord);
+					m_self.sendMovePiece(piece, *oldCoord);
 
 				if(!m_setupAccepted)
-					m_self->checkSetupComplete();
+					m_self.checkSetupComplete();
 			}
 
 			m_board->clearHighlighting(HighlightingId::PTT);
 
 			if(!m_setup)
 			{
-				m_players[m_activePlayer]->onTurnEnd();
+				dynamic_cast<mikelepage::Player&>(*m_players[m_activePlayer]).onTurnEnd();
 
 				m_activePlayer = !m_activePlayer;
 
 				updateTurnStatus();
 
 				if(m_activePlayer == m_ownColor)
-					m_self->onTurnBegin();
+					m_self.onTurnBegin();
 
 				std::array<Coordinate, 2> coords = {{coord, *oldCoord}};
 				m_board->highlightTiles(coords.begin(), coords.end(), HighlightingId::LAST_MOVE);
@@ -568,7 +582,7 @@ namespace mikelepage
 			m_piecePromotionBackground[2].setPosition(glm::ivec2(scrMid) + glm::ivec2{50, -50});
 		}
 
-		auto& inactivePieces = m_self->getInactivePieces();
+		auto& inactivePieces = m_self.getInactivePieces();
 
 		uint_least8_t i = 0;
 		for(PieceType type : pieceTypes)

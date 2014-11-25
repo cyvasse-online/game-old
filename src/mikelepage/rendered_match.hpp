@@ -62,10 +62,10 @@ namespace mikelepage
 			bool m_gameEnded;
 			std::string m_status;
 
-			std::shared_ptr<LocalPlayer> m_self;
-			std::shared_ptr<Player> m_op;
-
 			const PlayersColor m_ownColor, m_opColor;
+
+			LocalPlayer& m_self;
+			Player& m_op;
 
 			std::map<RenderPriority, std::vector<fea::Drawable2D*>> m_renderedEntities;
 
