@@ -17,26 +17,24 @@
 #include "remote_player.hpp"
 
 #include <cyvmath/mikelepage/fortress.hpp>
-#include <server_message.hpp>
-#ifdef EMSCRIPTEN
-	#include <emscripten.h>
-#endif
+#include <cyvws/msg_type.hpp>
+#include <cyvws/game_msg_action.hpp>
 #include "cyvasse_ws_client.hpp"
 #include "rendered_fortress.hpp"
 #include "rendered_match.hpp"
 #include "rendered_piece.hpp"
 
+using namespace cyvmath;
+using namespace cyvmath::mikelepage;
+using namespace cyvws;
+
+using std::placeholders::_1;
+using cyvmath::mikelepage::Coordinate;
+
 namespace mikelepage
 {
-	using namespace cyvmath;
-	using namespace cyvmath::mikelepage;
-
-	using std::placeholders::_1;
-	using cyvmath::mikelepage::Coordinate;
-
 	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
 		: Player(match, color, std::move(fortress) /*, id */) // TODO
-		, m_setupComplete(false)
 		, m_match(match) // should probably be considered a workaround
 	{
 		CyvasseWSClient::instance().handleMessage = std::bind(&RemotePlayer::handleMessage, this, _1);
@@ -45,15 +43,16 @@ namespace mikelepage
 	void RemotePlayer::handleMessage(Json::Value msg)
 	{
 		// TODO: Revise when multiplayer for the native game is implemented
-		if(StrToMessage(msg["messageType"].asString()) != Message::GAME_UPDATE)
+		if(StrToMsgType(msg["msgType"].asString()) != MsgType::GAME_MSG)
 			throw std::runtime_error("this message should be handled outside the game (message type "
-				+ msg["messageType"].asString() + ")");
+				+ msg["msgType"].asString() + ")");
 
-		Json::Value& data = msg["data"];
+		Json::Value& data = msg["msgData"];
 
-		switch(StrToUpdate(msg["update"].asString()))
+		switch(StrToGameMsgAction(data["action"].asString()))
 		{
-			case Update::LEAVE_SETUP:
+			case GameMsgAction::SET_OPENING_ARRAY:
+				// TODO: Rewrite
 				if(data["pieces"].size() != 26)
 					throw std::runtime_error("there have to be exactly 26 pieces when leaving setup (got "
 						+ std::to_string(data["pieces"].size()) + ")");
@@ -78,23 +77,25 @@ namespace mikelepage
 					m_pieceCache.push_back(renderedPiece);
 				}
 
-				m_setupComplete = true;
 				m_match.tryLeaveSetup();
 				break;
-			case Update::MOVE_PIECE:
+			case GameMsgAction::SET_IS_READY:
+				m_setupComplete = data["param"].asBool();
+				break;
+			case GameMsgAction::MOVE:
 			{
-				auto pieceType = StrToPieceType(data["piece type"].asString());
-				auto oldPos    = Coordinate::createFromStr(data["old position"].asString());
-				auto newPos    = Coordinate::createFromStr(data["new position"].asString());
+				auto pieceType = StrToPieceType(data["pieceType"].asString());
+				auto oldPos    = Coordinate::createFromStr(data["oldPos"].asString());
+				auto newPos    = Coordinate::createFromStr(data["newPos"].asString());
 
 				if(pieceType == PieceType::UNDEFINED)
 					throw std::runtime_error(
-						"move of undefined piece " + data["piece type"].asString() + " requested"
+						"move of undefined piece " + data["pieceType"].asString() + " requested"
 					);
 
 				if(!newPos)
 					throw std::runtime_error(
-						"move to undefined position " + data["new position"].asString() + " requested"
+						"move to undefined position " + data["newPos"].asString() + " requested"
 					);
 
 				std::shared_ptr<Piece> piece;
@@ -110,17 +111,17 @@ namespace mikelepage
 
 				if(piece->getType() != pieceType)
 					throw std::runtime_error(
-						"remote client requested move of " + data["piece type"].asString() + ", but there is " +
+						"remote client requested move of " + data["pieceType"].asString() + ", but there is " +
 						PieceTypeToStr(piece->getType()) + " at " + oldPos->toString()
 					);
 
 				m_match.tryMovePiece(piece, *newPos);
 				break;
 			}
-			case Update::PROMOTE_PIECE:
+			case GameMsgAction::PROMOTE:
 			{
-				auto from = StrToPieceType(data["from"].asString());
-				auto to   = StrToPieceType(data["to"].asString());
+				auto origType = StrToPieceType(data["origType"].asString());
+				auto newType  = StrToPieceType(data["newType"].asString());
 
 				if(m_fortress->isRuined)
 					throw std::runtime_error("requested promotion of a piece although the fortress is ruined");
@@ -129,41 +130,41 @@ namespace mikelepage
 				if(!piece)
 					throw std::runtime_error("requested promotion of a piece although there is no piece on the fortress");
 
-				if(piece->getType() != from)
-					throw std::runtime_error("requested promotion of " + PieceTypeToStr(from) + ", but there is a "
+				if(piece->getType() != origType)
+					throw std::runtime_error("requested promotion of " + PieceTypeToStr(origType) + ", but there is a "
 						+ PieceTypeToStr(piece->getType()) + " piece in the fortress.");
 
-				switch(from)
+				switch(origType)
 				{
 					case PieceType::RABBLE:
 						if(!(
-							to == PieceType::CROSSBOWS ||
-							to == PieceType::SPEARS ||
-							to == PieceType::LIGHT_HORSE
+							newType == PieceType::CROSSBOWS ||
+							newType == PieceType::SPEARS ||
+							newType == PieceType::LIGHT_HORSE
 						   ))
-							throw std::runtime_error("requested promotion from rabble to " + PieceTypeToStr(to));
+							throw std::runtime_error("requested promotion from rabble to " + PieceTypeToStr(newType));
 
 						break;
 					case PieceType::CROSSBOWS:
-						if(to != PieceType::TREBUCHET)
-							throw std::runtime_error("requested promotion from crossbows to " + PieceTypeToStr(to));
+						if(newType != PieceType::TREBUCHET)
+							throw std::runtime_error("requested promotion from crossbows to " + PieceTypeToStr(newType));
 
 						break;
 					case PieceType::SPEARS:
-						if(to != PieceType::ELEPHANT)
-							throw std::runtime_error("requested promotion from spears to " + PieceTypeToStr(to));
+						if(newType != PieceType::ELEPHANT)
+							throw std::runtime_error("requested promotion from spears to " + PieceTypeToStr(newType));
 
 						break;
 					case PieceType::LIGHT_HORSE:
-						if(to != PieceType::HEAVY_HORSE)
-							throw std::runtime_error("requested promotion from light horse to " + PieceTypeToStr(to));
+						if(newType != PieceType::HEAVY_HORSE)
+							throw std::runtime_error("requested promotion from light horse to " + PieceTypeToStr(newType));
 
 						break;
 					case PieceType::TREBUCHET:
 					case PieceType::ELEPHANT:
 					case PieceType::HEAVY_HORSE:
-						if(to != PieceType::KING)
-							throw std::runtime_error("requested promotion from " + PieceTypeToStr(from) + " to " + PieceTypeToStr(to));
+						if(newType != PieceType::KING)
+							throw std::runtime_error("requested promotion from " + PieceTypeToStr(origType) + " to " + PieceTypeToStr(newType));
 						else if(!m_kingTaken)
 							throw std::runtime_error("requested promotion to king when there still is a king");
 
@@ -172,13 +173,13 @@ namespace mikelepage
 						throw std::runtime_error("requested promotion of unknown piece");
 				}
 
-				piece->promoteTo(to);
+				piece->promoteTo(newType);
 
 				break;
 			}
-			case Update::RESIGN:
+			case GameMsgAction::RESIGN:
 			default:
-				throw std::runtime_error("got a json request with update set to " + msg["update"].asString());
+				throw std::runtime_error("got a json request with action set to " + msg["action"].asString());
 				break;
 		}
 	}

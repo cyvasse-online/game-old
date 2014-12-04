@@ -18,10 +18,9 @@
 #define _MIKELEPAGE_LOCAL_PLAYER_HPP_
 
 #include <cyvmath/mikelepage/player.hpp>
-
+#include <cyvws/game_msg_action.hpp>
 #include <memory>
 #include <json/value.h>
-#include <server_message.hpp>
 #include "rendered_fortress.hpp"
 
 namespace mikelepage
@@ -39,11 +38,11 @@ namespace mikelepage
 	{
 		friend RenderedMatch;
 		private:
-			bool m_setupComplete;
+			bool m_setupComplete = false;
 
 			RenderedMatch& m_match;
 
-			void sendGameUpdate(Update, Json::Value data);
+			void sendGameUpdate(cyvws::GameMsgAction, Json::Value param);
 
 		public:
 			LocalPlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
@@ -59,7 +58,7 @@ namespace mikelepage
 
 			void sendLeaveSetup();
 			void sendMovePiece(std::shared_ptr<Piece>, Coordinate oldPos);
-			void sendPromotePiece(PieceType from, PieceType to);
+			void sendPromotePiece(PieceType origType, PieceType newType);
 			void sendAddFortressReplacementTile(Coordinate);
 	};
 }

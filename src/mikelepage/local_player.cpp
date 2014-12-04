@@ -22,12 +22,12 @@
 #include "rendered_match.hpp"
 
 using namespace cyvmath;
+using namespace cyvws;
 
 namespace mikelepage
 {
 	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
 		: Player(match, color, std::move(fortress) /*, id */) // TODO
-		, m_setupComplete{false}
 		, m_match{match}
 	{ }
 
@@ -91,22 +91,25 @@ namespace mikelepage
 		}
 	}
 
-	void LocalPlayer::sendGameUpdate(Update update, Json::Value data)
+	void LocalPlayer::sendGameUpdate(cyvws::GameMsgAction action, Json::Value param)
 	{
 		Json::Value msg;
-		msg["messageType"] = "game update";
-		msg["update"] = UpdateToStr(update);
-		msg["data"] = data;
+		msg["msgType"] = "gameMsg";
+
+		auto& msgData = msg["msgData"];
+		// TODO: playerID
+		msgData["action"] = GameMsgActionToStr(action);
+		msgData["param"] = param;
 
 		CyvasseWSClient::instance().send(msg);
 	}
 
 	void LocalPlayer::sendLeaveSetup()
 	{
-		Json::Value data;
-		data["pieces"] = Json::Value(Json::arrayValue);
+		Json::Value param;
+		param["pieces"] = Json::Value(Json::arrayValue);
 
-		Json::Value& pieces = data["pieces"];
+		Json::Value& pieces = param["pieces"];
 		for(auto it : m_match.getActivePieces())
 		{
 			assert(it.second->getColor() == m_color);
@@ -122,30 +125,31 @@ namespace mikelepage
 		assert(m_inactivePieces.empty());
 		assert(m_match.getActivePieces().size() == 26);
 
-		sendGameUpdate(Update::LEAVE_SETUP, data);
+		sendGameUpdate(GameMsgAction::SET_OPENING_ARRAY, param);
+		sendGameUpdate(GameMsgAction::SET_IS_READY, true);
 	}
 
 	void LocalPlayer::sendMovePiece(std::shared_ptr<Piece> piece, Coordinate oldPos)
 	{
 		assert(piece->getCoord());
 
-		Json::Value data;
-		data["piece type"]   = PieceTypeToStr(piece->getType()); // not really relevant, only for debugging
-		data["old position"] = oldPos.toString();
-		data["new position"] = piece->getCoord()->toString();
+		Json::Value param;
+		param["pieceType"] = PieceTypeToStr(piece->getType()); // not really relevant, only for debugging
+		param["oldPos"]    = oldPos.toString();
+		param["newPos"]    = piece->getCoord()->toString();
 
-		sendGameUpdate(Update::MOVE_PIECE, data);
+		sendGameUpdate(GameMsgAction::MOVE, param);
 	}
 
-	void LocalPlayer::sendPromotePiece(PieceType from, PieceType to)
+	void LocalPlayer::sendPromotePiece(PieceType origType, PieceType newType)
 	{
-		assert(from != PieceType::UNDEFINED);
-		assert(to != PieceType::UNDEFINED);
+		assert(origType != PieceType::UNDEFINED);
+		assert(newType != PieceType::UNDEFINED);
 
-		Json::Value data;
-		data["from"] = PieceTypeToStr(from);
-		data["to"]   = PieceTypeToStr(to);
+		Json::Value param;
+		param["origType"] = PieceTypeToStr(origType);
+		param["newType"]  = PieceTypeToStr(newType);
 
-		sendGameUpdate(Update::PROMOTE_PIECE, data);
+		sendGameUpdate(GameMsgAction::PROMOTE, param);
 	}
 }

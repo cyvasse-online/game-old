@@ -34,7 +34,7 @@ namespace mikelepage
 	class RemotePlayer : public cyvmath::mikelepage::Player
 	{
 		private:
-			bool m_setupComplete;
+			bool m_setupComplete = false;
 
 			// contains all pieces before
 			// leaving setup, is empty afterwards
