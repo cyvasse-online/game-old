@@ -24,14 +24,9 @@ template<int> class HexagonBoard;
 
 namespace mikelepage
 {
-	using cyvmath::PieceType;
-	using cyvmath::PlayersColor;
-	using cyvmath::mikelepage::Coordinate;
-	using cyvmath::mikelepage::Piece;
-
 	class RenderedMatch;
 
-	class RenderedPiece : public Piece
+	class RenderedPiece : public cyvmath::mikelepage::Piece
 	{
 		private:
 			HexagonBoard<6>& m_board;
@@ -40,7 +35,7 @@ namespace mikelepage
 			fea::Texture m_texture;
 
 		public:
-			RenderedPiece(PieceType, Coordinate, PlayersColor, RenderedMatch&);
+			RenderedPiece(cyvmath::PieceType, cyvmath::Coordinate, cyvmath::PlayersColor, RenderedMatch&);
 
 			fea::Quad* getQuad()
 			{ return &m_quad; }
@@ -48,7 +43,7 @@ namespace mikelepage
 			const glm::vec2& getPosition() const
 			{ return m_quad.getPosition(); }
 
-			bool moveTo(Coordinate, bool setup) final override;
+			bool moveTo(cyvmath::Coordinate, bool setup) final override;
 
 			void setPosition(const glm::vec2& pos)
 			{ m_quad.setPosition(pos); }

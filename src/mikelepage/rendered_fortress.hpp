@@ -24,11 +24,7 @@ template<int> class HexagonBoard;
 
 namespace mikelepage
 {
-	using cyvmath::PlayersColor;
-	using cyvmath::mikelepage::Coordinate;
-	using cyvmath::mikelepage::Fortress;
-
-	class RenderedFortress : public Fortress
+	class RenderedFortress : public cyvmath::mikelepage::Fortress
 	{
 		private:
 			HexagonBoard<6>& m_board;
@@ -37,12 +33,12 @@ namespace mikelepage
 			fea::Texture m_texture;
 
 		public:
-			RenderedFortress(PlayersColor, Coordinate, HexagonBoard<6>&);
+			RenderedFortress(cyvmath::PlayersColor, cyvmath::Coordinate, HexagonBoard<6>&);
 
 			fea::Quad* getQuad()
 			{ return &m_quad; }
 
-			void setCoord(Coordinate) final override;
+			void setCoord(cyvmath::Coordinate) final override;
 
 			void ruined() final override;
 	};

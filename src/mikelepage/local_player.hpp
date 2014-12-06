@@ -25,16 +25,9 @@
 
 namespace mikelepage
 {
-	using cyvmath::PieceType;
-	using cyvmath::PlayersColor;
-	using cyvmath::mikelepage::Coordinate;
-	using cyvmath::mikelepage::CoordPieceMap;
-	using cyvmath::mikelepage::Piece;
-	using cyvmath::mikelepage::Player;
-
 	class RenderedMatch;
 
-	class LocalPlayer : public Player
+	class LocalPlayer : public cyvmath::mikelepage::Player
 	{
 		friend RenderedMatch;
 		private:
@@ -42,10 +35,10 @@ namespace mikelepage
 
 			RenderedMatch& m_match;
 
-			void sendGameUpdate(cyvws::GameMsgAction, Json::Value param);
+			void sendWSGameMsg(cyvws::GameMsgAction, Json::Value param);
 
 		public:
-			LocalPlayer(PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
+			LocalPlayer(cyvmath::PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
 			virtual ~LocalPlayer() = default;
 
 			bool setupComplete() const final override
@@ -57,9 +50,9 @@ namespace mikelepage
 			void onTurnBegin();
 
 			void sendLeaveSetup();
-			void sendMovePiece(std::shared_ptr<Piece>, Coordinate oldPos);
-			void sendPromotePiece(PieceType origType, PieceType newType);
-			void sendAddFortressReplacementTile(Coordinate);
+			void sendMovePiece(const cyvmath::mikelepage::Piece&, cyvmath::Coordinate oldPos);
+			void sendPromotePiece(cyvmath::PieceType origType, cyvmath::PieceType newType);
+			void sendAddFortressReplacementTile(cyvmath::Coordinate);
 	};
 }
 

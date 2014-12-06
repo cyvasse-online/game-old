@@ -24,12 +24,9 @@ template<int> class HexagonBoard;
 
 namespace mikelepage
 {
-	using cyvmath::mikelepage::Coordinate;
-	using cyvmath::mikelepage::Terrain;
 	using cyvmath::mikelepage::TerrainMap;
-	using cyvmath::mikelepage::TerrainType;
 
-	class RenderedTerrain : public Terrain
+	class RenderedTerrain : public cyvmath::mikelepage::Terrain
 	{
 		private:
 			HexagonBoard<6>& m_board;
@@ -39,12 +36,12 @@ namespace mikelepage
 			fea::Texture m_texture;
 
 		public:
-			RenderedTerrain(TerrainType, Coordinate, HexagonBoard<6>&, TerrainMap&);
+			RenderedTerrain(cyvmath::mikelepage::TerrainType, cyvmath::Coordinate, HexagonBoard<6>&, TerrainMap&);
 
 			fea::Quad* getQuad()
 			{ return &m_quad; }
 
-			void setCoord(Coordinate) final override;
+			void setCoord(cyvmath::Coordinate) final override;
 	};
 }
 

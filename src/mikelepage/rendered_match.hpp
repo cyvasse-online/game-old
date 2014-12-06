@@ -38,17 +38,10 @@ class IngameState;
 
 namespace mikelepage
 {
-	using cyvmath::PieceType;
-	using cyvmath::PlayersColor;
-	using cyvmath::mikelepage::Coordinate;
-	using cyvmath::mikelepage::Match;
-	using cyvmath::mikelepage::Player;
-	using cyvmath::mikelepage::Piece;
-
 	class LocalPlayer;
 	class RenderedPiece;
 
-	class RenderedMatch : public Match
+	class RenderedMatch : public cyvmath::mikelepage::Match
 	{
 		public:
 			typedef HexagonBoard<6> Board;
@@ -62,10 +55,10 @@ namespace mikelepage
 			bool m_gameEnded;
 			std::string m_status;
 
-			const PlayersColor m_ownColor, m_opColor;
+			const cyvmath::PlayersColor m_ownColor, m_opColor;
 
 			LocalPlayer& m_self;
-			Player& m_op;
+			cyvmath::mikelepage::Player& m_op;
 
 			std::map<RenderPriority, std::vector<fea::Drawable2D*>> m_renderedEntities;
 
@@ -76,14 +69,14 @@ namespace mikelepage
 
 			std::array<fea::Quad, 3> m_piecePromotionBackground;
 			std::array<fea::Quad*, 3> m_piecePromotionPieces;
-			std::array<PieceType, 3> m_piecePromotionTypes;
-			uint_least8_t m_renderPiecePromotionBgs;
-			uint_least8_t m_piecePromotionHover, m_piecePromotionMousePress;
+			std::array<cyvmath::PieceType, 3> m_piecePromotionTypes;
+			uint8_t m_renderPiecePromotionBgs;
+			uint8_t m_piecePromotionHover, m_piecePromotionMousePress;
 
-			std::shared_ptr<Piece> m_hoveredPiece, m_selectedPiece;
+			std::shared_ptr<cyvmath::mikelepage::Piece> m_hoveredPiece, m_selectedPiece;
 
 		public:
-			RenderedMatch(IngameState&, fea::Renderer2D&, PlayersColor);
+			RenderedMatch(IngameState&, fea::Renderer2D&, cyvmath::PlayersColor);
 
 			// non-copyable
 			RenderedMatch(const RenderedMatch&) = delete;
@@ -99,8 +92,8 @@ namespace mikelepage
 
 			void tick();
 
-			void onTileMouseOver(Coordinate);
-			void onTileClicked(Coordinate);
+			void onTileMouseOver(cyvmath::Coordinate);
+			void onTileClicked(cyvmath::Coordinate);
 			void onMouseMoveOutside(const fea::Event::MouseMoveEvent&);
 			void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
@@ -114,15 +107,15 @@ namespace mikelepage
 			void placePiecesSetup();
 
 			void tryLeaveSetup();
-			bool tryMovePiece(std::shared_ptr<Piece>, Coordinate);
-			void addToBoard(PieceType, PlayersColor, Coordinate) final override;
-			void removeFromBoard(std::shared_ptr<Piece>) final override;
+			bool tryMovePiece(std::shared_ptr<cyvmath::mikelepage::Piece>, cyvmath::Coordinate);
+			void addToBoard(cyvmath::PieceType, cyvmath::PlayersColor, cyvmath::Coordinate) final override;
+			void removeFromBoard(std::shared_ptr<cyvmath::mikelepage::Piece>) final override;
 
 			void updateTurnStatus();
 			void showPossibleTargetTiles();
 
-			void showPromotionPieces(std::set<PieceType>);
-			void endGame(PlayersColor winner) final override;
+			void showPromotionPieces(std::set<cyvmath::PieceType>);
+			void endGame(cyvmath::PlayersColor winner) final override;
 	};
 }
 

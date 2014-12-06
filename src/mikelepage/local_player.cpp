@@ -16,6 +16,7 @@
 
 #include "local_player.hpp"
 
+#include <cyvws/create_json.hpp>
 #include "cyvasse_ws_client.hpp"
 #include "hexagon_board.hpp"
 #include "rendered_fortress.hpp"
@@ -91,7 +92,7 @@ namespace mikelepage
 		}
 	}
 
-	void LocalPlayer::sendGameUpdate(cyvws::GameMsgAction action, Json::Value param)
+	void LocalPlayer::sendWSGameMsg(cyvws::GameMsgAction action, Json::Value param)
 	{
 		Json::Value msg;
 		msg["msgType"] = "gameMsg";
@@ -106,50 +107,23 @@ namespace mikelepage
 
 	void LocalPlayer::sendLeaveSetup()
 	{
-		Json::Value param;
-		param["pieces"] = Json::Value(Json::arrayValue);
-
-		Json::Value& pieces = param["pieces"];
-		for(auto it : m_match.getActivePieces())
-		{
-			assert(it.second->getColor() == m_color);
-
-			Json::Value piece;
-			piece["type"] = PieceTypeToStr(it.second->getType());
-			piece["position"] = it.first.toString();
-
-			pieces.append(piece);
-		}
-
 		// every piece has to be on the board
 		assert(m_inactivePieces.empty());
 		assert(m_match.getActivePieces().size() == 26);
 
-		sendGameUpdate(GameMsgAction::SET_OPENING_ARRAY, param);
-		sendGameUpdate(GameMsgAction::SET_IS_READY, true);
+		sendWSGameMsg(GameMsgAction::SET_OPENING_ARRAY, createJsonOpeningArray(m_match.getActivePieces()));
+		sendWSGameMsg(GameMsgAction::SET_IS_READY, true);
 	}
 
-	void LocalPlayer::sendMovePiece(std::shared_ptr<Piece> piece, Coordinate oldPos)
+	void LocalPlayer::sendMovePiece(const cyvmath::mikelepage::Piece& piece, Coordinate oldPos)
 	{
-		assert(piece->getCoord());
+		assert(piece.getCoord());
 
-		Json::Value param;
-		param["pieceType"] = PieceTypeToStr(piece->getType()); // not really relevant, only for debugging
-		param["oldPos"]    = oldPos.toString();
-		param["newPos"]    = piece->getCoord()->toString();
-
-		sendGameUpdate(GameMsgAction::MOVE, param);
+		sendWSGameMsg(GameMsgAction::MOVE, cyvws::createJsonPieceMovement(piece.getType(), oldPos, *piece.getCoord()));
 	}
 
 	void LocalPlayer::sendPromotePiece(PieceType origType, PieceType newType)
 	{
-		assert(origType != PieceType::UNDEFINED);
-		assert(newType != PieceType::UNDEFINED);
-
-		Json::Value param;
-		param["origType"] = PieceTypeToStr(origType);
-		param["newType"]  = PieceTypeToStr(newType);
-
-		sendGameUpdate(GameMsgAction::PROMOTE, param);
+		sendWSGameMsg(GameMsgAction::PROMOTE, cyvws::createJsonPromotion(origType, newType));
 	}
 }

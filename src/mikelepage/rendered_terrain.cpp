@@ -20,8 +20,12 @@
 #include "hexagon_board.hpp"
 #include "texturemaker.hpp" // lodepng helper function
 
+using namespace cyvmath;
+
 namespace mikelepage
 {
+	using cyvmath::mikelepage::TerrainType;
+
 	RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
 		: Terrain(type, coord)
 		, m_board(board)

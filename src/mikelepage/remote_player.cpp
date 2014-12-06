@@ -29,10 +29,11 @@ using namespace cyvmath::mikelepage;
 using namespace cyvws;
 
 using std::placeholders::_1;
-using cyvmath::mikelepage::Coordinate;
 
 namespace mikelepage
 {
+	using HexCoordinate = Hexagon<6>::Coordinate;
+
 	RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
 		: Player(match, color, std::move(fortress) /*, id */) // TODO
 		, m_match(match) // should probably be considered a workaround
@@ -62,7 +63,7 @@ namespace mikelepage
 				for(const Json::Value& piece : data["pieces"])
 				{
 					auto type = StrToPieceType(piece["type"].asString());
-					auto coord = Coordinate::createFromStr(piece["position"].asString());
+					auto coord = HexCoordinate::createFromStr(piece["position"].asString());
 
 					if(type == PieceType::UNDEFINED)
 						throw std::runtime_error("got unknown piece type " + piece["type"].asString());
@@ -85,8 +86,8 @@ namespace mikelepage
 			case GameMsgAction::MOVE:
 			{
 				auto pieceType = StrToPieceType(data["pieceType"].asString());
-				auto oldPos    = Coordinate::createFromStr(data["oldPos"].asString());
-				auto newPos    = Coordinate::createFromStr(data["newPos"].asString());
+				auto oldPos    = HexCoordinate::createFromStr(data["oldPos"].asString());
+				auto newPos    = HexCoordinate::createFromStr(data["newPos"].asString());
 
 				if(pieceType == PieceType::UNDEFINED)
 					throw std::runtime_error(
@@ -98,7 +99,7 @@ namespace mikelepage
 						"move to undefined position " + data["newPos"].asString() + " requested"
 					);
 
-				std::shared_ptr<Piece> piece;
+				std::shared_ptr<cyvmath::mikelepage::Piece> piece;
 
 				if(!oldPos)
 					throw std::runtime_error("move of piece without position requested");

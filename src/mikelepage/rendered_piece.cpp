@@ -21,7 +21,7 @@
 #include "texturemaker.hpp" // lodepng helper function
 #include "rendered_match.hpp"
 
-using namespace cyvmath::mikelepage;
+using namespace cyvmath;
 
 namespace mikelepage
 {

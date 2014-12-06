@@ -20,22 +20,24 @@
 #ifdef EMSCRIPTEN
 	#include <emscripten.h>
 #endif
+#include <make_unique.hpp>
+#include <texturemaker.hpp> // lodepng helper function
 #include "common.hpp"
 #include "hexagon_board.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
-#include "make_unique.hpp"
 #include "rendered_fortress.hpp"
 #include "rendered_piece.hpp"
 #include "rendered_terrain.hpp"
 #include "remote_player.hpp"
-#include "texturemaker.hpp" // lodepng helper function
 
 using namespace std::placeholders;
-using namespace cyvmath::mikelepage;
+using namespace cyvmath;
 
 namespace mikelepage
 {
+	using HexCoordinate = Hexagon<6>::Coordinate;
+
 	static Match::playerArray createPlayerArray(PlayersColor localPlayersColor, RenderedMatch& match)
 	{
 		auto remotePlayersColor = !localPlayersColor;
@@ -54,7 +56,7 @@ namespace mikelepage
 	}
 
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
-		: mikelepage::Match({}, false, false, createPlayerArray(color, *this)) // TODO
+		: cyvmath::mikelepage::Match({}, false, false, createPlayerArray(color, *this)) // TODO
 		, m_renderer{renderer}
 		, m_ingameState{ingameState}
 		, m_board{make_unique<Board>(renderer, color)}
@@ -72,8 +74,8 @@ namespace mikelepage
 	{
 		// hardcoded temporarily [TODO]
 		static const std::map<PlayersColor, Coordinate> fortressStartCoords {
-			{PlayersColor::WHITE, *Coordinate::create(4, 7)},
-			{PlayersColor::BLACK, *Coordinate::create(6, 3)}
+			{PlayersColor::WHITE, *HexCoordinate::create(4, 7)},
+			{PlayersColor::BLACK, *HexCoordinate::create(6, 3)}
 		};
 
 		auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), *m_board);
@@ -206,7 +208,7 @@ namespace mikelepage
 		else // a piece is selected
 		{
 			// determine which piece is on the clicked tile
-			std::shared_ptr<Piece> piece;
+			std::shared_ptr<cyvmath::mikelepage::Piece> piece;
 
 			auto pieceIt = m_activePieces.find(coord);
 			if(pieceIt != m_activePieces.end())
@@ -336,6 +338,8 @@ namespace mikelepage
 
 	void RenderedMatch::placePiece(std::shared_ptr<RenderedPiece> piece)
 	{
+		using cyvmath::mikelepage::TerrainType;
+
 		auto coord = piece->getCoord();
 		assert(coord);
 
@@ -359,7 +363,7 @@ namespace mikelepage
 		typedef std::pair<PieceType, Coordinate> Position;
 
 		auto C = [](int_least8_t x, int_least8_t y) {
-			auto coord = Coordinate::create(x, y);
+			auto coord = HexCoordinate::create(x, y);
 			assert(coord);
 			return *coord;
 		};
@@ -470,7 +474,7 @@ namespace mikelepage
 		updateTurnStatus();
 	}
 
-	bool RenderedMatch::tryMovePiece(std::shared_ptr<Piece> piece, Coordinate coord)
+	bool RenderedMatch::tryMovePiece(std::shared_ptr<cyvmath::mikelepage::Piece> piece, Coordinate coord)
 	{
 		assert(piece);
 
@@ -483,7 +487,7 @@ namespace mikelepage
 			if(piece->getColor() == m_ownColor)
 			{
 				if(!m_setup)
-					m_self.sendMovePiece(piece, *oldCoord);
+					m_self.sendMovePiece(*piece, *oldCoord);
 
 				if(!m_setupAccepted)
 					m_self.checkSetupComplete();
@@ -493,7 +497,7 @@ namespace mikelepage
 
 			if(!m_setup)
 			{
-				dynamic_cast<mikelepage::Player&>(*m_players[m_activePlayer]).onTurnEnd();
+				dynamic_cast<cyvmath::mikelepage::Player&>(*m_players[m_activePlayer]).onTurnEnd();
 
 				m_activePlayer = !m_activePlayer;
 
@@ -524,7 +528,7 @@ namespace mikelepage
 		m_renderedEntities[RenderPriority::PIECE].push_back(rPiece->getQuad());
 	}
 
-	void RenderedMatch::removeFromBoard(std::shared_ptr<Piece> piece)
+	void RenderedMatch::removeFromBoard(std::shared_ptr<cyvmath::mikelepage::Piece> piece)
 	{
 		Match::removeFromBoard(piece);
 

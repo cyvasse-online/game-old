@@ -20,6 +20,8 @@
 #include "hexagon_board.hpp"
 #include "texturemaker.hpp" // lodepng helper function
 
+using namespace cyvmath;
+
 namespace mikelepage
 {
 	RenderedFortress::RenderedFortress(PlayersColor color, Coordinate coord, HexagonBoard<6>& board)

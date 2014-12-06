@@ -41,6 +41,7 @@ game_cppflags = \
 
 game_ldadd = \
 	$(top_builddir)/cyvasse-common/libcyvmath.a \
+	$(top_builddir)/cyvasse-common/libcyvws.a \
 	-lfea-structure \
 	-lfea-ui \
 	-lfea-rendering \
