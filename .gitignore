@@ -17,13 +17,12 @@ Makefile.in
 # Compiled files
 
 cyvasse-game
-cyvasse.data
-cyvasse.js
 cyvmath-tests
-libcyvdb.a
-libcyvmath.a
 
+*.a
+*.data
 *.o
+*.js
 *.js.map
 *.js.mem
 
