@@ -34,20 +34,11 @@ WebsocketImpl::WebsocketImpl()
 void WebsocketImpl::send(const std::string& msgData)
 {
 	EM_ASM_({
-		var jsWSClient = Module.wsClient;
-		var msg = Module.Pointer_stringify($0);
-
-		if(jsWSClient.debug === true) {
-			console.log('[send]');
-			console.log(msg);
-		}
-
-		jsWSClient.conn.send(msg);
+		Module.wsClient.send(Module.Pointer_stringify($0));
 	}, msgData.c_str());
 }
 
-extern "C"
+extern "C" void game_handlemessage(const char* msgData)
 {
-	void game_handlemessage(const char* msgData)
-	{ CyvasseWSClient::instance().handleMessageWrap(std::string(msgData)); }
+	CyvasseWSClient::instance().handleMessageWrap(std::string(msgData));
 }

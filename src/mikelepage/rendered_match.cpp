@@ -36,7 +36,8 @@ using namespace cyvmath;
 
 namespace mikelepage
 {
-	using HexCoordinate = Hexagon<6>::Coordinate;
+	using Hexagon = Hexagon<6>;
+	using HexCoordinate = Hexagon::Coordinate;
 
 	static Match::playerArray createPlayerArray(PlayersColor localPlayersColor, RenderedMatch& match)
 	{
@@ -44,10 +45,6 @@ namespace mikelepage
 
 		auto localPlayer  = make_unique<LocalPlayer>(localPlayersColor, match);
 		auto remotePlayer = make_unique<RemotePlayer>(remotePlayersColor, match);
-
-		/*return localPlayersColor < remotePlayersColor
-			? {{std::move(localPlayer), std::move(remotePlayer)}}
-			: {{std::move(remotePlayer), std::move(localPlayer)}};*/
 
 		if(localPlayersColor < remotePlayersColor)
 			return {{std::move(localPlayer), std::move(remotePlayer)}};
@@ -362,11 +359,8 @@ namespace mikelepage
 	{
 		typedef std::pair<PieceType, Coordinate> Position;
 
-		auto C = [](int_least8_t x, int_least8_t y) {
-			auto coord = HexCoordinate::create(x, y);
-			assert(coord);
-			return *coord;
-		};
+		// now featuring compile-time value coordination validation :]
+		#define C(X, Y) Hexagon::ConstexprCoordinate<X, Y>()
 
 		static const std::array<std::vector<Position>, 2> defaultPiecePositions {{
 			{
@@ -435,6 +429,8 @@ namespace mikelepage
 				{PieceType::RABBLE,      C(4, 4)},
 				{PieceType::RABBLE,      C(3, 4)}
 			}}};
+
+		#undef C
 
 		for(auto& it : defaultPiecePositions.at(m_ownColor))
 		{

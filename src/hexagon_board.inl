@@ -81,7 +81,7 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor c
 	std::vector<Coordinate> tmpVec;
 	tmpVec.reserve(Hexagon::tileCount + (Hexagon::edgeLength * 2) - 1);
 
-	for(Coordinate c : Hexagon::getAllCoordinates())
+	for(Coordinate c : Hexagon::allCoordinates)
 	{
 		auto quad = std::make_shared<fea::Quad>(m_tileSize);
 
