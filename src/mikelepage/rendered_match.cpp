@@ -20,9 +20,11 @@
 #ifdef EMSCRIPTEN
 	#include <emscripten.h>
 #endif
+#include <cyvws/json_game_msg.hpp>
 #include <make_unique.hpp>
 #include <texturemaker.hpp> // lodepng helper function
 #include "common.hpp"
+#include "cyvasse_ws_client.hpp"
 #include "hexagon_board.hpp"
 #include "ingame_state.hpp"
 #include "local_player.hpp"
@@ -33,6 +35,7 @@
 
 using namespace std::placeholders;
 using namespace cyvmath;
+using namespace cyvws;
 
 namespace mikelepage
 {
@@ -262,9 +265,13 @@ namespace mikelepage
 		if(m_self.setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
 		{
 			m_setupAccepted = true;
+
 			// send before modifying m_activePieces, so the map doesn't
 			// have to be filtered for only black / white pieces
-			m_self.sendLeaveSetup();
+			assert(m_activePieces.size() == 26);
+			CyvasseWSClient::instance().send(json::gameMsgSetOpeningArray(m_activePieces));
+			CyvasseWSClient::instance().send(json::gameMsgSetIsReady(true));
+
 			tryLeaveSetup();
 		}
 
@@ -316,11 +323,11 @@ namespace mikelepage
 			auto piece = getPieceAt(m_self.getFortress().getCoord());
 			assert(piece);
 
-			PieceType oldType = piece->getType();
+			PieceType origType = piece->getType();
 			PieceType newType = m_piecePromotionTypes[m_piecePromotionMousePress-1];
 
 			piece->promoteTo(newType);
-			m_self.sendPromotePiece(oldType, newType);
+			CyvasseWSClient::instance().send(json::gameMsgPromote(origType, newType));
 
 			m_renderPiecePromotionBgs = 0;
 			m_piecePromotionPieces.fill(nullptr);
@@ -482,7 +489,7 @@ namespace mikelepage
 			if(piece->getColor() == m_ownColor)
 			{
 				if(!m_setup)
-					m_self.sendMovePiece(*piece, *oldCoord);
+					CyvasseWSClient::instance().send(json::gameMsgMove(piece->getType(), *oldCoord, *piece->getCoord()));
 
 				if(!m_setupAccepted)
 					m_self.checkSetupComplete();

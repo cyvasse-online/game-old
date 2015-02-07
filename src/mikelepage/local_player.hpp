@@ -35,8 +35,6 @@ namespace mikelepage
 
 			RenderedMatch& m_match;
 
-			void sendWSGameMsg(cyvws::GameMsgAction, Json::Value param);
-
 		public:
 			LocalPlayer(cyvmath::PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
 			virtual ~LocalPlayer() = default;
@@ -48,11 +46,6 @@ namespace mikelepage
 			{ m_setupComplete = Player::setupComplete(); }
 
 			void onTurnBegin();
-
-			void sendLeaveSetup();
-			void sendMovePiece(const cyvmath::mikelepage::Piece&, cyvmath::Coordinate oldPos);
-			void sendPromotePiece(cyvmath::PieceType origType, cyvmath::PieceType newType);
-			void sendAddFortressReplacementTile(cyvmath::Coordinate);
 	};
 }
 

@@ -29,7 +29,7 @@ namespace mikelepage
 {
 	LocalPlayer::LocalPlayer(PlayersColor color, RenderedMatch& match, std::unique_ptr<RenderedFortress> fortress)
 		: Player(match, color, std::move(fortress) /*, id */) // TODO
-		, m_match{match}
+		, m_match(match)
 	{ }
 
 	void LocalPlayer::onTurnBegin()
@@ -87,43 +87,8 @@ namespace mikelepage
 			if(promoteToType != PieceType::UNDEFINED)
 			{
 				piece->promoteTo(promoteToType);
-				sendPromotePiece(pieceType, promoteToType);
+				CyvasseWSClient::instance().send(json::gameMsgPromote(pieceType, promoteToType));
 			}
 		}
-	}
-
-	void LocalPlayer::sendWSGameMsg(GameMsgAction action, Json::Value param)
-	{
-		Json::Value msg;
-		msg["msgType"] = "gameMsg";
-
-		auto& msgData = msg["msgData"];
-		// TODO: playerID
-		msgData["action"] = GameMsgActionToStr(action);
-		msgData["param"] = param;
-
-		CyvasseWSClient::instance().send(msg);
-	}
-
-	void LocalPlayer::sendLeaveSetup()
-	{
-		// every piece has to be on the board
-		assert(m_inactivePieces.empty());
-		assert(m_match.getActivePieces().size() == 26);
-
-		sendWSGameMsg(GameMsgAction::SET_OPENING_ARRAY, json::openingArray(m_match.getActivePieces()));
-		sendWSGameMsg(GameMsgAction::SET_IS_READY, true);
-	}
-
-	void LocalPlayer::sendMovePiece(const cyvmath::mikelepage::Piece& piece, Coordinate oldPos)
-	{
-		assert(piece.getCoord());
-
-		sendWSGameMsg(GameMsgAction::MOVE, json::pieceMovement(piece.getType(), oldPos, *piece.getCoord()));
-	}
-
-	void LocalPlayer::sendPromotePiece(PieceType origType, PieceType newType)
-	{
-		sendWSGameMsg(GameMsgAction::PROMOTE, json::promotion(origType, newType));
 	}
 }
