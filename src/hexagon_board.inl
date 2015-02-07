@@ -159,6 +159,48 @@ const glm::vec2& HexagonBoard<l>::getTileSize() const
 	return m_tileSize;
 }
 
+template<int l>
+template<class... Args>
+std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(Args&&... args)
+{
+	// remove padding
+	glm::uvec2 tilePos = glm::uvec2(std::forward<Args>(args)...) - m_position;
+
+	float x, y;
+
+	if(!m_upsideDown) // 'normal' orientation first
+	{
+		// y = (maximal y) - ('inverted' coord y)
+		y = (l * 2 - 1)
+			- tilePos.y / m_tileSize.y;
+
+		x = (
+				tilePos.x
+				+ ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
+				- m_tileSize.x / 2.0f
+			)
+			/ m_tileSize.x;
+	}
+	else // upsideDown
+	{
+		y = tilePos.y / m_tileSize.y;
+
+		x = (l * 2 - 1)
+			- ((
+					tilePos.x
+					- ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
+					+ m_tileSize.x / 2.0f
+				)
+				/ m_tileSize.x
+			);
+	}
+
+	if(x < 0.0f || y < 0.0f)
+		return nullptr;
+
+	return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
+}
+
 template <int l>
 std::shared_ptr<fea::Quad> HexagonBoard<l>::getTileAt(Coordinate c)
 {
@@ -180,6 +222,29 @@ void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id)
 		quadVec.clear();
 
 	quadVec.push_back(createHighlightQuad(getTilePosition(coord), id));
+}
+
+template <int l>
+template <class InputIterator>
+void HexagonBoard<l>::highlightTiles(InputIterator first, InputIterator last, HighlightingId id)
+{
+	static_assert(
+		std::is_convertible<typename std::iterator_traits<InputIterator>::value_type, Coordinate>::value,
+		"The iterators first and last have to be convertible to Coordinate"
+	);
+
+	auto res = m_highlightQuads.emplace(id, QuadVec());
+	auto& quadVec = res.first->second;
+
+	// the check could maybe be removed
+	if(!res.second)
+		quadVec.clear();
+
+	while(first != last)
+	{
+		quadVec.push_back(createHighlightQuad(getTilePosition(*first), id));
+		++first;
+	}
 }
 
 template <int l>

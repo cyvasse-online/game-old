@@ -67,7 +67,7 @@ class HexagonBoard
 		TileMap m_tileMap;
 		QuadVec m_quadVec;
 
-		// TODO: change to std::optional [C++14]
+		// TODO: change to std::optional [C++1z]
 		std::unique_ptr<Tile> m_hoveredTile;
 		std::unique_ptr<Tile> m_mouseBPressTile;
 
@@ -95,71 +95,14 @@ class HexagonBoard
 		const glm::vec2& getTileSize() const;
 
 		template<class... Args>
-		std::unique_ptr<Coordinate> getCoordinate(Args&&... args)
-		{
-			// remove padding
-			glm::uvec2 tilePos = glm::uvec2(std::forward<Args>(args)...) - m_position;
-
-			float x, y;
-
-			if(!m_upsideDown) // 'normal' orientation first
-			{
-				// y = (maximal y) - ('inverted' coord y)
-				y = (l * 2 - 1)
-					- tilePos.y / m_tileSize.y;
-
-				x = (
-						tilePos.x
-						+ ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
-						- m_tileSize.x / 2.0f
-					)
-					/ m_tileSize.x;
-			}
-			else // upsideDown
-			{
-				y = tilePos.y / m_tileSize.y;
-
-				x = (l * 2 - 1)
-					- ((
-							tilePos.x
-							- ((l - static_cast<int>(y)) * m_tileSize.x / 2.0f)
-							+ m_tileSize.x / 2.0f
-						)
-						/ m_tileSize.x
-					);
-			}
-
-			if(x < 0.0f || y < 0.0f)
-				return nullptr;
-
-			return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
-		}
+		std::unique_ptr<Coordinate> getCoordinate(Args&&... args);
 
 		std::shared_ptr<fea::Quad> getTileAt(Coordinate);
 
 		void highlightTile(Coordinate, HighlightingId);
 
 		template<class InputIterator>
-		void highlightTiles(InputIterator first, InputIterator last, HighlightingId id)
-		{
-			static_assert(
-				std::is_convertible<typename std::iterator_traits<InputIterator>::value_type, Coordinate>::value,
-				"The iterators first and last have to be convertible to Coordinate"
-			);
-
-			auto res = m_highlightQuads.emplace(id, QuadVec());
-			auto& quadVec = res.first->second;
-
-			// the check could maybe be removed
-			if(!res.second)
-				quadVec.clear();
-
-			while(first != last)
-			{
-				quadVec.push_back(createHighlightQuad(getTilePosition(*first), id));
-				++first;
-			}
-		}
+		void highlightTiles(InputIterator first, InputIterator last, HighlightingId id);
 
 		void clearHighlighting(HighlightingId);
 

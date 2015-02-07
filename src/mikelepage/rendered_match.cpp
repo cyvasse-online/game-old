@@ -71,8 +71,8 @@ namespace mikelepage
 	{
 		// hardcoded temporarily [TODO]
 		static const std::map<PlayersColor, Coordinate> fortressStartCoords {
-			{PlayersColor::WHITE, *HexCoordinate::create(4, 7)},
-			{PlayersColor::BLACK, *HexCoordinate::create(6, 3)}
+			{PlayersColor::WHITE, HexCoordinate(4, 7)},
+			{PlayersColor::BLACK, HexCoordinate(6, 3)}
 		};
 
 		auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), *m_board);
@@ -359,8 +359,7 @@ namespace mikelepage
 	{
 		typedef std::pair<PieceType, Coordinate> Position;
 
-		// now featuring compile-time value coordination validation :]
-		#define C(X, Y) Hexagon::ConstexprCoordinate<X, Y>()
+		#define C(X, Y) Hexagon::Coordinate(X, Y)
 
 		static const std::array<std::vector<Position>, 2> defaultPiecePositions {{
 			{

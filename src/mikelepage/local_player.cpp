@@ -16,7 +16,7 @@
 
 #include "local_player.hpp"
 
-#include <cyvws/create_json.hpp>
+#include <cyvws/json_game_msg.hpp>
 #include "cyvasse_ws_client.hpp"
 #include "hexagon_board.hpp"
 #include "rendered_fortress.hpp"
@@ -92,7 +92,7 @@ namespace mikelepage
 		}
 	}
 
-	void LocalPlayer::sendWSGameMsg(cyvws::GameMsgAction action, Json::Value param)
+	void LocalPlayer::sendWSGameMsg(GameMsgAction action, Json::Value param)
 	{
 		Json::Value msg;
 		msg["msgType"] = "gameMsg";
@@ -111,7 +111,7 @@ namespace mikelepage
 		assert(m_inactivePieces.empty());
 		assert(m_match.getActivePieces().size() == 26);
 
-		sendWSGameMsg(GameMsgAction::SET_OPENING_ARRAY, createJsonOpeningArray(m_match.getActivePieces()));
+		sendWSGameMsg(GameMsgAction::SET_OPENING_ARRAY, json::openingArray(m_match.getActivePieces()));
 		sendWSGameMsg(GameMsgAction::SET_IS_READY, true);
 	}
 
@@ -119,11 +119,11 @@ namespace mikelepage
 	{
 		assert(piece.getCoord());
 
-		sendWSGameMsg(GameMsgAction::MOVE, cyvws::createJsonPieceMovement(piece.getType(), oldPos, *piece.getCoord()));
+		sendWSGameMsg(GameMsgAction::MOVE, json::pieceMovement(piece.getType(), oldPos, *piece.getCoord()));
 	}
 
 	void LocalPlayer::sendPromotePiece(PieceType origType, PieceType newType)
 	{
-		sendWSGameMsg(GameMsgAction::PROMOTE, cyvws::createJsonPromotion(origType, newType));
+		sendWSGameMsg(GameMsgAction::PROMOTE, json::promotion(origType, newType));
 	}
 }

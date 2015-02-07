@@ -92,18 +92,22 @@ namespace mikelepage
 					// TODO: check whether all pieces are on the players side of the board
 					for(const auto& coordVal : coords)
 					{
-						auto coord = HexCoordinate::createFromStr(coordVal.asString());
-
-						if(!coord)
-						{
-							throw runtime_error("got invalid coordinate " + coordVal.asString()
-								+ " for a " + typeStr + " piece");
-						}
+						auto coord = [&] {
+							try
+							{
+								return HexCoordinate(coordVal.asString());
+							}
+							catch(invalid_argument&)
+							{
+								throw runtime_error("got invalid coordinate " + coordVal.asString()
+									+ " for a " + typeStr + " piece");
+							}
+						}();
 
 						if(it.first == PieceType::KING)
-							m_fortress->setCoord(*coord);
+							m_fortress->setCoord(coord);
 
-						m_pieceCache.push_back(make_shared<RenderedPiece>(it.first, *coord, m_color, m_match));
+						m_pieceCache.push_back(make_shared<RenderedPiece>(it.first, coord, m_color, m_match));
 					}
 				}
 
@@ -115,37 +119,43 @@ namespace mikelepage
 			case GameMsgAction::MOVE:
 			{
 				auto pieceType = StrToPieceType(param["pieceType"].asString());
-				auto oldPos    = HexCoordinate::createFromStr(param["oldPos"].asString());
-				auto newPos    = HexCoordinate::createFromStr(param["newPos"].asString());
+				auto oldPos = [&] {
+					try
+					{
+						return HexCoordinate(param["oldPos"].asString());
+					}
+					catch(invalid_argument&)
+					{
+						throw runtime_error("move of piece without valid position requested");
+					}
+				}();
+				auto newPos = [&] {
+					try
+					{
+						return HexCoordinate(param["newPos"].asString());
+					}
+					catch(invalid_argument&)
+					{
+						throw runtime_error("move to undefined position " + param["newPos"].asString() + " requested");
+					}
+				}();
 
 				if(pieceType == PieceType::UNDEFINED)
-					throw runtime_error(
-						"move of undefined piece " + param["pieceType"].asString() + " requested"
-					);
+					throw runtime_error("move of undefined piece " + param["pieceType"].asString() + " requested");
 
-				if(!newPos)
-					throw runtime_error(
-						"move to undefined position " + param["newPos"].asString() + " requested"
-					);
-
-				shared_ptr<cyvmath::mikelepage::Piece> piece;
-
-				if(!oldPos)
-					throw runtime_error("move of piece without position requested");
-
-				auto it = m_match.getActivePieces().find(*oldPos);
+				auto it = m_match.getActivePieces().find(oldPos);
 				if(it == m_match.getActivePieces().end())
-					throw runtime_error("move of non-existent piece at " + oldPos->toString() + " requested");
+					throw runtime_error("move of non-existent piece at " + oldPos.toString() + " requested");
 
-				piece = it->second;
+				auto piece = it->second;
 
 				if(piece->getType() != pieceType)
 					throw runtime_error(
 						"remote client requested move of " + param["pieceType"].asString() + ", but there is " +
-						PieceTypeToStr(piece->getType()) + " at " + oldPos->toString()
+						PieceTypeToStr(piece->getType()) + " at " + oldPos.toString()
 					);
 
-				m_match.tryMovePiece(piece, *newPos);
+				m_match.tryMovePiece(piece, newPos);
 				break;
 			}
 			case GameMsgAction::PROMOTE:
