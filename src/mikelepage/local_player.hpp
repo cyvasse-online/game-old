@@ -18,7 +18,7 @@
 #define _MIKELEPAGE_LOCAL_PLAYER_HPP_
 
 #include <cyvmath/mikelepage/player.hpp>
-#include <cyvws/game_msg_action.hpp>
+#include <cyvws/game_msg.hpp>
 #include <memory>
 #include <json/value.h>
 #include "rendered_fortress.hpp"
