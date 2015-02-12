@@ -20,6 +20,7 @@
 #include "hexagon_board.hpp"
 #include "texturemaker.hpp" // lodepng helper function
 
+using namespace std;
 using namespace cyvmath;
 
 namespace mikelepage
@@ -34,7 +35,7 @@ namespace mikelepage
 	{
 		assert(type != TerrainType::UNDEFINED);
 
-		std::string texturePath = "icons/" + TerrainTypeToStr(type) + ".png";
+		string texturePath = "res/icons/" + TerrainTypeToStr(type) + ".png";
 		m_texture = makeTexture(texturePath).first;
 
 		m_quad.setTexture(m_texture);

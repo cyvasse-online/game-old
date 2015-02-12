@@ -20,6 +20,7 @@
 #include "hexagon_board.hpp"
 #include "texturemaker.hpp" // lodepng helper function
 
+using namespace std;
 using namespace cyvmath;
 
 namespace mikelepage
@@ -30,7 +31,7 @@ namespace mikelepage
 	{
 		assert(color != PlayersColor::UNDEFINED);
 
-		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/fortress.png";
+		string texturePath = "res/icons/" + string(PlayersColorToStr(color)) + "/fortress.png";
 		m_texture = makeTexture(texturePath).first;
 		m_quad.setTexture(m_texture);
 
@@ -53,7 +54,7 @@ namespace mikelepage
 	{
 		Fortress::ruined();
 
-		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(m_color))) + "/fortress_ruined.png";
+		string texturePath = "res/icons/" + string(PlayersColorToStr(m_color)) + "/fortress_ruined.png";
 		m_texture = makeTexture(texturePath).first;
 	}
 }

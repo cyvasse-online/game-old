@@ -8,8 +8,10 @@
 #ifndef _TEXTUREMAKER_HPP_
 #define _TEXTUREMAKER_HPP_
 
+#include <algorithm>
 #include <string>
 #include <utility>
+#include <vector>
 #include <fea/render2d.hpp>
 #include "lodepng.h"
 
@@ -24,7 +26,7 @@ inline std::pair<fea::Texture, glm::uvec2> makeTexture(std::string path)
 
     // if there's an error, display it
     if(error)
-        throw std::runtime_error("lodepng error " + std::to_string(error) + ": " + lodepng_error_text(error));
+        throw std::runtime_error("(lodepng) error loading " + path + ": " + lodepng_error_text(error));
 
     fea::Texture texture;
     texture.create(width, height, &image[0]);

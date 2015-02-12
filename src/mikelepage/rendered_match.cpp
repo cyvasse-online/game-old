@@ -87,7 +87,7 @@ namespace mikelepage
 		glm::uvec2 boardSize = m_board->getSize();
 		glm::uvec2 boardPos = m_board->getPosition();
 
-		auto tmpTexture = makeTexture("setup-done.png");
+		auto tmpTexture = makeTexture("res/setup-done.png");
 
 		m_buttonSetupDoneTexture = std::move(tmpTexture.first);
 		m_buttonSetupDone.setPosition(boardPos + boardSize - tmpTexture.second);

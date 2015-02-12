@@ -21,17 +21,17 @@
 #include "texturemaker.hpp" // lodepng helper function
 #include "rendered_match.hpp"
 
+using namespace std;
 using namespace cyvmath;
 
 namespace mikelepage
 {
-	RenderedPiece::RenderedPiece(PieceType type, Coordinate coord,
-	                             PlayersColor color, RenderedMatch& match)
+	RenderedPiece::RenderedPiece(PieceType type, Coordinate coord, PlayersColor color, RenderedMatch& match)
 		: Piece(color, type, coord, match)
 		, m_board(match.getBoard())
 		, m_quad(m_board.getTileSize())
 	{
-		static std::map<PieceType, std::string> fileNames = {
+		static const map<PieceType, string> fileNames {
 				{PieceType::MOUNTAINS,   "mountains.png"},
 				{PieceType::RABBLE,      "rabble.png"},
 				{PieceType::CROSSBOWS,   "crossbows.png"},
@@ -44,7 +44,7 @@ namespace mikelepage
 				{PieceType::KING,        "king.png"}
 			};
 
-		std::string texturePath = "icons/" + (std::string(PlayersColorToStr(color))) + "/" + fileNames.at(type);
+		string texturePath = "res/icons/" + string(PlayersColorToStr(color)) + "/" + fileNames.at(type);
 		m_texture = makeTexture(texturePath).first;
 
 		m_quad.setTexture(m_texture);
