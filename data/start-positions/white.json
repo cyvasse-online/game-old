@@ -1,0 +1,16 @@
+{
+	"dragon":      [ "D10" ],
+
+	"mountains":   [ "A9", "A8", "B7", "H9", "I8", "I7" ],
+
+	"trebuchet":   [ "B9", "C9" ],
+	"elephant":    [ "D9", "E9" ],
+	"heavy horse": [ "F9", "G9" ],
+
+	"crossbows":   [ "B8", "C8" ],
+	"spears":      [ "D8", "F8" ],
+	"light horse": [ "G8", "H8" ],
+	"king":        [ "E8" ],
+
+	"rabble":      [ "C7", "D7", "E7", "F7", "G7", "H7" ]
+}

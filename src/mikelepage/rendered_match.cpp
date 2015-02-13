@@ -1,4 +1,4 @@
-/* Copyright 2014 Jonas Platte
+/* Copyright 2014 - 2015 Jonas Platte
  *
  * This file is part of Cyvasse Online.
  *
@@ -17,9 +17,12 @@
 #include "rendered_match.hpp"
 
 #include <algorithm>
+#include <fstream>
+#include <stdexcept>
 #ifdef EMSCRIPTEN
 	#include <emscripten.h>
 #endif
+#include <json/reader.h>
 #include <cyvws/json_game_msg.hpp>
 #include <make_unique.hpp>
 #include <texturemaker.hpp> // lodepng helper function
@@ -33,6 +36,7 @@
 #include "rendered_terrain.hpp"
 #include "remote_player.hpp"
 
+using namespace std;
 using namespace std::placeholders;
 using namespace cyvmath;
 using namespace cyvws;
@@ -49,10 +53,10 @@ namespace mikelepage
 		auto localPlayer  = make_unique<LocalPlayer>(localPlayersColor, match);
 		auto remotePlayer = make_unique<RemotePlayer>(remotePlayersColor, match);
 
-		if(localPlayersColor < remotePlayersColor)
-			return {{std::move(localPlayer), std::move(remotePlayer)}};
+		if (localPlayersColor < remotePlayersColor)
+			return {{move(localPlayer), move(remotePlayer)}};
 		else
-			return {{std::move(remotePlayer), std::move(localPlayer)}};
+			return {{move(remotePlayer), move(localPlayer)}};
 	}
 
 	RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
@@ -73,7 +77,7 @@ namespace mikelepage
 		, m_piecePromotionMousePress{0}
 	{
 		// hardcoded temporarily [TODO]
-		static const std::map<PlayersColor, Coordinate> fortressStartCoords {
+		static const map<PlayersColor, Coordinate> fortressStartCoords {
 			{PlayersColor::WHITE, HexCoordinate(4, 7)},
 			{PlayersColor::BLACK, HexCoordinate(6, 3)}
 		};
@@ -81,7 +85,7 @@ namespace mikelepage
 		auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), *m_board);
 		m_renderedEntities[RenderPriority::FORTRESS].push_back(ownFortress->getQuad());
 
-		m_self.setFortress(std::move(ownFortress));
+		m_self.setFortress(move(ownFortress));
 		m_op.setFortress(make_unique<RenderedFortress>(m_opColor, fortressStartCoords.at(m_opColor), *m_board));
 
 		glm::uvec2 boardSize = m_board->getSize();
@@ -89,34 +93,34 @@ namespace mikelepage
 
 		auto tmpTexture = makeTexture("res/setup-done.png");
 
-		m_buttonSetupDoneTexture = std::move(tmpTexture.first);
+		m_buttonSetupDoneTexture = move(tmpTexture.first);
 		m_buttonSetupDone.setPosition(boardPos + boardSize - tmpTexture.second);
 		m_buttonSetupDone.setSize(tmpTexture.second); // hardcoded for now, can be done properly somewhen else
 		m_buttonSetupDone.setTexture(m_buttonSetupDoneTexture);
 
-		for(auto& quad : m_piecePromotionBackground)
+		for (auto& quad : m_piecePromotionBackground)
 			quad.setColor({95, 95, 95});
 
 		placePiecesSetup();
 
-		ingameState.tick                  = std::bind(&RenderedMatch::tick, this);
-		ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, m_board.get(), _1);
-		ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, m_board.get(), _1);
-		ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, m_board.get(), _1);
+		ingameState.tick                  = bind(&RenderedMatch::tick, this);
+		ingameState.onMouseMoved          = bind(&Board::onMouseMoved, m_board.get(), _1);
+		ingameState.onMouseButtonPressed  = bind(&Board::onMouseButtonPressed, m_board.get(), _1);
+		ingameState.onMouseButtonReleased = bind(&Board::onMouseButtonReleased, m_board.get(), _1);
 		ingameState.onKeyPressed          = [](const fea::Event::KeyEvent&) { };
 		ingameState.onKeyReleased         = [](const fea::Event::KeyEvent&) { };
 
-		m_board->onTileMouseOver    = std::bind(&RenderedMatch::onTileMouseOver, this, _1);
-		m_board->onTileClicked      = std::bind(&RenderedMatch::onTileClicked, this, _1);
-		m_board->onMouseMoveOutside = std::bind(&RenderedMatch::onMouseMoveOutside, this, _1);
-		m_board->onClickedOutside   = std::bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
+		m_board->onTileMouseOver    = bind(&RenderedMatch::onTileMouseOver, this, _1);
+		m_board->onTileClicked      = bind(&RenderedMatch::onTileClicked, this, _1);
+		m_board->onMouseMoveOutside = bind(&RenderedMatch::onMouseMoveOutside, this, _1);
+		m_board->onClickedOutside   = bind(&RenderedMatch::onClickedOutsideBoard, this, _1);
 
 		setStatus("Setup");
 	}
 
-	void RenderedMatch::setStatus(const std::string& text)
+	void RenderedMatch::setStatus(const string& text)
 	{
-		if(!m_gameEnded)
+		if (!m_gameEnded)
 		{
 			m_status = text;
 
@@ -132,16 +136,16 @@ namespace mikelepage
 	{
 		m_board->tick();
 
-		for(auto&& entityVecIt : m_renderedEntities)
-			for(auto&& it : entityVecIt.second)
+		for (auto&& entityVecIt : m_renderedEntities)
+			for (auto&& it : entityVecIt.second)
 				m_renderer.queue(*it);
 
 		// Move the logic bit to the backend
-		if(m_setup && m_self.setupComplete() && !m_setupAccepted)
+		if (m_setup && m_self.setupComplete() && !m_setupAccepted)
 			m_renderer.queue(m_buttonSetupDone);
-		else if(m_renderPiecePromotionBgs > 0)
+		else if (m_renderPiecePromotionBgs > 0)
 		{
-			for(int i = 0; i < m_renderPiecePromotionBgs; ++i)
+			for (int i = 0; i < m_renderPiecePromotionBgs; ++i)
 			{
 				m_renderer.queue(m_piecePromotionBackground[i]);
 				m_renderer.queue(*m_piecePromotionPieces[i]);
@@ -153,25 +157,25 @@ namespace mikelepage
 	{
 		// if one of the players is still in setup,
 		// or a piece is selected, do nothing
-		if(m_setup || m_selectedPiece)
+		if (m_setup || m_selectedPiece)
 			return;
 
 		// search for a piece on the clicked tile
 		auto it = m_activePieces.find(coord);
 
-		if(it != m_activePieces.end() &&
+		if (it != m_activePieces.end() &&
 		   it->second->getType() != PieceType::MOUNTAINS)
 		{
 			// a piece of the player was hovered
 
-			if(it->second != m_hoveredPiece)
+			if (it->second != m_hoveredPiece)
 			{
 				m_hoveredPiece = it->second;
 
 				showPossibleTargetTiles();
 			}
 		}
-		else if(m_hoveredPiece)
+		else if (m_hoveredPiece)
 		{
 			m_hoveredPiece.reset();
 			m_board->clearHighlighting(HighlightingId::PTT);
@@ -182,18 +186,18 @@ namespace mikelepage
 	{
 		// if the local player finished setting up,
 		// but the remote player didn't yet
-		if(m_setupAccepted && m_setup)
+		if (m_setupAccepted && m_setup)
 			return;
 
-		if(!m_setup && m_activePlayer != m_ownColor)
+		if (!m_setup && m_activePlayer != m_ownColor)
 			return;
 
-		if(!m_selectedPiece)
+		if (!m_selectedPiece)
 		{
 			// search for a piece on the clicked tile
 			auto it = m_activePieces.find(coord);
 
-			if(it != m_activePieces.end() &&
+			if (it != m_activePieces.end() &&
 			   it->second->getColor() == m_ownColor &&
 			   (m_setup || it->second->getType() != PieceType::MOUNTAINS))
 			{
@@ -208,24 +212,24 @@ namespace mikelepage
 		else // a piece is selected
 		{
 			// determine which piece is on the clicked tile
-			std::shared_ptr<cyvmath::mikelepage::Piece> piece;
+			shared_ptr<cyvmath::mikelepage::Piece> piece;
 
 			auto pieceIt = m_activePieces.find(coord);
-			if(pieceIt != m_activePieces.end())
+			if (pieceIt != m_activePieces.end())
 				piece = pieceIt->second;
 
-			if(!piece || piece->getColor() == m_opColor)
+			if (!piece || piece->getColor() == m_opColor)
 			{
-				if(tryMovePiece(m_selectedPiece, coord))
+				if (tryMovePiece(m_selectedPiece, coord))
 				{
 					m_selectedPiece.reset();
 					m_board->clearHighlighting(HighlightingId::SEL);
 
-					if(!m_setup)
+					if (!m_setup)
 						showPossibleTargetTiles();
 				}
 			}
-			else if(m_setup || piece->getType() != PieceType::MOUNTAINS)
+			else if (m_setup || piece->getType() != PieceType::MOUNTAINS)
 			{
 				// there is a piece of the player on the clicked tile
 				auto selectedCoord = m_selectedPiece->getCoord();
@@ -234,14 +238,14 @@ namespace mikelepage
 				m_selectedPiece.reset();
 				m_board->clearHighlighting(HighlightingId::SEL);
 
-				if(coord != *selectedCoord)
+				if (coord != *selectedCoord)
 				{
 					// another piece clicked, create a new highlightning
 					m_selectedPiece = piece;
 					m_hoveredPiece = piece;
 
 					m_board->highlightTile(coord, HighlightingId::SEL);
-					if(!m_setup)
+					if (!m_setup)
 						showPossibleTargetTiles();
 				}
 			}
@@ -250,11 +254,11 @@ namespace mikelepage
 
 	void RenderedMatch::onMouseMoveOutside(const fea::Event::MouseMoveEvent&)
 	{
-		if(m_hoveredPiece)
+		if (m_hoveredPiece)
 		{
 			m_hoveredPiece.reset();
 
-			if(!m_selectedPiece)
+			if (!m_selectedPiece)
 				m_board->clearHighlighting(HighlightingId::PTT);
 		}
 	}
@@ -262,7 +266,7 @@ namespace mikelepage
 	void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 	{
 		// 'Setup done' button clicked (while being visible)
-		if(m_self.setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
+		if (m_self.setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
 		{
 			m_setupAccepted = true;
 
@@ -275,7 +279,7 @@ namespace mikelepage
 			tryLeaveSetup();
 		}
 
-		if(m_selectedPiece)
+		if (m_selectedPiece)
 		{
 			m_selectedPiece.reset();
 			m_board->clearHighlighting(HighlightingId::SEL);
@@ -287,8 +291,8 @@ namespace mikelepage
 	{
 		bool hoverOne = false;
 
-		for(int i = 0; i < m_renderPiecePromotionBgs; i++)
-			if(mouseOver(m_piecePromotionBackground[i], {mouseMove.x, mouseMove.y}))
+		for (int i = 0; i < m_renderPiecePromotionBgs; i++)
+			if (mouseOver(m_piecePromotionBackground[i], {mouseMove.x, mouseMove.y}))
 			{
 				hoverOne = true;
 
@@ -300,25 +304,25 @@ namespace mikelepage
 				m_piecePromotionBackground[i].setColor({95, 95, 95});
 			}
 
-		if(!hoverOne)
+		if (!hoverOne)
 			m_piecePromotionHover = 0;
 	}
 
 	void RenderedMatch::onMouseButtonPressedPromotionPieceSelect(const fea::Event::MouseButtonEvent& mouseButton)
 	{
-		if(mouseButton.button != fea::Mouse::Button::LEFT || m_piecePromotionMousePress)
+		if (mouseButton.button != fea::Mouse::Button::LEFT || m_piecePromotionMousePress)
 			return;
 
-		if(m_piecePromotionHover)
+		if (m_piecePromotionHover)
 			m_piecePromotionMousePress = m_piecePromotionHover;
 	}
 
 	void RenderedMatch::onMouseButtonReleasedPromotionPieceSelect(const fea::Event::MouseButtonEvent& mouseButton)
 	{
-		if(mouseButton.button != fea::Mouse::Button::LEFT || !m_piecePromotionMousePress)
+		if (mouseButton.button != fea::Mouse::Button::LEFT || !m_piecePromotionMousePress)
 			return;
 
-		if(m_piecePromotionMousePress == m_piecePromotionHover)
+		if (m_piecePromotionMousePress == m_piecePromotionHover)
 		{
 			auto piece = getPieceAt(m_self.getFortress().getCoord());
 			assert(piece);
@@ -332,15 +336,15 @@ namespace mikelepage
 			m_renderPiecePromotionBgs = 0;
 			m_piecePromotionPieces.fill(nullptr);
 
-			m_ingameState.onMouseMoved          = std::bind(&Board::onMouseMoved, m_board.get(), _1);
-			m_ingameState.onMouseButtonPressed  = std::bind(&Board::onMouseButtonPressed, m_board.get(), _1);
-			m_ingameState.onMouseButtonReleased = std::bind(&Board::onMouseButtonReleased, m_board.get(), _1);
+			m_ingameState.onMouseMoved          = bind(&Board::onMouseMoved, m_board.get(), _1);
+			m_ingameState.onMouseButtonPressed  = bind(&Board::onMouseButtonPressed, m_board.get(), _1);
+			m_ingameState.onMouseButtonReleased = bind(&Board::onMouseButtonReleased, m_board.get(), _1);
 		}
 
 		m_piecePromotionMousePress = 0;
 	}
 
-	void RenderedMatch::placePiece(std::shared_ptr<RenderedPiece> piece)
+	void RenderedMatch::placePiece(shared_ptr<RenderedPiece> piece)
 	{
 		using cyvmath::mikelepage::TerrainType;
 
@@ -351,9 +355,9 @@ namespace mikelepage
 
 		TerrainType tType = piece->getSetupTerrain();
 
-		if(tType != TerrainType::UNDEFINED)
+		if (tType != TerrainType::UNDEFINED)
 		{
-			auto terrain = std::make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
+			auto terrain = make_shared<RenderedTerrain>(tType, *coord, *m_board, m_terrain);
 
 			m_terrain.emplace(*coord, terrain);
 			m_renderedEntities[RenderPriority::TERRAIN].push_back(terrain->getQuad());
@@ -364,96 +368,33 @@ namespace mikelepage
 
 	void RenderedMatch::placePiecesSetup()
 	{
-		typedef std::pair<PieceType, Coordinate> Position;
+		string filePath = "res/start-positions/" + PlayersColorToStr(m_ownColor) + ".json";
 
-		#define C(X, Y) Hexagon::Coordinate(X, Y)
+		ifstream ifs(filePath);
+		if (!ifs)
+			throw runtime_error("Couldn't open \"" + filePath + "\"!");
 
-		static const std::array<std::vector<Position>, 2> defaultPiecePositions {{
-			{
-				// white
-				{PieceType::DRAGON,      C(3, 9)},
+		Json::Value val;
+		auto success = Json::Reader().parse(ifs, val, false);
+		assert(success);
 
-				{PieceType::MOUNTAINS,   C(0, 8)},
-				{PieceType::MOUNTAINS,   C(0, 7)},
-				{PieceType::MOUNTAINS,   C(1, 6)},
-				{PieceType::MOUNTAINS,   C(7, 8)},
-				{PieceType::MOUNTAINS,   C(8, 7)},
-				{PieceType::MOUNTAINS,   C(8, 6)},
+		auto oArr = json::openingArray(val);
 
-				{PieceType::TREBUCHET,   C(1, 8)},
-				{PieceType::TREBUCHET,   C(2, 8)},
-				{PieceType::ELEPHANT,    C(3, 8)},
-				{PieceType::ELEPHANT,    C(4, 8)},
-				{PieceType::HEAVY_HORSE, C(5, 8)},
-				{PieceType::HEAVY_HORSE, C(6, 8)},
-
-				{PieceType::CROSSBOWS,   C(1, 7)},
-				{PieceType::CROSSBOWS,   C(2, 7)},
-				{PieceType::SPEARS,      C(3, 7)},
-				{PieceType::KING,        C(4, 7)},
-				{PieceType::SPEARS,      C(5, 7)},
-				{PieceType::LIGHT_HORSE, C(6, 7)},
-				{PieceType::LIGHT_HORSE, C(7, 7)},
-
-				{PieceType::RABBLE,      C(2, 6)},
-				{PieceType::RABBLE,      C(3, 6)},
-				{PieceType::RABBLE,      C(4, 6)},
-				{PieceType::RABBLE,      C(5, 6)},
-				{PieceType::RABBLE,      C(6, 6)},
-				{PieceType::RABBLE,      C(7, 6)}
-			},
-			{
-				// black
-				{PieceType::DRAGON,      C(7, 1)},
-
-				{PieceType::MOUNTAINS,   C(10, 2)},
-				{PieceType::MOUNTAINS,   C(10, 3)},
-				{PieceType::MOUNTAINS,   C(9, 4)},
-				{PieceType::MOUNTAINS,   C(3, 2)},
-				{PieceType::MOUNTAINS,   C(2, 3)},
-				{PieceType::MOUNTAINS,   C(2, 4)},
-
-				{PieceType::TREBUCHET,   C(9, 2)},
-				{PieceType::TREBUCHET,   C(8, 2)},
-				{PieceType::ELEPHANT,    C(7, 2)},
-				{PieceType::ELEPHANT,    C(6, 2)},
-				{PieceType::HEAVY_HORSE, C(5, 2)},
-				{PieceType::HEAVY_HORSE, C(4, 2)},
-
-				{PieceType::CROSSBOWS,   C(9, 3)},
-				{PieceType::CROSSBOWS,   C(8, 3)},
-				{PieceType::SPEARS,      C(7, 3)},
-				{PieceType::KING,        C(6, 3)},
-				{PieceType::SPEARS,      C(5, 3)},
-				{PieceType::LIGHT_HORSE, C(4, 3)},
-				{PieceType::LIGHT_HORSE, C(3, 3)},
-
-				{PieceType::RABBLE,      C(8, 4)},
-				{PieceType::RABBLE,      C(7, 4)},
-				{PieceType::RABBLE,      C(6, 4)},
-				{PieceType::RABBLE,      C(5, 4)},
-				{PieceType::RABBLE,      C(4, 4)},
-				{PieceType::RABBLE,      C(3, 4)}
-			}}};
-
-		#undef C
-
-		for(auto& it : defaultPiecePositions.at(m_ownColor))
+		for (const auto& it : oArr)
 		{
-			auto tmpPiece = std::make_shared<RenderedPiece>(
-				it.first, it.second, m_ownColor, *this
-			);
-
-			placePiece(tmpPiece);
+			for (const auto& coord : it.second)
+				placePiece(make_shared<RenderedPiece>(
+					it.first, coord, m_ownColor, *this
+				));
 		}
 	}
 
 	void RenderedMatch::tryLeaveSetup()
 	{
-		if(!m_setupAccepted) return;
+		if (!m_setupAccepted) return;
 
-		for(auto&& player : m_players)
-			if(!player->setupComplete())
+		for (auto&& player : m_players)
+			if (!player->setupComplete())
 				return;
 
 		m_setup = false;
@@ -464,7 +405,7 @@ namespace mikelepage
 		auto& opFortress = dynamic_cast<RenderedFortress&>(op.getFortress());
 		m_renderedEntities[RenderPriority::FORTRESS].push_back(opFortress.getQuad());
 
-		for(auto&& piece : op.getPieceCache())
+		for (auto&& piece : op.getPieceCache())
 			placePiece(piece);
 
 		op.clearPieceCache();
@@ -476,28 +417,28 @@ namespace mikelepage
 		updateTurnStatus();
 	}
 
-	bool RenderedMatch::tryMovePiece(std::shared_ptr<cyvmath::mikelepage::Piece> piece, Coordinate coord)
+	bool RenderedMatch::tryMovePiece(shared_ptr<cyvmath::mikelepage::Piece> piece, Coordinate coord)
 	{
 		assert(piece);
 
 		auto oldCoord = piece->getCoord();
 
-		if(piece->moveTo(coord, m_setup))
+		if (piece->moveTo(coord, m_setup))
 		{
 			// move is valid and was done
 
-			if(piece->getColor() == m_ownColor)
+			if (piece->getColor() == m_ownColor)
 			{
-				if(!m_setup)
+				if (!m_setup)
 					CyvasseWSClient::instance().send(json::gameMsgMove(piece->getType(), *oldCoord, *piece->getCoord()));
 
-				if(!m_setupAccepted)
+				if (!m_setupAccepted)
 					m_self.checkSetupComplete();
 			}
 
 			m_board->clearHighlighting(HighlightingId::PTT);
 
-			if(!m_setup)
+			if (!m_setup)
 			{
 				dynamic_cast<cyvmath::mikelepage::Player&>(*m_players[m_activePlayer]).onTurnEnd();
 
@@ -505,10 +446,10 @@ namespace mikelepage
 
 				updateTurnStatus();
 
-				if(m_activePlayer == m_ownColor)
+				if (m_activePlayer == m_ownColor)
 					m_self.onTurnBegin();
 
-				std::array<Coordinate, 2> coords = {{coord, *oldCoord}};
+				array<Coordinate, 2> coords = {{coord, *oldCoord}};
 				m_board->highlightTiles(coords.begin(), coords.end(), HighlightingId::LAST_MOVE);
 			}
 
@@ -522,7 +463,7 @@ namespace mikelepage
 	{
 		Match::addToBoard(type, color, coord);
 
-		auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(getPieceAt(coord));
+		auto rPiece = dynamic_pointer_cast<RenderedPiece>(getPieceAt(coord));
 		assert(rPiece);
 
 		rPiece->setPosition(m_board->getTileAt(coord)->getPosition());
@@ -530,19 +471,19 @@ namespace mikelepage
 		m_renderedEntities[RenderPriority::PIECE].push_back(rPiece->getQuad());
 	}
 
-	void RenderedMatch::removeFromBoard(std::shared_ptr<cyvmath::mikelepage::Piece> piece)
+	void RenderedMatch::removeFromBoard(shared_ptr<cyvmath::mikelepage::Piece> piece)
 	{
 		Match::removeFromBoard(piece);
 
 		// TODO: place the piece somewhere outside
 		// the board instead of not rendering it
 
-		auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(piece);
+		auto rPiece = dynamic_pointer_cast<RenderedPiece>(piece);
 		assert(rPiece);
 
 		auto& piecesToRender = m_renderedEntities[RenderPriority::PIECE];
 
-		auto it = std::find(piecesToRender.begin(), piecesToRender.end(), rPiece->getQuad());
+		auto it = find(piecesToRender.begin(), piecesToRender.end(), rPiece->getQuad());
 		assert(it != piecesToRender.end());
 		piecesToRender.erase(it);
 	}
@@ -556,12 +497,12 @@ namespace mikelepage
 	{
 		assert(!m_setup);
 
-		if(!m_hoveredPiece)
+		if (!m_hoveredPiece)
 			return;
 
 		// should this be removed?
 		// if not, merge with the above
-		if(m_gameEnded)
+		if (m_gameEnded)
 			return;
 
 		// the tile clicked on holds a piece of the player
@@ -569,14 +510,14 @@ namespace mikelepage
 		m_board->highlightTiles(pTT.begin(), pTT.end(), HighlightingId::PTT);
 	}
 
-	void RenderedMatch::showPromotionPieces(std::set<PieceType> pieceTypes)
+	void RenderedMatch::showPromotionPieces(set<PieceType> pieceTypes)
 	{
 		assert(pieceTypes.size() > 1 && pieceTypes.size() <= 3);
 
 		m_renderPiecePromotionBgs = pieceTypes.size();
 		glm::uvec2 scrMid = m_renderer.getViewport().getSize() / glm::uvec2{2, 2};
 
-		if(pieceTypes.size() == 2)
+		if (pieceTypes.size() == 2)
 		{
 			m_piecePromotionBackground[0].setPosition(glm::ivec2(scrMid) + glm::ivec2{-100, -50});
 			m_piecePromotionBackground[1].setPosition(glm::ivec2(scrMid) + glm::ivec2{0, -50});
@@ -591,14 +532,14 @@ namespace mikelepage
 		auto& inactivePieces = m_self.getInactivePieces();
 
 		uint_least8_t i = 0;
-		for(PieceType type : pieceTypes)
+		for (PieceType type : pieceTypes)
 		{
 			m_piecePromotionTypes[i] = type;
 
 			auto it = inactivePieces.find(type);
 			assert(it != inactivePieces.end());
 
-			auto rPiece = std::dynamic_pointer_cast<RenderedPiece>(it->second);
+			auto rPiece = dynamic_pointer_cast<RenderedPiece>(it->second);
 			assert(rPiece);
 
 			rPiece->setPosition(m_piecePromotionBackground[i].getPosition() + glm::vec2{17, 25}); // TODO
@@ -606,9 +547,9 @@ namespace mikelepage
 			i++;
 		}
 
-		m_ingameState.onMouseMoved          = std::bind(&RenderedMatch::onMouseMovedPromotionPieceSelect, this, _1);
-		m_ingameState.onMouseButtonPressed  = std::bind(&RenderedMatch::onMouseButtonPressedPromotionPieceSelect, this, _1);
-		m_ingameState.onMouseButtonReleased = std::bind(&RenderedMatch::onMouseButtonReleasedPromotionPieceSelect, this, _1);
+		m_ingameState.onMouseMoved          = bind(&RenderedMatch::onMouseMovedPromotionPieceSelect, this, _1);
+		m_ingameState.onMouseButtonPressed  = bind(&RenderedMatch::onMouseButtonPressedPromotionPieceSelect, this, _1);
+		m_ingameState.onMouseButtonReleased = bind(&RenderedMatch::onMouseButtonReleasedPromotionPieceSelect, this, _1);
 	}
 
 	void RenderedMatch::endGame(PlayersColor winner)
