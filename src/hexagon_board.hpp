@@ -113,6 +113,6 @@ class HexagonBoard
 		void onMouseButtonReleased(const fea::Event::MouseButtonEvent&);
 };
 
-#include "hexagon_board.inl"
+#include "hexagon_board.ipp"
 
 #endif // _HEXAGON_BOARD_HPP_

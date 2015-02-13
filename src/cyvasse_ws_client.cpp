@@ -21,9 +21,9 @@
 #include <json/reader.h>
 #include <json/writer.h>
 #ifdef EMSCRIPTEN
-	#include "websocket_impl_emscripten.inl"
+	#include "websocket_impl_emscripten.hpp"
 #else
-	#include "websocket_impl_native.inl"
+	#include "websocket_impl_native.hpp"
 #endif
 
 CyvasseWSClient* CyvasseWSClient::s_instance = new CyvasseWSClient();
