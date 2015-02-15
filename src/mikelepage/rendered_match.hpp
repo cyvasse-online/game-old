@@ -108,7 +108,7 @@ namespace mikelepage
 
 			void tryLeaveSetup();
 			bool tryMovePiece(std::shared_ptr<cyvmath::mikelepage::Piece>, cyvmath::Coordinate);
-			void addToBoard(cyvmath::PieceType, cyvmath::PlayersColor, cyvmath::Coordinate) final override;
+			void addToBoard(cyvmath::PieceType, cyvmath::PlayersColor, const HexCoordinate&) final override;
 			void removeFromBoard(std::shared_ptr<cyvmath::mikelepage::Piece>) final override;
 
 			void updateTurnStatus();

@@ -79,6 +79,7 @@ cyvasse_js_LDFLAGS = \
 	-s EXPORTED_FUNCTIONS="['_main', '_game_handlemessage']" \
 	-s FULL_ES2=1 \
 	-s DISABLE_EXCEPTION_CATCHING=0 \
+	--memory-init-file 0 \
 	--embed-file $(top_builddir)/res@/res
 
 cyvasse_js_LDADD = $(game_ldadd)

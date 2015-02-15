@@ -220,8 +220,27 @@ namespace mikelepage
 
 			if (!piece || piece->getColor() == m_opColor)
 			{
+				auto oldCoord = *m_selectedPiece->getCoord();
+
 				if (tryMovePiece(m_selectedPiece, coord))
 				{
+					// move is valid and was done
+
+					if (!m_setup)
+					{
+						if (piece)
+							CyvasseWSClient::instance().send(json::gameMsgMoveCapture(
+								m_selectedPiece->getType(), oldCoord, coord, piece->getType(), coord
+							));
+						else
+							CyvasseWSClient::instance().send(json::gameMsgMove(
+								m_selectedPiece->getType(), oldCoord, coord
+							));
+					}
+
+					if (!m_setupAccepted)
+						m_self.checkSetupComplete();
+
 					m_selectedPiece.reset();
 					m_board->clearHighlighting(HighlightingId::SEL);
 
@@ -229,7 +248,7 @@ namespace mikelepage
 						showPossibleTargetTiles();
 				}
 			}
-			else if (m_setup || piece->getType() != PieceType::MOUNTAINS)
+			else if (piece->getType() != PieceType::MOUNTAINS || m_setup)
 			{
 				// there is a piece of the player on the clicked tile
 				auto selectedCoord = m_selectedPiece->getCoord();
@@ -378,7 +397,7 @@ namespace mikelepage
 		auto success = Json::Reader().parse(ifs, val, false);
 		assert(success);
 
-		auto oArr = json::openingArray(val);
+		auto oArr = json::pieceMap(val);
 
 		for (const auto& it : oArr)
 		{
@@ -425,17 +444,6 @@ namespace mikelepage
 
 		if (piece->moveTo(coord, m_setup))
 		{
-			// move is valid and was done
-
-			if (piece->getColor() == m_ownColor)
-			{
-				if (!m_setup)
-					CyvasseWSClient::instance().send(json::gameMsgMove(piece->getType(), *oldCoord, *piece->getCoord()));
-
-				if (!m_setupAccepted)
-					m_self.checkSetupComplete();
-			}
-
 			m_board->clearHighlighting(HighlightingId::PTT);
 
 			if (!m_setup)
@@ -459,7 +467,7 @@ namespace mikelepage
 		return false;
 	}
 
-	void RenderedMatch::addToBoard(PieceType type, PlayersColor color, Coordinate coord)
+	void RenderedMatch::addToBoard(PieceType type, PlayersColor color, const HexCoordinate& coord)
 	{
 		Match::addToBoard(type, color, coord);
 

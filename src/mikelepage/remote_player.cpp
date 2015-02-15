@@ -23,6 +23,7 @@
 #include <cyvws/common.hpp>
 #include <cyvws/msg.hpp>
 #include <cyvws/game_msg.hpp>
+#include <cyvws/json_game_msg.hpp>
 #include "cyvasse_ws_client.hpp"
 #include "rendered_fortress.hpp"
 #include "rendered_match.hpp"
@@ -80,60 +81,89 @@ namespace mikelepage
 				{PieceType::DRAGON, 1}
 			};
 
-			for (const auto& it : pieceTypeNum)
+			for (const auto& it : json::pieceMap(param))
 			{
-				const auto& typeStr = PieceTypeToStr(it.first);
+				auto expectedPieceTypeNum = pieceTypeNum.at(it.first);
 
-				auto& coords = param[typeStr];
-				if (coords.size() != it.second)
+				if (it.second.size() != expectedPieceTypeNum)
 				{
-					throw runtime_error("There have to be exactly " + to_string(it.second) + ' ' + typeStr
-						+ " pieces in the opening array (got " + to_string(coords.size()) + ")");
+					throw runtime_error("There have to be exactly " + to_string(expectedPieceTypeNum) + ' '
+						+ PieceTypeToStr(it.first) + " pieces in the opening array (got " + to_string(it.second.size()) + ")");
 				}
 
 				// TODO: check whether all pieces are on the players side of the board
-				for (const auto& coordVal : coords)
+				for (const auto& coord : it.second)
 				{
-					HexCoordinate coord(coordVal.asString());
-
+					// TODO: Move this somewhere else (probably cyvmath)
 					if (it.first == PieceType::KING)
 						m_fortress->setCoord(coord);
 
 					m_pieceCache.push_back(make_shared<RenderedPiece>(it.first, coord, m_color, m_match));
 				}
 			}
-
-			m_match.tryLeaveSetup();
 		}
 		else if (action == GameMsgAction::SET_IS_READY)
+		{
 			m_setupComplete = param.asBool();
+			m_match.tryLeaveSetup();
+		}
 		else if (action == GameMsgAction::MOVE)
 		{
-			auto pieceType = StrToPieceType(param[PIECE_TYPE].asString());
-			HexCoordinate oldPos(param[OLD_POS].asString());
-			HexCoordinate newPos(param[NEW_POS].asString());
+			auto movement = json::movement(param);
 
-			if (pieceType == PieceType::UNDEFINED)
-				throw runtime_error("move of undefined piece " + param[PIECE_TYPE].asString() + " requested");
+			if (movement.pieceType == PieceType::UNDEFINED)
+				throw runtime_error("move of undefined piece " + PieceTypeToStr(movement.pieceType) + " requested");
 
-			auto it = m_match.getActivePieces().find(oldPos);
+			auto it = m_match.getActivePieces().find(movement.oldPos);
 			if (it == m_match.getActivePieces().end())
-				throw runtime_error("move of non-existent piece at " + oldPos.toString() + " requested");
+				throw runtime_error("move of non-existent piece at " + movement.oldPos.toString() + " requested");
 
 			auto piece = it->second;
 
-			if (piece->getType() != pieceType)
+			if (piece->getType() != movement.pieceType)
 				throw runtime_error(
-					"remote client requested move of " + param[PIECE_TYPE].asString() + ", but there is " +
-					PieceTypeToStr(piece->getType()) + " at " + oldPos.toString()
+					"remote client requested move of " + PieceTypeToStr(movement.pieceType) + ", but there is " +
+					PieceTypeToStr(piece->getType()) + " at " + movement.oldPos.toString()
 				);
 
-			m_match.tryMovePiece(piece, newPos);
+			m_match.tryMovePiece(piece, movement.newPos);
+		}
+		else if (action == GameMsgAction::MOVE_CAPTURE)
+		{
+			auto movement = json::moveCapture(param);
+
+			if (movement.atkPT == PieceType::UNDEFINED)
+				throw runtime_error("move of undefined piece " + PieceTypeToStr(movement.atkPT) + " requested");
+			if (movement.defPT == PieceType::UNDEFINED)
+				throw runtime_error("capture of undefined piece " + PieceTypeToStr(movement.atkPT) + " requested");
+
+			auto it = m_match.getActivePieces().find(movement.oldPos);
+
+			if (it == m_match.getActivePieces().end())
+				throw runtime_error("move of non-existent piece at " + movement.oldPos.toString() + " requested");
+			if (it->second->getType() != movement.atkPT)
+				throw runtime_error(
+					"move of " + PieceTypeToStr(movement.atkPT) + " requested, but there is " +
+					PieceTypeToStr(it->second->getType()) + " at " + movement.oldPos.toString()
+				);
+
+			auto piece = it->second;
+
+			it = m_match.getActivePieces().find(movement.defPiecePos);
+
+			if (it == m_match.getActivePieces().end())
+				throw runtime_error("capture of non-existent piece at " + movement.defPiecePos.toString() + " requested");
+			if (it->second->getType() != movement.defPT)
+				throw runtime_error(
+					"capture of " + PieceTypeToStr(movement.defPT) + " requested, but there is " +
+					PieceTypeToStr(it->second->getType()) + " at " + movement.defPiecePos.toString()
+				);
+
+			m_match.tryMovePiece(piece, movement.newPos);
 		}
 		else if (action == GameMsgAction::PROMOTE)
 		{
-			auto origType = StrToPieceType(param[ORIG_TYPE].asString());
-			auto newType  = StrToPieceType(param[NEW_TYPE].asString());
+			auto promotion = json::promotion(param);
 
 			if (m_fortress->isRuined)
 				throw runtime_error("requested promotion of a piece although the fortress is ruined");
@@ -142,39 +172,40 @@ namespace mikelepage
 			if (!piece)
 				throw runtime_error("requested promotion of a piece although there is no piece on the fortress");
 
-			if (piece->getType() != origType)
-				throw runtime_error("requested promotion of " + PieceTypeToStr(origType) + ", but there is a "
+			if (piece->getType() != promotion.origType)
+				throw runtime_error("requested promotion of " + PieceTypeToStr(promotion.origType) + ", but there is a "
 					+ PieceTypeToStr(piece->getType()) + " piece in the fortress.");
 
-			switch(origType)
+			switch(promotion.origType)
 			{
 				case PieceType::RABBLE:
-					if (!(newType == PieceType::CROSSBOWS ||
-						newType == PieceType::SPEARS ||
-						newType == PieceType::LIGHT_HORSE))
-						throw runtime_error("requested promotion from rabble to " + PieceTypeToStr(newType));
+					if (!(promotion.newType == PieceType::CROSSBOWS ||
+						promotion.newType == PieceType::SPEARS ||
+						promotion.newType == PieceType::LIGHT_HORSE))
+						throw runtime_error("requested promotion from rabble to " + PieceTypeToStr(promotion.newType));
 
 					break;
 				case PieceType::CROSSBOWS:
-					if (newType != PieceType::TREBUCHET)
-						throw runtime_error("requested promotion from crossbows to " + PieceTypeToStr(newType));
+					if (promotion.newType != PieceType::TREBUCHET)
+						throw runtime_error("requested promotion from crossbows to " + PieceTypeToStr(promotion.newType));
 
 					break;
 				case PieceType::SPEARS:
-					if (newType != PieceType::ELEPHANT)
-						throw runtime_error("requested promotion from spears to " + PieceTypeToStr(newType));
+					if (promotion.newType != PieceType::ELEPHANT)
+						throw runtime_error("requested promotion from spears to " + PieceTypeToStr(promotion.newType));
 
 					break;
 				case PieceType::LIGHT_HORSE:
-					if (newType != PieceType::HEAVY_HORSE)
-						throw runtime_error("requested promotion from light horse to " + PieceTypeToStr(newType));
+					if (promotion.newType != PieceType::HEAVY_HORSE)
+						throw runtime_error("requested promotion from light horse to " + PieceTypeToStr(promotion.newType));
 
 					break;
 				case PieceType::TREBUCHET:
 				case PieceType::ELEPHANT:
 				case PieceType::HEAVY_HORSE:
-					if (newType != PieceType::KING)
-						throw runtime_error("requested promotion from " + PieceTypeToStr(origType) + " to " + PieceTypeToStr(newType));
+					if (promotion.newType != PieceType::KING)
+						throw runtime_error("requested promotion from " + PieceTypeToStr(promotion.origType) +
+							" to " + PieceTypeToStr(promotion.newType));
 					else if (!m_kingTaken)
 						throw runtime_error("requested promotion to king when there still is a king");
 
@@ -183,7 +214,7 @@ namespace mikelepage
 					throw runtime_error("requested promotion of unknown piece");
 			}
 
-			piece->promoteTo(newType);
+			piece->promoteTo(promotion.newType);
 		}
 		//else if (action == GameMsgAction::RESIGN)
 		else

@@ -26,7 +26,7 @@ using namespace cyvmath;
 
 namespace mikelepage
 {
-	RenderedPiece::RenderedPiece(PieceType type, Coordinate coord, PlayersColor color, RenderedMatch& match)
+	RenderedPiece::RenderedPiece(PieceType type, const HexCoordinate& coord, PlayersColor color, RenderedMatch& match)
 		: Piece(color, type, coord, match)
 		, m_board(match.getBoard())
 		, m_quad(m_board.getTileSize())
@@ -51,7 +51,7 @@ namespace mikelepage
 		m_quad.setPosition(m_board.getTilePosition(*m_coord));
 	}
 
-	bool RenderedPiece::moveTo(Coordinate coord, bool setup)
+	bool RenderedPiece::moveTo(const HexCoordinate& coord, bool setup)
 	{
 		if(!Piece::moveTo(coord, setup))
 			return false;

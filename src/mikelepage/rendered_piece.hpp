@@ -35,7 +35,7 @@ namespace mikelepage
 			fea::Texture m_texture;
 
 		public:
-			RenderedPiece(cyvmath::PieceType, cyvmath::Coordinate, cyvmath::PlayersColor, RenderedMatch&);
+			RenderedPiece(cyvmath::PieceType, const HexCoordinate&, cyvmath::PlayersColor, RenderedMatch&);
 
 			fea::Quad* getQuad()
 			{ return &m_quad; }
@@ -43,7 +43,7 @@ namespace mikelepage
 			const glm::vec2& getPosition() const
 			{ return m_quad.getPosition(); }
 
-			bool moveTo(cyvmath::Coordinate, bool setup) final override;
+			bool moveTo(const HexCoordinate&, bool setup) final override;
 
 			void setPosition(const glm::vec2& pos)
 			{ m_quad.setPosition(pos); }
