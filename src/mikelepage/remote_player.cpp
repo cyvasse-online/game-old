@@ -101,12 +101,12 @@ namespace mikelepage
 					m_pieceCache.push_back(make_shared<RenderedPiece>(it.first, coord, m_color, m_match));
 				}
 			}
-		}
-		else if (action == GameMsgAction::SET_IS_READY)
-		{
-			m_setupComplete = param.asBool();
+
+			m_setupComplete = true;
 			m_match.tryLeaveSetup();
 		}
+		else if (action == GameMsgAction::SET_IS_READY)
+		{ }
 		else if (action == GameMsgAction::MOVE)
 		{
 			auto movement = json::movement(param);

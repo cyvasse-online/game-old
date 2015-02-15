@@ -292,8 +292,8 @@ namespace mikelepage
 			// send before modifying m_activePieces, so the map doesn't
 			// have to be filtered for only black / white pieces
 			assert(m_activePieces.size() == 26);
+			CyvasseWSClient::instance().send(json::gameMsgSetIsReady());
 			CyvasseWSClient::instance().send(json::gameMsgSetOpeningArray(m_activePieces));
-			CyvasseWSClient::instance().send(json::gameMsgSetIsReady(true));
 
 			tryLeaveSetup();
 		}
