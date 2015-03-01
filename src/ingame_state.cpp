@@ -17,14 +17,13 @@
 #include "ingame_state.hpp"
 
 #include <map>
-#include <fea/ui/inputbackend.hpp>
 
 #include "mikelepage/rendered_match.hpp"
 
 using namespace cyvmath;
 
-IngameState::IngameState(fea::InputHandler& inputHandler, fea::Renderer2D& renderer)
-	: m_input(inputHandler)
+IngameState::IngameState(std::function<bool(fea::Event&)> pollEvent, fea::Renderer2D& renderer)
+	: m_pollEvent(pollEvent)
 	, m_renderer(renderer)
 	, m_background(renderer.getViewport().getSize())
 {
@@ -38,7 +37,7 @@ void IngameState::setup()
 std::string IngameState::run()
 {
 	fea::Event event;
-	while(m_input.pollEvent(event))
+	while(m_pollEvent(event))
 	{
 		// calling all event handler functors unconditionally
 		// means they all have to have a callable set because

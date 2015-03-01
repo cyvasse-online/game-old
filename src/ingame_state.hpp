@@ -23,18 +23,18 @@
 #include <memory>
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
-#include <fea/ui/inputhandler.hpp>
+#include <fea/ui/event.hpp>
 
 class IngameState : public fea::GameState
 {
 	private:
-		fea::InputHandler& m_input;
+		std::function<bool(fea::Event&)> m_pollEvent;
 		fea::Renderer2D& m_renderer;
 
 		fea::Quad m_background;
 
 	public:
-		IngameState(fea::InputHandler&, fea::Renderer2D&);
+		IngameState(std::function<bool(fea::Event&)>, fea::Renderer2D&);
 
 		// non-copyable
 		IngameState(const IngameState&) = delete;

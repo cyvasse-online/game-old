@@ -19,9 +19,6 @@
 #include <map>
 #include <memory>
 
-#include <fea/ui/sdlwindowbackend.hpp>
-#include <fea/ui/sdlinputbackend.hpp>
-
 #include <cyvmath/rule_sets.hpp>
 #include "ingame_state.hpp"
 
@@ -31,9 +28,12 @@
 
 #include "mikelepage/rendered_match.hpp"
 
+using namespace std;
 using namespace cyvmath;
 
-void CyvasseApp::setup(const std::vector<std::string>& /* args */)
+CyvasseApp::CyvasseApp()
+	: m_window(fea::VideoMode(800, 600, 32), "Cyvasse")
+	, m_renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
 	static map<RuleSet, function<unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
 		createMatch {{
@@ -41,12 +41,9 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 				{ return unique_ptr<Match>(new ::mikelepage::RenderedMatch(st, r, c)); }
 		}};
 
-	m_window.create(fea::VideoMode(800, 600, 32), "Cyvasse");
-	m_window.setFramerateLimit(60);
-
 	m_renderer.setup();
 
-	auto ingameState = make_unique<IngameState>(m_input, m_renderer);
+	auto ingameState = make_unique<IngameState>(bind(&fea::Window::pollEvent, &m_window, placeholders::_1), m_renderer);
 
 	#ifdef __EMSCRIPTEN__
 	EM_ASM(
@@ -65,7 +62,7 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 
 	m_match = createMatch[ruleSet](*ingameState, m_renderer, color);
 
-	m_stateMachine.addGameState("ingame", std::move(ingameState));
+	m_stateMachine.addGameState("ingame", move(ingameState));
 //#ifdef __EMSCRIPTEN__
 	m_stateMachine.setCurrentState("ingame");
 //#else
@@ -85,16 +82,4 @@ void CyvasseApp::loop()
 	// exit the program when the state machine is finished
 	if(m_stateMachine.isFinished())
 		quit();
-}
-
-void CyvasseApp::destroy()
-{
-	m_window.close();
-}
-
-CyvasseApp::CyvasseApp()
-	: m_window(new fea::SDLWindowBackend())
-	, m_input(new fea::SDLInputBackend())
-	, m_renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
-{
 }

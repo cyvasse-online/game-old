@@ -20,30 +20,24 @@
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/structure/application.hpp>
 #include <fea/structure/gamestatemachine.hpp>
-#include <fea/ui/inputbackend.hpp>
-#include <fea/ui/inputhandler.hpp>
 #include <fea/ui/window.hpp>
-#include <fea/ui/windowbackend.hpp>
 #include <cyvmath/match.hpp>
 
 class CyvasseApp : public fea::Application
 {
+	public:
+		CyvasseApp();
+		virtual ~CyvasseApp() = default;
+
+	protected:
+		void loop() override;
+
 	private:
 		fea::Window m_window;
-		fea::InputHandler m_input;
 		fea::Renderer2D m_renderer;
 		fea::GameStateMachine m_stateMachine;
 
 		std::unique_ptr<cyvmath::Match> m_match;
-
-	protected:
-		void setup(const std::vector<std::string>& args) override;
-		void loop() override;
-		void destroy() override;
-
-	public:
-		CyvasseApp();
-		virtual ~CyvasseApp() = default;
 };
 
 #endif // _CYVASSE_APP_HPP_
