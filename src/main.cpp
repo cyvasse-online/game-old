@@ -16,12 +16,14 @@
 
 #include <exception>
 #include <iostream>
-#include <csignal>
 #include "cyvasse_app.hpp"
 
 CyvasseApp* app = nullptr;
 
 #ifndef EMSCRIPTEN
+
+#include <csignal>
+
 extern "C"
 {
 	void stopGame(int /* signal */)
