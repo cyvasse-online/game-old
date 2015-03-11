@@ -48,13 +48,13 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 
 	#ifdef EMSCRIPTEN
 	EM_ASM(
-		if(typeof(Module.gameMetaData) !== 'object' || Module.gameMetaData === null) {
+		if(typeof(gameMetaData) !== 'object' || gameMetaData === null) {
 			throw new Error('No meta data found!');
 		}
 	);
 
-	auto ruleSet = StrToRuleSet(emscripten_run_script_string("Module.gameMetaData.ruleSet"));
-	auto color   = StrToPlayersColor(emscripten_run_script_string("Module.gameMetaData.color"));
+	auto ruleSet = StrToRuleSet(emscripten_run_script_string("gameMetaData.ruleSet"));
+	auto color   = StrToPlayersColor(emscripten_run_script_string("gameMetaData.color"));
 	#else
 	// --- hardcoded only until game init code is written ---
 	auto ruleSet = RuleSet::MIKELEPAGE;

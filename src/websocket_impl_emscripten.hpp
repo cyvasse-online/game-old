@@ -27,14 +27,14 @@ class WebsocketImpl
 WebsocketImpl::WebsocketImpl()
 {
 	EM_ASM(
-		Module.wsClient.handleMessageIngame = Module.cwrap('game_handlemessage', undefined, ['string']);
+		wsClient.handleMessageIngame = Module.cwrap('game_handlemessage', undefined, ['string']);
 	);
 }
 
 void WebsocketImpl::send(const std::string& msgData)
 {
 	EM_ASM_({
-		Module.wsClient.send(Module.Pointer_stringify($0));
+		wsClient.send(Module.Pointer_stringify($0));
 	}, msgData.c_str());
 }
 
