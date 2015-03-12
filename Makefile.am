@@ -71,11 +71,9 @@ cyvasse_js_SOURCES = $(game_sources)
 cyvasse_js_CXXFLAGS = \
 	$(game_cppflags) \
 	$(game_cxxflags) \
-	-I$(EMSCRIPTEN_PREFIX)/include \
 	-Wno-warn-absolute-paths
 
 cyvasse_js_LDFLAGS = \
-	-L$(EMSCRIPTEN_PREFIX)/lib \
 	-s EXPORTED_FUNCTIONS="['_main', '_game_handlemessage']" \
 	-s FULL_ES2=1 \
 	-s DISABLE_EXCEPTION_CATCHING=0 \
