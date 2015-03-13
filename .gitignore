@@ -22,6 +22,7 @@ cyvmath-tests
 *.a
 *.data
 *.o
+*.out
 *.js
 *.js.map
 *.js.mem
