@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <fstream>
 #include <stdexcept>
-#ifdef EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
 	#include <emscripten.h>
 #endif
 #include <json/reader.h>
@@ -124,7 +124,7 @@ namespace mikelepage
 		{
 			m_status = text;
 
-			#ifdef EMSCRIPTEN
+			#ifdef __EMSCRIPTEN__
 			EM_ASM_({
 				Module.setStatus(Module.Pointer_stringify($0));
 			}, text.c_str());

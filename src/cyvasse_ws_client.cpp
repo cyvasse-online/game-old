@@ -20,7 +20,7 @@
 #include <cassert>
 #include <json/reader.h>
 #include <json/writer.h>
-#ifdef EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
 	#include "websocket_impl_emscripten.hpp"
 #else
 	#include "websocket_impl_native.hpp"

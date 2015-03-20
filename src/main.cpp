@@ -20,7 +20,7 @@
 
 CyvasseApp* app = nullptr;
 
-#ifndef EMSCRIPTEN
+#ifndef __EMSCRIPTEN__
 
 #include <csignal>
 
@@ -36,7 +36,7 @@ extern "C"
 
 int main()
 {
-#ifndef EMSCRIPTEN
+#ifndef __EMSCRIPTEN__
 #ifdef HAVE_SIGACTION
 	struct sigaction newAction, oldAction;
 
@@ -81,6 +81,4 @@ int main()
 	}
 
 	if(app) delete app;
-
-	return 0;
 }

@@ -23,7 +23,7 @@
 #include <make_unique.hpp>
 #include "ingame_state.hpp"
 
-#ifdef EMSCRIPTEN
+#ifdef __EMSCRIPTEN__
 	#include <emscripten.h>
 #endif
 
@@ -46,7 +46,7 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 
 	auto ingameState = make_unique<IngameState>(m_input, m_renderer);
 
-	#ifdef EMSCRIPTEN
+	#ifdef __EMSCRIPTEN__
 	EM_ASM(
 		if(typeof(gameMetaData) !== 'object' || gameMetaData === null) {
 			throw new Error('No meta data found!');
@@ -64,7 +64,7 @@ void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 	m_match = createMatch[ruleSet](*ingameState, m_renderer, color);
 
 	m_stateMachine.addGameState("ingame", std::move(ingameState));
-//#ifdef EMSCRIPTEN
+//#ifdef __EMSCRIPTEN__
 	m_stateMachine.setCurrentState("ingame");
 //#else
 	//m_stateMachine.addGameState("startpage", /* ... */);
