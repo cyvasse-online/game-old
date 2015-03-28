@@ -18,10 +18,14 @@
 #define _HEXAGON_BOARD_HPP_
 
 #include <map>
+#include <memory>
 #include <vector>
+
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/rendering/quad.hpp>
 #include <fea/ui/event.hpp>
+
+#include <optional.hpp>
 #include <cyvmath/hexagon.hpp>
 #include <cyvmath/players_color.hpp>
 
@@ -67,9 +71,8 @@ class HexagonBoard
 		TileMap m_tileMap;
 		QuadVec m_quadVec;
 
-		// TODO: change to std::optional [C++1z]
-		std::unique_ptr<Tile> m_hoveredTile;
-		std::unique_ptr<Tile> m_mouseBPressTile;
+		optional<Tile> m_hoveredTile;
+		optional<Tile> m_mouseBPressTile;
 
 		HighlightQuadMap m_highlightQuads;
 
@@ -95,7 +98,7 @@ class HexagonBoard
 		const glm::vec2& getTileSize() const;
 
 		template<class... Args>
-		std::unique_ptr<Coordinate> getCoordinate(Args&&... args);
+		optional<Coordinate> getCoordinate(Args&&... args);
 
 		std::shared_ptr<fea::Quad> getTileAt(Coordinate);
 

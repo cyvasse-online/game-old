@@ -25,6 +25,8 @@
 #include <fea/rendering/renderer2d.hpp>
 #include <fea/ui/event.hpp>
 
+#include "hexagon_board.hpp"
+
 // higher priority (bigger enum value) means rendered later -> on top
 enum class RenderPriority
 {
@@ -33,7 +35,6 @@ enum class RenderPriority
 	FORTRESS
 };
 
-template <int l> class HexagonBoard;
 class IngameState;
 
 namespace mikelepage
@@ -50,7 +51,7 @@ namespace mikelepage
 			fea::Renderer2D& m_renderer;
 			IngameState& m_ingameState;
 
-			std::unique_ptr<Board> m_board;
+			Board m_board;
 
 			bool m_gameEnded;
 			std::string m_status;
@@ -83,7 +84,7 @@ namespace mikelepage
 			RenderedMatch& operator=(const RenderedMatch&) = delete;
 
 			Board& getBoard()
-			{ return *m_board; }
+			{ return m_board; }
 
 			const std::string& getStatus()
 			{ return m_status; }

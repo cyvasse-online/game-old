@@ -6,7 +6,11 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
 AC_LANG(C++)
-AX_CXX_COMPILE_STDCXX_11(noext, mandatory)
+AX_CHECK_COMPILE_FLAG([-std=c++14], [CXXFLAGS="$CXXFLAGS -std=c++14"],
+	AX_CHECK_COMPILE_FLAG([-std=c++1y], [CXXFLAGS="$CXXFLAGS -std=c++1y"],
+		AC_MSG_ERROR([Compiler doesn't support C++14])
+	)
+)
 AX_CHECK_COMPILE_FLAG([-Wall], [CXXFLAGS="$CXXFLAGS -Wall"])
 AX_CHECK_COMPILE_FLAG([-Wextra], [CXXFLAGS="$CXXFLAGS -Wextra"])
 AX_CHECK_COMPILE_FLAG([-pedantic], [CXXFLAGS="$CXXFLAGS -pedantic"])

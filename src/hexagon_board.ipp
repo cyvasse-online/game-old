@@ -161,7 +161,7 @@ const glm::vec2& HexagonBoard<l>::getTileSize() const
 
 template<int l>
 template<class... Args>
-std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(Args&&... args)
+optional<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(Args&&... args)
 {
 	// remove padding
 	glm::uvec2 tilePos = glm::uvec2(std::forward<Args>(args)...) - m_position;
@@ -196,7 +196,7 @@ std::unique_ptr<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordi
 	}
 
 	if(x < 0.0f || y < 0.0f)
-		return nullptr;
+		return nullopt;
 
 	return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
 }
@@ -278,7 +278,7 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 		if(!m_hoveredTile || *coord != m_hoveredTile->first)
 		{
 			highlightTile(*coord, HighlightingId::HOVER);
-			m_hoveredTile = make_unique<Tile>(*coord, quad);
+			m_hoveredTile = Tile(*coord, quad);
 
 			onTileMouseOver(*coord);
 		}
@@ -289,7 +289,7 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 		{
 			// mouse is outside the board and one tile is still marked with the hover effect
 			clearHighlighting(HighlightingId::HOVER);
-			m_hoveredTile.reset();
+			m_hoveredTile = nullopt;
 		}
 
 		onMouseMoveOutside(mouseMove);
@@ -305,7 +305,7 @@ void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& m
 	auto coord = getCoordinate(mouseButton.x, mouseButton.y);
 
 	if(coord)
-		m_mouseBPressTile = make_unique<Tile>(*coord, getTileAt(*coord));
+		m_mouseBPressTile = Tile(*coord, getTileAt(*coord));
 	else
 		onClickedOutside(mouseButton);
 }
@@ -320,6 +320,6 @@ void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& 
 		if(coord && *coord == m_mouseBPressTile->first)
 			onTileClicked(*coord);
 
-		m_mouseBPressTile.reset();
+		m_mouseBPressTile = nullopt;
 	}
 }

@@ -54,44 +54,18 @@ namespace mikelepage
 			throw runtime_error("this message should be handled outside the game (message type "
 				+ msg[MSG_TYPE].asString() + ")");
 
-		auto& msgData = msg[MSG_DATA];
-		auto& param = msgData[PARAM];
+		const auto& msgData = msg[MSG_DATA];
+		const auto& param = msgData[PARAM];
 
 		const auto& action = msgData[ACTION].asString();
 
 		if (action == GameMsgAction::SET_OPENING_ARRAY)
 		{
-			if (param.size() != 10)
+			const auto& pieces = json::pieceMap(param);
+			evalOpeningArray(pieces);
+
+			for (const auto& it : pieces)
 			{
-				throw runtime_error("There have to be exactly 10 piece types in the opening array (got "
-					+ to_string(param.size()) + ")");
-			}
-
-			// TODO: Move this data to cyvmath
-			static const map<PieceType, uint8_t> pieceTypeNum {
-				{PieceType::MOUNTAINS, 6},
-				{PieceType::RABBLE, 6},
-				{PieceType::KING, 1},
-				{PieceType::CROSSBOWS, 2},
-				{PieceType::SPEARS, 2},
-				{PieceType::LIGHT_HORSE, 2},
-				{PieceType::TREBUCHET, 2},
-				{PieceType::ELEPHANT, 2},
-				{PieceType::HEAVY_HORSE, 2},
-				{PieceType::DRAGON, 1}
-			};
-
-			for (const auto& it : json::pieceMap(param))
-			{
-				auto expectedPieceTypeNum = pieceTypeNum.at(it.first);
-
-				if (it.second.size() != expectedPieceTypeNum)
-				{
-					throw runtime_error("There have to be exactly " + to_string(expectedPieceTypeNum) + ' '
-						+ PieceTypeToStr(it.first) + " pieces in the opening array (got " + to_string(it.second.size()) + ")");
-				}
-
-				// TODO: check whether all pieces are on the players side of the board
 				for (const auto& coord : it.second)
 				{
 					// TODO: Move this somewhere else (probably cyvmath)

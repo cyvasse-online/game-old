@@ -17,10 +17,12 @@
 #include "cyvasse_app.hpp"
 
 #include <map>
+#include <memory>
+
 #include <fea/ui/sdlwindowbackend.hpp>
 #include <fea/ui/sdlinputbackend.hpp>
+
 #include <cyvmath/rule_sets.hpp>
-#include <make_unique.hpp>
 #include "ingame_state.hpp"
 
 #ifdef __EMSCRIPTEN__
@@ -33,10 +35,10 @@ using namespace cyvmath;
 
 void CyvasseApp::setup(const std::vector<std::string>& /* args */)
 {
-	static std::map<RuleSet, std::function<std::unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
+	static map<RuleSet, function<unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
 		createMatch {{
 			RuleSet::MIKELEPAGE, [](IngameState& st, fea::Renderer2D& r, PlayersColor c)
-				{ return std::unique_ptr<Match>(new ::mikelepage::RenderedMatch(st, r, c)); }
+				{ return unique_ptr<Match>(new ::mikelepage::RenderedMatch(st, r, c)); }
 		}};
 
 	m_window.create(fea::VideoMode(800, 600, 32), "Cyvasse");
