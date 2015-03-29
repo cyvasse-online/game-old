@@ -43,7 +43,7 @@ int main()
 	// setup sigaction struct for stopGame
 	newAction.sa_handler = stopGame;
 	sigemptyset(&newAction.sa_mask);
-    newAction.sa_flags = 0;
+	newAction.sa_flags = 0;
 
 	sigaction(SIGHUP, nullptr, &oldAction);
 	if(oldAction.sa_handler != SIG_IGN)

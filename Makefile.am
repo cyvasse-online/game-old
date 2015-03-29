@@ -7,13 +7,13 @@ game_sources = \
 	src/cyvasse_app.cpp \
 	src/cyvasse_ws_client.cpp \
 	src/ingame_state.cpp \
+	src/local_player.cpp \
 	src/main.cpp \
-	src/mikelepage/local_player.cpp \
-	src/mikelepage/remote_player.cpp \
-	src/mikelepage/rendered_fortress.cpp \
-	src/mikelepage/rendered_match.cpp \
-	src/mikelepage/rendered_piece.cpp \
-	src/mikelepage/rendered_terrain.cpp
+	src/remote_player.cpp \
+	src/rendered_fortress.cpp \
+	src/rendered_match.cpp \
+	src/rendered_piece.cpp \
+	src/rendered_terrain.cpp
 
 # The last include directory contains lodepng,
 # which loads png files, plus texturemaker.hpp
@@ -34,7 +34,7 @@ game_cxxflags = \
 	$(JSONCPP_CFLAGS)
 
 game_ldadd = \
-	$(top_builddir)/cyvasse-common/libcyvmath.a \
+	$(top_builddir)/cyvasse-common/libcyvasse.a \
 	$(top_builddir)/cyvasse-common/libcyvws.a \
 	$(FEA_STRUCTURE_LIBS) \
 	$(FEA_UI_LIBS) \

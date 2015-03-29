@@ -26,8 +26,8 @@
 #include <fea/ui/event.hpp>
 
 #include <optional.hpp>
-#include <cyvmath/hexagon.hpp>
-#include <cyvmath/players_color.hpp>
+#include <cyvasse/hexagon.hpp>
+#include <cyvasse/players_color.hpp>
 
 // order of elements here determines order of
 // queuing for rendering -> visual z-order
@@ -44,7 +44,7 @@ template<int l>
 class HexagonBoard
 {
 	public:
-		typedef typename cyvmath::Hexagon<l> Hexagon;
+		typedef typename cyvasse::Hexagon<l> Hexagon;
 		typedef typename Hexagon::Coordinate Coordinate;
 		typedef typename std::pair<Coordinate, std::shared_ptr<fea::Quad>> Tile;
 		typedef typename std::map<Coordinate, std::shared_ptr<fea::Quad>> TileMap;
@@ -80,7 +80,7 @@ class HexagonBoard
 		std::shared_ptr<fea::Quad> createHighlightQuad(glm::vec2 pos, HighlightingId);
 
 	public:
-		HexagonBoard(fea::Renderer2D&, cyvmath::PlayersColor);
+		HexagonBoard(fea::Renderer2D&, cyvasse::PlayersColor);
 
 		// non-copyable
 		HexagonBoard(const HexagonBoard&) = delete;

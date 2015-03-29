@@ -21,7 +21,8 @@
 #include <fea/structure/application.hpp>
 #include <fea/structure/gamestatemachine.hpp>
 #include <fea/ui/window.hpp>
-#include <cyvmath/match.hpp>
+
+#include "rendered_match.hpp"
 
 class CyvasseApp : public fea::Application
 {
@@ -37,7 +38,7 @@ class CyvasseApp : public fea::Application
 		fea::Renderer2D m_renderer;
 		fea::GameStateMachine m_stateMachine;
 
-		std::unique_ptr<cyvmath::Match> m_match;
+		std::unique_ptr<RenderedMatch> m_match;
 };
 
 #endif // _CYVASSE_APP_HPP_

@@ -19,28 +19,20 @@
 #include <map>
 #include <memory>
 
-#include <cyvmath/rule_sets.hpp>
-#include "ingame_state.hpp"
-
 #ifdef __EMSCRIPTEN__
 	#include <emscripten.h>
 #endif
 
-#include "mikelepage/rendered_match.hpp"
+#include "ingame_state.hpp"
+#include "rendered_match.hpp"
 
 using namespace std;
-using namespace cyvmath;
+using namespace cyvasse;
 
 CyvasseApp::CyvasseApp()
 	: m_window(fea::VideoMode(800, 600, 32), "Cyvasse")
 	, m_renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
-	static map<RuleSet, function<unique_ptr<Match>(IngameState&, fea::Renderer2D&, PlayersColor)>>
-		createMatch {{
-			RuleSet::MIKELEPAGE, [](IngameState& st, fea::Renderer2D& r, PlayersColor c)
-				{ return unique_ptr<Match>(new ::mikelepage::RenderedMatch(st, r, c)); }
-		}};
-
 	m_renderer.setup();
 
 	auto ingameState = make_unique<IngameState>(bind(&fea::Window::pollEvent, &m_window, placeholders::_1), m_renderer);
@@ -52,15 +44,13 @@ CyvasseApp::CyvasseApp()
 		}
 	);
 
-	auto ruleSet = StrToRuleSet(emscripten_run_script_string("gameMetaData.ruleSet"));
 	auto color   = StrToPlayersColor(emscripten_run_script_string("gameMetaData.color"));
 	#else
 	// --- hardcoded only until game init code is written ---
-	auto ruleSet = RuleSet::MIKELEPAGE;
 	auto color = PlayersColor::WHITE;
 	#endif
 
-	m_match = createMatch[ruleSet](*ingameState, m_renderer, color);
+	m_match = make_unique<RenderedMatch>(*ingameState, m_renderer, color);
 
 	m_stateMachine.addGameState("ingame", move(ingameState));
 //#ifdef __EMSCRIPTEN__

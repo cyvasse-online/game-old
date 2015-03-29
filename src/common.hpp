@@ -20,7 +20,7 @@
 #include <fea/rendering/quad.hpp>
 #include <fea/ui/event.hpp>
 
-bool mouseOver(fea::Quad& quad, glm::uvec2 mousePos)
+bool mouseOver(const fea::Quad& quad, glm::uvec2 mousePos)
 {
 	glm::vec2 quadPos = quad.getPosition(), quadSize = quad.getSize();
 

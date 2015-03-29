@@ -21,38 +21,35 @@
 #include "texturemaker.hpp" // lodepng helper function
 
 using namespace std;
-using namespace cyvmath;
+using namespace cyvasse;
 
-namespace mikelepage
+using cyvasse::TerrainType;
+
+RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
+	: Terrain(type, coord)
+	, m_board(board)
+	, m_terrainMap(terrainMap)
+	, m_quad(board.getTileSize())
 {
-	using cyvmath::mikelepage::TerrainType;
+	assert(type != TerrainType::UNDEFINED);
 
-	RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
-		: Terrain(type, coord)
-		, m_board(board)
-		, m_terrainMap(terrainMap)
-		, m_quad(board.getTileSize())
-	{
-		assert(type != TerrainType::UNDEFINED);
+	string texturePath = "res/icons/" + TerrainTypeToStr(type) + ".png";
+	m_texture = makeTexture(texturePath).first;
 
-		string texturePath = "res/icons/" + TerrainTypeToStr(type) + ".png";
-		m_texture = makeTexture(texturePath).first;
+	m_quad.setTexture(m_texture);
+	m_quad.setPosition(board.getTilePosition(coord));
+}
 
-		m_quad.setTexture(m_texture);
-		m_quad.setPosition(board.getTilePosition(coord));
-	}
+void RenderedTerrain::setCoord(Coordinate coord)
+{
+	auto it = m_terrainMap.find(m_coord);
+	assert(it != m_terrainMap.end());
 
-	void RenderedTerrain::setCoord(Coordinate coord)
-	{
-		auto it = m_terrainMap.find(m_coord);
-		assert(it != m_terrainMap.end());
+	auto selfSharedPtr = it->second;
 
-		auto selfSharedPtr = it->second;
+	m_coord = coord;
+	m_quad.setPosition(m_board.getTilePosition(coord));
 
-		m_coord = coord;
-		m_quad.setPosition(m_board.getTilePosition(coord));
-
-		m_terrainMap.erase(it);
-		m_terrainMap.emplace(coord, selfSharedPtr);
-	}
+	m_terrainMap.erase(it);
+	m_terrainMap.emplace(coord, selfSharedPtr);
 }

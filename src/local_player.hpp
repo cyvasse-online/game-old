@@ -14,35 +14,37 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MIKELEPAGE_RENDERED_TERRAIN_HPP_
-#define _MIKELEPAGE_RENDERED_TERRAIN_HPP_
+#ifndef _LOCAL_PLAYER_HPP_
+#define _LOCAL_PLAYER_HPP_
 
-#include <cyvmath/mikelepage/terrain.hpp>
-#include <fea/rendering/quad.hpp>
+#include <cyvasse/player.hpp>
 
-template<int> class HexagonBoard;
+#include <memory>
+#include <json/value.h>
 
-namespace mikelepage
+#include "rendered_fortress.hpp"
+
+class RenderedMatch;
+
+class LocalPlayer : public cyvasse::Player
 {
-	using cyvmath::mikelepage::TerrainMap;
+	friend RenderedMatch;
+	private:
+		bool m_setupComplete = false;
 
-	class RenderedTerrain : public cyvmath::mikelepage::Terrain
-	{
-		private:
-			HexagonBoard<6>& m_board;
-			TerrainMap& m_terrainMap;
+		RenderedMatch& m_match;
 
-			fea::Quad m_quad;
-			fea::Texture m_texture;
+	public:
+		LocalPlayer(cyvasse::PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
+		virtual ~LocalPlayer() = default;
 
-		public:
-			RenderedTerrain(cyvmath::mikelepage::TerrainType, cyvmath::Coordinate, HexagonBoard<6>&, TerrainMap&);
+		virtual bool setupComplete() const final override
+		{ return m_setupComplete; }
 
-			fea::Quad* getQuad()
-			{ return &m_quad; }
+		void checkSetupComplete()
+		{ m_setupComplete = Player::setupComplete(); }
 
-			void setCoord(cyvmath::Coordinate) final override;
-	};
-}
+		void onTurnBegin();
+};
 
-#endif // _MIKELEPAGE_RENDERED_TERRAIN_HPP_
+#endif // _LOCAL_PLAYER_HPP_

@@ -14,34 +14,31 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MIKELEPAGE_RENDERED_FORTRESS_HPP_
-#define _MIKELEPAGE_RENDERED_FORTRESS_HPP_
+#ifndef _RENDERED_FORTRESS_HPP_
+#define _RENDERED_FORTRESS_HPP_
 
-#include <cyvmath/mikelepage/fortress.hpp>
+#include <cyvasse/fortress.hpp>
 #include <fea/rendering/quad.hpp>
 
 template<int> class HexagonBoard;
 
-namespace mikelepage
+class RenderedFortress : public cyvasse::Fortress
 {
-	class RenderedFortress : public cyvmath::mikelepage::Fortress
-	{
-		private:
-			HexagonBoard<6>& m_board;
+	private:
+		HexagonBoard<6>& m_board;
 
-			fea::Quad m_quad;
-			fea::Texture m_texture;
+		fea::Quad m_quad;
+		fea::Texture m_texture;
 
-		public:
-			RenderedFortress(cyvmath::PlayersColor, cyvmath::Coordinate, HexagonBoard<6>&);
+	public:
+		RenderedFortress(cyvasse::PlayersColor, cyvasse::Coordinate, HexagonBoard<6>&);
 
-			fea::Quad* getQuad()
-			{ return &m_quad; }
+		fea::Quad* getQuad()
+		{ return &m_quad; }
 
-			void setCoord(cyvmath::Coordinate) final override;
+		void setCoord(cyvasse::Coordinate) final override;
 
-			void ruined() final override;
-	};
-}
+		void ruined() final override;
+};
 
-#endif // _MIKELEPAGE_RENDERED_FORTRESS_HPP_
+#endif // _RENDERED_FORTRESS_HPP_

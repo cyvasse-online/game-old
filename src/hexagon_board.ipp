@@ -49,9 +49,9 @@ std::shared_ptr<fea::Quad> HexagonBoard<l>::createHighlightQuad(glm::vec2 pos, H
 }
 
 template <int l>
-HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvmath::PlayersColor color)
+HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvasse::PlayersColor color)
 	: m_renderer(renderer)
-	, m_upsideDown(color == cyvmath::PlayersColor::WHITE ? false : true)
+	, m_upsideDown(color == cyvasse::PlayersColor::WHITE ? false : true)
 {
 	const glm::uvec2 windowSize = renderer.getViewport().getSize();
 

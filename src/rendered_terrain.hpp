@@ -14,42 +14,32 @@
  * If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MIKELEPAGE_RENDERED_PIECE_HPP_
-#define _MIKELEPAGE_RENDERED_PIECE_HPP_
+#ifndef _RENDERED_TERRAIN_HPP_
+#define _RENDERED_TERRAIN_HPP_
 
-#include <cyvmath/mikelepage/piece.hpp>
+#include <cyvasse/terrain.hpp>
 #include <fea/rendering/quad.hpp>
 
 template<int> class HexagonBoard;
 
-namespace mikelepage
+using cyvasse::TerrainMap;
+
+class RenderedTerrain : public cyvasse::Terrain
 {
-	class RenderedMatch;
+	private:
+		HexagonBoard<6>& m_board;
+		TerrainMap& m_terrainMap;
 
-	class RenderedPiece : public cyvmath::mikelepage::Piece
-	{
-		private:
-			HexagonBoard<6>& m_board;
+		fea::Quad m_quad;
+		fea::Texture m_texture;
 
-			fea::Quad m_quad;
-			fea::Texture m_texture;
+	public:
+		RenderedTerrain(cyvasse::TerrainType, cyvasse::Coordinate, HexagonBoard<6>&, TerrainMap&);
 
-		public:
-			RenderedPiece(cyvmath::PieceType, const HexCoordinate&, cyvmath::PlayersColor, RenderedMatch&);
+		fea::Quad* getQuad()
+		{ return &m_quad; }
 
-			fea::Quad* getQuad()
-			{ return &m_quad; }
+		void setCoord(cyvasse::Coordinate) final override;
+};
 
-			const glm::vec2& getPosition() const
-			{ return m_quad.getPosition(); }
-
-			bool moveTo(const HexCoordinate&, bool setup) final override;
-
-			void setPosition(const glm::vec2& pos)
-			{ m_quad.setPosition(pos); }
-	};
-
-	typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;
-}
-
-#endif // _MIKELEPAGE_RENDERED_PIECE_HPP_
+#endif // _RENDERED_TERRAIN_HPP_

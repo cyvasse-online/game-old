@@ -18,9 +18,9 @@
 
 #include <map>
 
-#include "mikelepage/rendered_match.hpp"
+#include "rendered_match.hpp"
 
-using namespace cyvmath;
+using namespace cyvasse;
 
 IngameState::IngameState(std::function<bool(fea::Event&)> pollEvent, fea::Renderer2D& renderer)
 	: m_pollEvent(pollEvent)
