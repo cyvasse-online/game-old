@@ -1,4 +1,4 @@
-/* Copyright 2014 Jonas Platte
+/* Copyright 2014 - 2015 Jonas Platte
  *
  * This file is part of Cyvasse Online.
  *
@@ -90,10 +90,10 @@ class HexagonBoard
 		std::function<void(const fea::Event::MouseMoveEvent&)> onMouseMoveOutside;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onClickedOutside;
 
-		glm::uvec2 getSize();
-		glm::uvec2 getPosition();
+		glm::uvec2 getSize() const;
+		glm::uvec2 getPosition() const;
 
-		glm::vec2 getTilePosition(Coordinate);
+		glm::vec2 getTilePosition(Coordinate) const;
 		const glm::vec2& getTileSize() const;
 
 		template<class... Args>

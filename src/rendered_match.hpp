@@ -25,6 +25,7 @@
 
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/renderer2d.hpp>
+#include <fea/rendering/texture.hpp>
 #include <fea/ui/event.hpp>
 
 #include <optional.hpp>

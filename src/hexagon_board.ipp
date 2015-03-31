@@ -1,4 +1,4 @@
-/* Copyright 2014 Jonas Platte
+/* Copyright 2014 - 2015 Jonas Platte
  *
  * This file is part of Cyvasse Online.
  *
@@ -103,19 +103,19 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvasse::PlayersColor c
 }
 
 template <int l>
-glm::uvec2 HexagonBoard<l>::getSize()
+glm::uvec2 HexagonBoard<l>::getSize() const
 {
 	return m_size;
 }
 
 template <int l>
-glm::uvec2 HexagonBoard<l>::getPosition()
+glm::uvec2 HexagonBoard<l>::getPosition() const
 {
 	return m_position;
 }
 
 template <int l>
-glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c)
+glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c) const
 {
 	glm::vec2 ret;
 
