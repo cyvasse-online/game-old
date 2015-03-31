@@ -29,10 +29,24 @@
 using namespace std;
 using namespace cyvasse;
 
+#include <SDL2/SDL.h>
+
 CyvasseApp::CyvasseApp()
 	: m_window(fea::VideoMode(800, 600, 32), "Cyvasse")
 	, m_renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
+	SDL_SetMainReady();
+
+	SDL_EventState(SDL_MOUSEWHEEL, SDL_DISABLE);
+
+	SDL_EventState(SDL_TEXTINPUT, SDL_DISABLE);
+	SDL_EventState(SDL_KEYDOWN, SDL_DISABLE);
+	SDL_EventState(SDL_KEYUP, SDL_DISABLE);
+
+	SDL_EventState(SDL_FINGERMOTION, SDL_DISABLE);
+	SDL_EventState(SDL_FINGERDOWN, SDL_DISABLE);
+	SDL_EventState(SDL_FINGERUP, SDL_DISABLE);
+
 	m_renderer.setup();
 
 	auto ingameState = make_unique<IngameState>(bind(&fea::Window::pollEvent, &m_window, placeholders::_1), m_renderer);
