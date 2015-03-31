@@ -29,8 +29,6 @@ RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoar
 	, m_terrainMap(terrainMap)
 	, m_quad(board.getTileSize())
 {
-	assert(type != TerrainType::UNDEFINED);
-
 	string texturePath = "res/icons/" + TerrainTypeToStr(type) + ".png";
 	m_texture = makeTexture(texturePath).first;
 

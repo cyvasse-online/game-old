@@ -38,7 +38,6 @@ class RenderedPiece : public cyvasse::Piece
 		fea::Texture m_texture;
 
 	public:
-		static const std::map<cyvasse::PieceType, std::string> fileNames;
 		static fea::Texture makePieceTexture(cyvasse::PlayersColor, cyvasse::PieceType);
 
 		RenderedPiece(cyvasse::PieceType, const HexCoordinate&, cyvasse::PlayersColor, RenderedMatch&);

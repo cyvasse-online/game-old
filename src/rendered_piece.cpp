@@ -24,7 +24,7 @@
 using namespace std;
 using namespace cyvasse;
 
-const map<PieceType, string> RenderedPiece::fileNames {
+static const map<PieceType, string> fileNames {
 	{PieceType::MOUNTAINS,   "mountains.png"},
 	{PieceType::RABBLE,      "rabble.png"},
 	{PieceType::CROSSBOWS,   "crossbows.png"},
@@ -47,8 +47,8 @@ RenderedPiece::RenderedPiece(PieceType type, const HexCoordinate& coord, Players
 	: Piece(color, type, coord, match)
 	, m_board(match.getBoard())
 	, m_quad(m_board.getTileSize())
+	, m_texture(makePieceTexture(color, type))
 {
-	m_texture = makePieceTexture(color, type);
 	m_quad.setTexture(m_texture);
 	m_quad.setPosition(m_board.getTilePosition(*m_coord));
 }

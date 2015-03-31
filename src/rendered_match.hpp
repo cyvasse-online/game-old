@@ -77,7 +77,7 @@ class RenderedMatch : public cyvasse::Match
 			fea::Quad pieceQuad;
 			fea::Texture pieceTexture;
 
-			PiecePromotionBox(const glm::vec2& size, const glm::vec2& pos, fea::Texture&& texture);
+			PiecePromotionBox(const glm::vec2& size, const glm::vec2& pos, fea::Texture&&);
 		};
 
 		std::map<cyvasse::PieceType, PiecePromotionBox> m_piecePromotionBoxes;

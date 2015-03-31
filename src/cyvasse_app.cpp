@@ -32,7 +32,7 @@ using namespace cyvasse;
 #include <SDL2/SDL.h>
 
 CyvasseApp::CyvasseApp()
-	: m_window(fea::VideoMode(800, 600, 32), "Cyvasse")
+	: m_window(fea::VideoMode(800, 600, 32), "Cyvasse Online")
 	, m_renderer(fea::Viewport({800, 600}, {0, 0}, fea::Camera({800.0f / 2.0f, 600.0f / 2.0f})))
 {
 	SDL_SetMainReady();

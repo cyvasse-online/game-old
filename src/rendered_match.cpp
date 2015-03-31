@@ -47,6 +47,7 @@ RenderedMatch::PiecePromotionBox::PiecePromotionBox(const glm::vec2& size, const
 	, pieceQuad(size)
 	, pieceTexture(std::move(texture))
 {
+	bgQuad.setColor({95, 95, 95});
 	bgQuad.setPosition(pos);
 
 	pieceQuad.setTexture(pieceTexture);
@@ -132,20 +133,18 @@ void RenderedMatch::tick()
 {
 	m_board.tick();
 
-	for (auto&& entityVecIt : m_renderedEntities)
-		for (auto&& it : entityVecIt.second)
+	for (const auto& entityVecIt : m_renderedEntities)
+		for (const auto& it : entityVecIt.second)
 			m_renderer.queue(*it);
 
 	// Move the logic bit to the backend
 	if (m_setup && m_self.setupComplete() && !m_setupAccepted)
 		m_renderer.queue(m_buttonSetupDone);
-	else if (!m_piecePromotionBoxes.empty())
+
+	for (const auto& box : m_piecePromotionBoxes)
 	{
-		for (const auto& box : m_piecePromotionBoxes)
-		{
-			m_renderer.queue(box.second.bgQuad);
-			m_renderer.queue(box.second.pieceQuad);
-		}
+		m_renderer.queue(box.second.bgQuad);
+		m_renderer.queue(box.second.pieceQuad);
 	}
 }
 
@@ -160,7 +159,7 @@ void RenderedMatch::onTileMouseOver(Coordinate coord)
 	auto it = m_activePieces.find(coord);
 
 	if (it != m_activePieces.end() &&
-	   it->second->getType() != PieceType::MOUNTAINS)
+		it->second->getType() != PieceType::MOUNTAINS)
 	{
 		// a piece of the player was hovered
 
@@ -304,23 +303,29 @@ void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& ev
 
 void RenderedMatch::onPromotionPieceMouseMotion(const fea::Event::MouseMoveEvent& mouseMove)
 {
-	bool hoverOne = false;
+	optional<PieceType> hovering;
 
 	for (auto&& box : m_piecePromotionBoxes)
 		if (mouseOver(box.second.bgQuad, {mouseMove.x, mouseMove.y}))
 		{
-			hoverOne = true;
-
-			m_piecePromotionHover = box.first;
-			box.second.bgQuad.setColor({127, 127, 127});
-		}
-		else
-		{
-			box.second.bgQuad.setColor({95, 95, 95});
+			hovering = box.first;
+			break;
 		}
 
-	if (!hoverOne)
+	if (m_piecePromotionHover == hovering)
+		return;
+
+	if (m_piecePromotionHover)
+	{
+		m_piecePromotionBoxes.at(*m_piecePromotionHover).bgQuad.setColor({95, 95, 95});
 		m_piecePromotionHover = nullopt;
+	}
+
+	if (hovering)
+	{
+		m_piecePromotionHover = hovering;
+		m_piecePromotionBoxes.at(*hovering).bgQuad.setColor({127, 127, 127});
+	}
 }
 
 void RenderedMatch::onPromotionPieceClick(const fea::Event::MouseButtonEvent& mouseButton)
@@ -352,11 +357,11 @@ void RenderedMatch::placePiece(shared_ptr<RenderedPiece> piece)
 
 	m_activePieces.emplace(*coord, piece);
 
-	TerrainType tType = piece->getSetupTerrain();
+	auto tType = piece->getSetupTerrain();
 
-	if (tType != TerrainType::UNDEFINED)
+	if (tType)
 	{
-		auto terrain = make_shared<RenderedTerrain>(tType, *coord, m_board, m_terrain);
+		auto terrain = make_shared<RenderedTerrain>(*tType, *coord, m_board, m_terrain);
 
 		m_terrain.emplace(*coord, terrain);
 		m_renderedEntities[RenderPriority::TERRAIN].push_back(terrain->getQuad());
@@ -382,9 +387,14 @@ void RenderedMatch::placePiecesSetup()
 	for (const auto& it : oArr)
 	{
 		for (const auto& coord : it.second)
+		{
 			placePiece(make_shared<RenderedPiece>(
 				it.first, coord, m_ownColor, *this
 			));
+
+			if (it.first == PieceType::KING)
+				m_self.getFortress().setCoord(coord);
+		}
 	}
 }
 
@@ -513,7 +523,7 @@ void RenderedMatch::showPossibleTargetTiles()
 
 void RenderedMatch::showPromotionPieces(set<PieceType> pieceTypes)
 {
-	auto promotionOptionN = m_piecePromotionBoxes.size();
+	auto promotionOptionN = pieceTypes.size();
 	int startX =
 		(promotionOptionN == 2) ? -100 :
 		(promotionOptionN == 3) ? -150 :
