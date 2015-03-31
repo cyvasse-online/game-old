@@ -82,7 +82,6 @@ class RenderedMatch : public cyvasse::Match
 
 		std::map<cyvasse::PieceType, PiecePromotionBox> m_piecePromotionBoxes;
 		optional<cyvasse::PieceType> m_piecePromotionHover;
-		optional<cyvasse::PieceType> m_piecePromotionMousePress;
 
 	public:
 		RenderedMatch(IngameState&, fea::Renderer2D&, cyvasse::PlayersColor);
@@ -108,9 +107,8 @@ class RenderedMatch : public cyvasse::Match
 
 		void tickPromotionPieceSelect();
 
-		void onMouseMovedPromotionPieceSelect(const fea::Event::MouseMoveEvent&);
-		void onMouseButtonPressedPromotionPieceSelect(const fea::Event::MouseButtonEvent&);
-		void onMouseButtonReleasedPromotionPieceSelect(const fea::Event::MouseButtonEvent&);
+		void onPromotionPieceMouseMotion(const fea::Event::MouseMoveEvent&);
+		void onPromotionPieceClick(const fea::Event::MouseButtonEvent&);
 
 		void placePiece(std::shared_ptr<RenderedPiece>);
 		void placePiecesSetup();

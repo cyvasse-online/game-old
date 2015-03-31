@@ -72,7 +72,6 @@ class HexagonBoard
 		QuadVec m_quadVec;
 
 		optional<Tile> m_hoveredTile;
-		optional<Tile> m_mouseBPressTile;
 
 		HighlightQuadMap m_highlightQuads;
 
@@ -112,7 +111,6 @@ class HexagonBoard
 		void tick();
 
 		void onMouseMoved(const fea::Event::MouseMoveEvent&);
-		void onMouseButtonPressed(const fea::Event::MouseButtonEvent&);
 		void onMouseButtonReleased(const fea::Event::MouseButtonEvent&);
 };
 

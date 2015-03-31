@@ -297,29 +297,12 @@ void HexagonBoard<l>::onMouseMoved(const fea::Event::MouseMoveEvent& mouseMove)
 }
 
 template <int l>
-void HexagonBoard<l>::onMouseButtonPressed(const fea::Event::MouseButtonEvent& mouseButton)
+void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if(mouseButton.button != fea::Mouse::Button::LEFT || m_mouseBPressTile)
-		return;
-
 	auto coord = getCoordinate(mouseButton.x, mouseButton.y);
 
 	if(coord)
-		m_mouseBPressTile = Tile(*coord, getTileAt(*coord));
+		onTileClicked(*coord);
 	else
 		onClickedOutside(mouseButton);
-}
-
-template <int l>
-void HexagonBoard<l>::onMouseButtonReleased(const fea::Event::MouseButtonEvent& mouseButton)
-{
-	if(m_mouseBPressTile)
-	{
-		auto coord = getCoordinate(mouseButton.x, mouseButton.y);
-
-		if(coord && *coord == m_mouseBPressTile->first)
-			onTileClicked(*coord);
-
-		m_mouseBPressTile = nullopt;
-	}
 }

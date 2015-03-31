@@ -104,10 +104,7 @@ RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer
 
 	ingameState.tick                  = bind(&RenderedMatch::tick, this);
 	ingameState.onMouseMoved          = bind(&Board::onMouseMoved, &m_board, _1);
-	ingameState.onMouseButtonPressed  = bind(&Board::onMouseButtonPressed, &m_board, _1);
 	ingameState.onMouseButtonReleased = bind(&Board::onMouseButtonReleased, &m_board, _1);
-	ingameState.onKeyPressed          = [](const fea::Event::KeyEvent&) { };
-	ingameState.onKeyReleased         = [](const fea::Event::KeyEvent&) { };
 
 	m_board.onTileMouseOver    = bind(&RenderedMatch::onTileMouseOver, this, _1);
 	m_board.onTileClicked      = bind(&RenderedMatch::onTileClicked, this, _1);
@@ -305,7 +302,7 @@ void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& ev
 	}
 }
 
-void RenderedMatch::onMouseMovedPromotionPieceSelect(const fea::Event::MouseMoveEvent& mouseMove)
+void RenderedMatch::onPromotionPieceMouseMotion(const fea::Event::MouseMoveEvent& mouseMove)
 {
 	bool hoverOne = false;
 
@@ -326,40 +323,26 @@ void RenderedMatch::onMouseMovedPromotionPieceSelect(const fea::Event::MouseMove
 		m_piecePromotionHover = nullopt;
 }
 
-void RenderedMatch::onMouseButtonPressedPromotionPieceSelect(const fea::Event::MouseButtonEvent& mouseButton)
+void RenderedMatch::onPromotionPieceClick(const fea::Event::MouseButtonEvent& mouseButton)
 {
-	if (mouseButton.button != fea::Mouse::Button::LEFT || m_piecePromotionMousePress)
+	if (mouseButton.button != fea::Mouse::Button::LEFT)
 		return;
 
-	if (m_piecePromotionHover)
-		m_piecePromotionMousePress = m_piecePromotionHover;
-}
+	auto piece = getPieceAt(m_self.getFortress().getCoord());
+	assert(piece);
 
-void RenderedMatch::onMouseButtonReleasedPromotionPieceSelect(const fea::Event::MouseButtonEvent& mouseButton)
-{
-	if (mouseButton.button != fea::Mouse::Button::LEFT || !m_piecePromotionMousePress)
-		return;
+	PieceType origType = piece->getType();
+	PieceType newType = *m_piecePromotionHover;
 
-	if (m_piecePromotionMousePress == m_piecePromotionHover)
-	{
-		auto piece = getPieceAt(m_self.getFortress().getCoord());
-		assert(piece);
+	piece->promoteTo(newType);
+	CyvasseWSClient::instance().send(json::gameMsgPromote(origType, newType));
 
-		PieceType origType = piece->getType();
-		PieceType newType = *m_piecePromotionMousePress;
+	m_piecePromotionBoxes.clear();
 
-		piece->promoteTo(newType);
-		CyvasseWSClient::instance().send(json::gameMsgPromote(origType, newType));
-
-		m_piecePromotionBoxes.clear();
-
-		m_ingameState.onMouseMoved          = bind(&Board::onMouseMoved, &m_board, _1);
-		m_ingameState.onMouseButtonPressed  = bind(&Board::onMouseButtonPressed, &m_board, _1);
-		m_ingameState.onMouseButtonReleased = bind(&Board::onMouseButtonReleased, &m_board, _1);
-	}
+	m_ingameState.onMouseMoved          = bind(&Board::onMouseMoved, &m_board, _1);
+	m_ingameState.onMouseButtonReleased = bind(&Board::onMouseButtonReleased, &m_board, _1);
 
 	m_piecePromotionHover = nullopt;
-	m_piecePromotionMousePress = nullopt;
 }
 
 void RenderedMatch::placePiece(shared_ptr<RenderedPiece> piece)
@@ -501,10 +484,7 @@ void RenderedMatch::endGame(PlayersColor winner)
 	m_board.clearHighlighting(HighlightingId::HOVER);
 
 	m_ingameState.onMouseMoved          = [](const fea::Event::MouseMoveEvent&) { };
-	m_ingameState.onMouseButtonPressed  = [](const fea::Event::MouseButtonEvent&) { };
 	m_ingameState.onMouseButtonReleased = [](const fea::Event::MouseButtonEvent&) { };
-	m_ingameState.onKeyPressed          = [](const fea::Event::KeyEvent&) { };
-	m_ingameState.onKeyReleased         = [](const fea::Event::KeyEvent&) { };
 
 	m_gameEnded = true;
 }
@@ -553,7 +533,6 @@ void RenderedMatch::showPromotionPieces(set<PieceType> pieceTypes)
 		i++;
 	}
 
-	m_ingameState.onMouseMoved          = bind(&RenderedMatch::onMouseMovedPromotionPieceSelect, this, _1);
-	m_ingameState.onMouseButtonPressed  = bind(&RenderedMatch::onMouseButtonPressedPromotionPieceSelect, this, _1);
-	m_ingameState.onMouseButtonReleased = bind(&RenderedMatch::onMouseButtonReleasedPromotionPieceSelect, this, _1);
+	m_ingameState.onMouseMoved          = bind(&RenderedMatch::onPromotionPieceMouseMotion, this, _1);
+	m_ingameState.onMouseButtonReleased = bind(&RenderedMatch::onPromotionPieceClick, this, _1);
 }

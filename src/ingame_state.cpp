@@ -50,17 +50,11 @@ std::string IngameState::run()
 			case fea::Event::MOUSEMOVED:
 				onMouseMoved(event.mouseMove);
 				break;
-			case fea::Event::MOUSEBUTTONPRESSED:
-				onMouseButtonPressed(event.mouseButton);
-				break;
+			//case fea::Event::MOUSEBUTTONPRESSED:
+			//	onMouseButtonPressed(event.mouseButton);
+			//	break;
 			case fea::Event::MOUSEBUTTONRELEASED:
 				onMouseButtonReleased(event.mouseButton);
-				break;
-			case fea::Event::KEYPRESSED:
-				onKeyPressed(event.key);
-				break;
-			case fea::Event::KEYRELEASED:
-				onKeyReleased(event.key);
 				break;
 			default: { } // disable compiler warning
 		}
