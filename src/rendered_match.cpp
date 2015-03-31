@@ -67,7 +67,7 @@ static Match::playerArray createPlayerArray(PlayersColor localPlayersColor, Rend
 }
 
 RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer, PlayersColor color)
-	: cyvasse::Match({}, false, false, createPlayerArray(color, *this)) // TODO
+	: Match({}, false, false, createPlayerArray(color, *this)) // TODO
 	, m_renderer{renderer}
 	, m_ingameState{ingameState}
 	, m_board(renderer, color)
@@ -211,7 +211,7 @@ void RenderedMatch::onTileClicked(Coordinate coord)
 	else // a piece is selected
 	{
 		// determine which piece is on the clicked tile
-		shared_ptr<cyvasse::Piece> piece;
+		shared_ptr<Piece> piece;
 
 		auto pieceIt = m_activePieces.find(coord);
 		if (pieceIt != m_activePieces.end())
@@ -364,8 +364,6 @@ void RenderedMatch::onMouseButtonReleasedPromotionPieceSelect(const fea::Event::
 
 void RenderedMatch::placePiece(shared_ptr<RenderedPiece> piece)
 {
-	using cyvasse::TerrainType;
-
 	auto coord = piece->getCoord();
 	assert(coord);
 
@@ -435,7 +433,7 @@ void RenderedMatch::tryLeaveSetup()
 	updateTurnStatus();
 }
 
-bool RenderedMatch::tryMovePiece(shared_ptr<cyvasse::Piece> piece, Coordinate coord)
+bool RenderedMatch::tryMovePiece(shared_ptr<Piece> piece, Coordinate coord)
 {
 	assert(piece);
 
@@ -447,7 +445,7 @@ bool RenderedMatch::tryMovePiece(shared_ptr<cyvasse::Piece> piece, Coordinate co
 
 		if (!m_setup)
 		{
-			dynamic_cast<cyvasse::Player&>(*m_players[m_activePlayer]).onTurnEnd();
+			dynamic_cast<Player&>(*m_players[m_activePlayer]).onTurnEnd();
 
 			m_activePlayer = !m_activePlayer;
 
@@ -478,7 +476,7 @@ void RenderedMatch::addToBoard(PieceType type, PlayersColor color, const HexCoor
 	m_renderedEntities[RenderPriority::PIECE].push_back(rPiece->getQuad());
 }
 
-void RenderedMatch::removeFromBoard(shared_ptr<cyvasse::Piece> piece)
+void RenderedMatch::removeFromBoard(shared_ptr<Piece> piece)
 {
 	Match::removeFromBoard(piece);
 

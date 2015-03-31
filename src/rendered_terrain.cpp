@@ -23,8 +23,6 @@
 using namespace std;
 using namespace cyvasse;
 
-using cyvasse::TerrainType;
-
 RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
 	: Terrain(type, coord)
 	, m_board(board)
