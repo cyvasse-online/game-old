@@ -34,12 +34,12 @@ class RenderedTerrain : public cyvasse::Terrain
 		fea::Texture m_texture;
 
 	public:
-		RenderedTerrain(cyvasse::TerrainType, cyvasse::Coordinate, HexagonBoard<6>&, TerrainMap&);
+		RenderedTerrain(cyvasse::TerrainType, cyvasse::HexCoordinate<6>, HexagonBoard<6>&, TerrainMap&);
 
 		fea::Quad* getQuad()
 		{ return &m_quad; }
 
-		void setCoord(cyvasse::Coordinate) final override;
+		void setCoord(cyvasse::HexCoordinate<6>) final override;
 };
 
 #endif // _RENDERED_TERRAIN_HPP_

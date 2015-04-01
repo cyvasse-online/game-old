@@ -23,7 +23,7 @@
 using namespace std;
 using namespace cyvasse;
 
-RenderedFortress::RenderedFortress(PlayersColor color, Coordinate coord, HexagonBoard<6>& board)
+RenderedFortress::RenderedFortress(PlayersColor color, HexCoordinate<6> coord, HexagonBoard<6>& board)
 	: Fortress(color, coord)
 	, m_board(board)
 {
@@ -38,7 +38,7 @@ RenderedFortress::RenderedFortress(PlayersColor color, Coordinate coord, Hexagon
 	m_quad.setPosition({tilePos.x, tilePos.y});
 }
 
-void RenderedFortress::setCoord(Coordinate coord)
+void RenderedFortress::setCoord(HexCoordinate<6> coord)
 {
 	m_coord = coord;
 

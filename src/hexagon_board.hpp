@@ -45,9 +45,9 @@ class HexagonBoard
 {
 	public:
 		typedef typename cyvasse::Hexagon<l> Hexagon;
-		typedef typename Hexagon::Coordinate Coordinate;
-		typedef typename std::pair<Coordinate, std::shared_ptr<fea::Quad>> Tile;
-		typedef typename std::map<Coordinate, std::shared_ptr<fea::Quad>> TileMap;
+		typedef typename cyvasse::HexCoordinate<l> HexCoordinate;
+		typedef typename std::pair<HexCoordinate, std::shared_ptr<fea::Quad>> Tile;
+		typedef typename std::map<HexCoordinate, std::shared_ptr<fea::Quad>> TileMap;
 		typedef std::vector<std::shared_ptr<fea::Quad>> QuadVec;
 		typedef std::map<HighlightingId, QuadVec> HighlightQuadMap;
 
@@ -75,8 +75,8 @@ class HexagonBoard
 
 		HighlightQuadMap m_highlightQuads;
 
-		fea::Color getTileColor(Coordinate);
-		std::shared_ptr<fea::Quad> createHighlightQuad(glm::vec2 pos, HighlightingId);
+		auto getTileColor(HexCoordinate) -> fea::Color;
+		auto createHighlightQuad(glm::vec2 pos, HighlightingId) -> std::shared_ptr<fea::Quad>;
 
 	public:
 		HexagonBoard(fea::Renderer2D&, cyvasse::PlayersColor);
@@ -85,23 +85,23 @@ class HexagonBoard
 		HexagonBoard(const HexagonBoard&) = delete;
 		const HexagonBoard& operator= (const HexagonBoard&) = delete;
 
-		std::function<void(Coordinate)> onTileMouseOver;
-		std::function<void(Coordinate)> onTileClicked;
+		std::function<void(HexCoordinate)> onTileMouseOver;
+		std::function<void(HexCoordinate)> onTileClicked;
 		std::function<void(const fea::Event::MouseMoveEvent&)> onMouseMoveOutside;
 		std::function<void(const fea::Event::MouseButtonEvent&)> onClickedOutside;
 
-		glm::uvec2 getSize() const;
-		glm::uvec2 getPosition() const;
+		auto getSize() const -> glm::uvec2;
+		auto getPosition() const -> glm::uvec2;
 
-		glm::vec2 getTilePosition(Coordinate) const;
-		const glm::vec2& getTileSize() const;
+		auto getTilePosition(HexCoordinate) const -> glm::vec2;
+		auto getTileSize() const -> const glm::vec2&;
 
 		template<class... Args>
-		optional<Coordinate> getCoordinate(Args&&... args);
+		auto getCoordinate(Args&&... args) -> optional<HexCoordinate>;
 
-		std::shared_ptr<fea::Quad> getTileAt(Coordinate);
+		auto getTileAt(HexCoordinate) -> std::shared_ptr<fea::Quad>;
 
-		void highlightTile(Coordinate, HighlightingId);
+		void highlightTile(HexCoordinate, HighlightingId);
 
 		template<class InputIterator>
 		void highlightTiles(InputIterator first, InputIterator last, HighlightingId id);

@@ -25,7 +25,8 @@
 #include <fea/rendering/quad.hpp>
 #include <fea/rendering/texture.hpp>
 
-template<int> class HexagonBoard;
+template<int>
+class HexagonBoard;
 
 class RenderedMatch;
 
@@ -40,7 +41,7 @@ class RenderedPiece : public cyvasse::Piece
 	public:
 		static fea::Texture makePieceTexture(cyvasse::PlayersColor, cyvasse::PieceType);
 
-		RenderedPiece(cyvasse::PieceType, const HexCoordinate&, cyvasse::PlayersColor, RenderedMatch&);
+		RenderedPiece(cyvasse::PieceType, optional<cyvasse::HexCoordinate<6>>, cyvasse::PlayersColor, RenderedMatch&);
 
 		fea::Quad* getQuad()
 		{ return &m_quad; }
@@ -48,7 +49,7 @@ class RenderedPiece : public cyvasse::Piece
 		const glm::vec2& getPosition() const
 		{ return m_quad.getPosition(); }
 
-		virtual bool moveTo(const HexCoordinate&, bool setup) final override;
+		virtual bool moveTo(cyvasse::HexCoordinate<6>, bool setup) final override;
 
 		void setPosition(const glm::vec2& pos)
 		{ m_quad.setPosition(pos); }

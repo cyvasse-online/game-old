@@ -43,7 +43,7 @@ fea::Texture RenderedPiece::makePieceTexture(PlayersColor color, PieceType type)
 	return makeTexture(texturePath).first;
 }
 
-RenderedPiece::RenderedPiece(PieceType type, const HexCoordinate& coord, PlayersColor color, RenderedMatch& match)
+RenderedPiece::RenderedPiece(PieceType type, optional<HexCoordinate<6>> coord, PlayersColor color, RenderedMatch& match)
 	: Piece(color, type, coord, match)
 	, m_board(match.getBoard())
 	, m_quad(m_board.getTileSize())
@@ -53,7 +53,7 @@ RenderedPiece::RenderedPiece(PieceType type, const HexCoordinate& coord, Players
 	m_quad.setPosition(m_board.getTilePosition(*m_coord));
 }
 
-bool RenderedPiece::moveTo(const HexCoordinate& coord, bool setup)
+bool RenderedPiece::moveTo(HexCoordinate<6> coord, bool setup)
 {
 	if(!Piece::moveTo(coord, setup))
 		return false;

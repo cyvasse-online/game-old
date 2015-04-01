@@ -78,7 +78,7 @@ class RenderedMatch : public cyvasse::Match
 			fea::Quad pieceQuad;
 			fea::Texture pieceTexture;
 
-			PiecePromotionBox(const glm::vec2& size, const glm::vec2& pos, fea::Texture&&);
+			PiecePromotionBox(const glm::vec2& pos, const glm::vec2& pieceSize, fea::Texture&&);
 		};
 
 		std::map<cyvasse::PieceType, PiecePromotionBox> m_piecePromotionBoxes;
@@ -101,8 +101,8 @@ class RenderedMatch : public cyvasse::Match
 
 		void tick();
 
-		void onTileMouseOver(cyvasse::Coordinate);
-		void onTileClicked(cyvasse::Coordinate);
+		void onTileMouseOver(cyvasse::HexCoordinate<6>);
+		void onTileClicked(cyvasse::HexCoordinate<6>);
 		void onMouseMoveOutside(const fea::Event::MouseMoveEvent&);
 		void onClickedOutsideBoard(const fea::Event::MouseButtonEvent&);
 
@@ -115,8 +115,8 @@ class RenderedMatch : public cyvasse::Match
 		void placePiecesSetup();
 
 		void tryLeaveSetup();
-		bool tryMovePiece(std::shared_ptr<cyvasse::Piece>, cyvasse::Coordinate);
-		virtual void addToBoard(cyvasse::PieceType, cyvasse::PlayersColor, const HexCoordinate&) final override;
+		bool tryMovePiece(std::shared_ptr<cyvasse::Piece>, cyvasse::HexCoordinate<6>);
+		virtual void addToBoard(cyvasse::PieceType, cyvasse::PlayersColor, cyvasse::HexCoordinate<6>) final override;
 		virtual void removeFromBoard(std::shared_ptr<cyvasse::Piece>) final override;
 		virtual void endGame(cyvasse::PlayersColor winner) final override;
 

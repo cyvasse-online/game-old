@@ -37,8 +37,6 @@ using std::placeholders::_1;
 using namespace cyvasse;
 using namespace cyvws;
 
-using HexCoordinate = Hexagon<6>::Coordinate;
-
 RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match, unique_ptr<RenderedFortress> fortress)
 	: Player(match, color, move(fortress) /*, id */) // TODO
 	, m_match(match) // should probably be considered a workaround

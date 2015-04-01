@@ -23,7 +23,7 @@
 using namespace std;
 using namespace cyvasse;
 
-RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
+RenderedTerrain::RenderedTerrain(TerrainType type, HexCoordinate<6> coord, HexagonBoard<6>& board, TerrainMap& terrainMap)
 	: Terrain(type, coord)
 	, m_board(board)
 	, m_terrainMap(terrainMap)
@@ -36,7 +36,7 @@ RenderedTerrain::RenderedTerrain(TerrainType type, Coordinate coord, HexagonBoar
 	m_quad.setPosition(board.getTilePosition(coord));
 }
 
-void RenderedTerrain::setCoord(Coordinate coord)
+void RenderedTerrain::setCoord(HexCoordinate<6> coord)
 {
 	auto it = m_terrainMap.find(m_coord);
 	assert(it != m_terrainMap.end());

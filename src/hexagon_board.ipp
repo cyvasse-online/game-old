@@ -31,14 +31,14 @@ const std::map<HighlightingId, fea::Color> HexagonBoard<l>::highlightingColors {
 };
 
 template <int l>
-fea::Color HexagonBoard<l>::getTileColor(Coordinate c)
+fea::Color HexagonBoard<l>::getTileColor(HexCoordinate c)
 {
 	auto i = (((c.x() - c.y()) % 3) + 3) % 3;
 	return tileColors[i];
 }
 
 template <int l>
-std::shared_ptr<fea::Quad> HexagonBoard<l>::createHighlightQuad(glm::vec2 pos, HighlightingId id)
+auto HexagonBoard<l>::createHighlightQuad(glm::vec2 pos, HighlightingId id) -> std::shared_ptr<fea::Quad>
 {
 	auto ret = std::make_shared<fea::Quad>(getTileSize());
 
@@ -78,10 +78,10 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvasse::PlayersColor c
 		m_position = {padding, (windowSize.y - m_size.y) / 2.0f};
 	}
 
-	std::vector<Coordinate> tmpVec;
+	std::vector<HexCoordinate> tmpVec;
 	tmpVec.reserve(Hexagon::tileCount + (Hexagon::edgeLength * 2) - 1);
 
-	for(Coordinate c : Hexagon::allCoordinates)
+	for(HexCoordinate c : Hexagon::allCoordinates)
 	{
 		auto quad = std::make_shared<fea::Quad>(m_tileSize);
 
@@ -103,19 +103,19 @@ HexagonBoard<l>::HexagonBoard(fea::Renderer2D& renderer, cyvasse::PlayersColor c
 }
 
 template <int l>
-glm::uvec2 HexagonBoard<l>::getSize() const
+auto HexagonBoard<l>::getSize() const -> glm::uvec2
 {
 	return m_size;
 }
 
 template <int l>
-glm::uvec2 HexagonBoard<l>::getPosition() const
+auto HexagonBoard<l>::getPosition() const -> glm::uvec2
 {
 	return m_position;
 }
 
 template <int l>
-glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c) const
+auto HexagonBoard<l>::getTilePosition(HexCoordinate c) const -> glm::vec2
 {
 	glm::vec2 ret;
 
@@ -154,14 +154,14 @@ glm::vec2 HexagonBoard<l>::getTilePosition(Coordinate c) const
 }
 
 template <int l>
-const glm::vec2& HexagonBoard<l>::getTileSize() const
+auto HexagonBoard<l>::getTileSize() const -> const glm::vec2&
 {
 	return m_tileSize;
 }
 
 template<int l>
 template<class... Args>
-optional<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(Args&&... args)
+auto HexagonBoard<l>::getCoordinate(Args&&... args) -> optional<HexCoordinate>
 {
 	// remove padding
 	glm::uvec2 tilePos = glm::uvec2(std::forward<Args>(args)...) - m_position;
@@ -198,11 +198,11 @@ optional<typename HexagonBoard<l>::Coordinate> HexagonBoard<l>::getCoordinate(Ar
 	if(x < 0.0f || y < 0.0f)
 		return nullopt;
 
-	return Coordinate::create(static_cast<int>(x), static_cast<int>(y));
+	return HexCoordinate::create(static_cast<int>(x), static_cast<int>(y));
 }
 
 template <int l>
-std::shared_ptr<fea::Quad> HexagonBoard<l>::getTileAt(Coordinate c)
+auto HexagonBoard<l>::getTileAt(HexCoordinate c) -> std::shared_ptr<fea::Quad>
 {
 	typename TileMap::iterator it = m_tileMap.find(c);
 	if(it == m_tileMap.end())
@@ -212,7 +212,7 @@ std::shared_ptr<fea::Quad> HexagonBoard<l>::getTileAt(Coordinate c)
 }
 
 template <int l>
-void HexagonBoard<l>::highlightTile(Coordinate coord, HighlightingId id)
+void HexagonBoard<l>::highlightTile(HexCoordinate coord, HighlightingId id)
 {
 	auto res = m_highlightQuads.emplace(id, QuadVec());
 	auto& quadVec = res.first->second;
@@ -229,8 +229,8 @@ template <class InputIterator>
 void HexagonBoard<l>::highlightTiles(InputIterator first, InputIterator last, HighlightingId id)
 {
 	static_assert(
-		std::is_convertible<typename std::iterator_traits<InputIterator>::value_type, Coordinate>::value,
-		"The iterators first and last have to be convertible to Coordinate"
+		std::is_convertible<typename std::iterator_traits<InputIterator>::value_type, HexCoordinate>::value,
+		"The iterators first and last have to be convertible to HexCoordinate"
 	);
 
 	auto res = m_highlightQuads.emplace(id, QuadVec());

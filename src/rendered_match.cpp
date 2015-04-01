@@ -40,11 +40,9 @@ using namespace std::placeholders;
 using namespace cyvasse;
 using namespace cyvws;
 
-using HexCoordinate = Hexagon<6>::Coordinate;
-
-RenderedMatch::PiecePromotionBox::PiecePromotionBox(const glm::vec2& size, const glm::vec2& pos, fea::Texture&& texture)
+RenderedMatch::PiecePromotionBox::PiecePromotionBox(const glm::vec2& pos, const glm::vec2& pieceSize, fea::Texture&& texture)
 	: bgQuad(glm::vec2(100, 100))
-	, pieceQuad(size)
+	, pieceQuad(pieceSize)
 	, pieceTexture(std::move(texture))
 {
 	bgQuad.setColor({95, 95, 95});
@@ -80,9 +78,9 @@ RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer
 	, m_setupAccepted{false}
 {
 	// hardcoded temporarily [TODO]
-	static const map<PlayersColor, Coordinate> fortressStartCoords {
-		{PlayersColor::WHITE, HexCoordinate(4, 7)},
-		{PlayersColor::BLACK, HexCoordinate(6, 3)}
+	static const map<PlayersColor, HexCoordinate<6>> fortressStartCoords {
+		{PlayersColor::WHITE, {4, 7}},
+		{PlayersColor::BLACK, {6, 3}}
 	};
 
 	auto ownFortress = make_unique<RenderedFortress>(m_ownColor, fortressStartCoords.at(m_ownColor), m_board);
@@ -148,7 +146,7 @@ void RenderedMatch::tick()
 	}
 }
 
-void RenderedMatch::onTileMouseOver(Coordinate coord)
+void RenderedMatch::onTileMouseOver(HexCoordinate<6> coord)
 {
 	// if one of the players is still in setup,
 	// or a piece is selected, do nothing
@@ -177,7 +175,7 @@ void RenderedMatch::onTileMouseOver(Coordinate coord)
 	}
 }
 
-void RenderedMatch::onTileClicked(Coordinate coord)
+void RenderedMatch::onTileClicked(HexCoordinate<6> coord)
 {
 	// if the local player finished setting up,
 	// but the remote player didn't yet
@@ -426,7 +424,7 @@ void RenderedMatch::tryLeaveSetup()
 	updateTurnStatus();
 }
 
-bool RenderedMatch::tryMovePiece(shared_ptr<Piece> piece, Coordinate coord)
+bool RenderedMatch::tryMovePiece(shared_ptr<Piece> piece, HexCoordinate<6> coord)
 {
 	assert(piece);
 
@@ -447,7 +445,7 @@ bool RenderedMatch::tryMovePiece(shared_ptr<Piece> piece, Coordinate coord)
 			if (m_activePlayer == m_ownColor)
 				m_self.onTurnBegin();
 
-			array<Coordinate, 2> coords = {{coord, *oldCoord}};
+			array<HexCoordinate<6>, 2> coords = {{coord, *oldCoord}};
 			m_board.highlightTiles(coords.begin(), coords.end(), HighlightingId::LAST_MOVE);
 		}
 
@@ -457,7 +455,7 @@ bool RenderedMatch::tryMovePiece(shared_ptr<Piece> piece, Coordinate coord)
 	return false;
 }
 
-void RenderedMatch::addToBoard(PieceType type, PlayersColor color, const HexCoordinate& coord)
+void RenderedMatch::addToBoard(PieceType type, PlayersColor color, HexCoordinate<6> coord)
 {
 	Match::addToBoard(type, color, coord);
 
@@ -534,10 +532,12 @@ void RenderedMatch::showPromotionPieces(set<PieceType> pieceTypes)
 	unsigned i = 0;
 	for (PieceType type : pieceTypes)
 	{
-		auto res = m_piecePromotionBoxes.emplace(type, PiecePromotionBox(
-			m_board.getTileSize(), scrMid + glm::ivec2{startX + 100 * i, -50},
-			RenderedPiece::makePieceTexture(m_ownColor, type)
-		));
+		auto res = m_piecePromotionBoxes.emplace(piecewise_construct,
+			forward_as_tuple(type), forward_as_tuple(
+				scrMid + glm::ivec2{startX + 100 * i, -50}, m_board.getTileSize(),
+				RenderedPiece::makePieceTexture(m_ownColor, type)
+			)
+		);
 		assert(res.second);
 
 		i++;

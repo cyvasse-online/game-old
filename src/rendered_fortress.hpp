@@ -31,12 +31,12 @@ class RenderedFortress : public cyvasse::Fortress
 		fea::Texture m_texture;
 
 	public:
-		RenderedFortress(cyvasse::PlayersColor, cyvasse::Coordinate, HexagonBoard<6>&);
+		RenderedFortress(cyvasse::PlayersColor, cyvasse::HexCoordinate<6>, HexagonBoard<6>&);
 
 		fea::Quad* getQuad()
 		{ return &m_quad; }
 
-		void setCoord(cyvasse::Coordinate) final override;
+		void setCoord(cyvasse::HexCoordinate<6>) final override;
 
 		void ruined() final override;
 };
