@@ -19,9 +19,6 @@
 
 #include <cyvasse/player.hpp>
 
-#include <memory>
-#include <json/value.h>
-
 #include "rendered_fortress.hpp"
 
 class RenderedMatch;
@@ -30,19 +27,11 @@ class LocalPlayer : public cyvasse::Player
 {
 	friend RenderedMatch;
 	private:
-		bool m_setupComplete = false;
-
 		RenderedMatch& m_match;
 
 	public:
 		LocalPlayer(cyvasse::PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
 		virtual ~LocalPlayer() = default;
-
-		virtual bool setupComplete() const final override
-		{ return m_setupComplete; }
-
-		void checkSetupComplete()
-		{ m_setupComplete = Player::setupComplete(); }
 
 		void onTurnBegin();
 };

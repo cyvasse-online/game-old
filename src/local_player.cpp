@@ -36,57 +36,60 @@ void LocalPlayer::onTurnBegin()
 	if(m_fortress->isRuined)
 		return;
 
-	auto piece = m_match.getPieceAt(m_fortress->getCoord());
+	auto optPiece = m_match.getPieceAt(m_fortress->getCoord());
+	if (!optPiece)
+		return;
 
-	if(piece && piece->getColor() == m_color && piece->getType() != PieceType::KING)
+	auto& piece = optPiece->get();
+	if(piece.getColor() != m_color || piece.getType() == PieceType::KING)
+		return;
+
+	auto baseTier = piece.getBaseTier();
+	PieceType pieceType = piece.getType();
+	optional<PieceType> promoteToType;
+
+	if(baseTier == 3)
 	{
-		auto baseTier = piece->getBaseTier();
-		PieceType pieceType = piece->getType();
-		optional<PieceType> promoteToType;
+		if(m_kingTaken)
+			promoteToType = PieceType::KING;
+	}
+	else if(baseTier == 2)
+	{
+		static const std::map<PieceType, PieceType> nextTierPieces {
+			{PieceType::CROSSBOWS, PieceType::TREBUCHET},
+			{PieceType::SPEARS, PieceType::ELEPHANT},
+			{PieceType::LIGHT_HORSE, PieceType::HEAVY_HORSE}
+		};
 
-		if(baseTier == 3)
+		if(m_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
+			promoteToType = nextTierPieces.at(pieceType);
+	}
+	else if(pieceType == PieceType::RABBLE) // can only promote rabble, not the king
+	{
+		std::set<PieceType> availablePieceTypes;
+
+		for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
 		{
-			if(m_kingTaken)
-				promoteToType = PieceType::KING;
-		}
-		else if(baseTier == 2)
-		{
-			static const std::map<PieceType, PieceType> nextTierPieces {
-				{PieceType::CROSSBOWS, PieceType::TREBUCHET},
-				{PieceType::SPEARS, PieceType::ELEPHANT},
-				{PieceType::LIGHT_HORSE, PieceType::HEAVY_HORSE}
-			};
-
-			if(m_inactivePieces.count(nextTierPieces.at(pieceType)) > 0)
-				promoteToType = nextTierPieces.at(pieceType);
-		}
-		else if(pieceType == PieceType::RABBLE) // can only promote rabble, not the king
-		{
-			std::set<PieceType> availablePieceTypes;
-
-			for(PieceType type : {PieceType::CROSSBOWS, PieceType::SPEARS, PieceType::LIGHT_HORSE})
-			{
-				if(m_inactivePieces.count(type) > 0)
-					availablePieceTypes.insert(type);
-			}
-
-			switch(availablePieceTypes.size())
-			{
-				case 0:
-					break;
-				case 1:
-					promoteToType = *availablePieceTypes.begin();
-					break;
-				default:
-					m_match.showPromotionPieces(availablePieceTypes);
-					break;
-			}
+			if(m_inactivePieces.count(type) > 0)
+				availablePieceTypes.insert(type);
 		}
 
-		if(promoteToType)
+		switch(availablePieceTypes.size())
 		{
-			piece->promoteTo(*promoteToType);
-			CyvasseWSClient::instance().send(json::gameMsgPromote(pieceType, *promoteToType));
+			case 0:
+				break;
+			case 1:
+				promoteToType = *availablePieceTypes.begin();
+				break;
+			default:
+				m_match.showPromotionPieces(availablePieceTypes);
+				break;
 		}
+	}
+
+	if(promoteToType)
+	{
+		piece.promoteTo(*promoteToType);
+		CyvasseWSClient::instance().send(json::gameMsgPromote(pieceType, *promoteToType));
 	}
 }

@@ -32,8 +32,6 @@ typedef std::vector<std::shared_ptr<RenderedPiece>> RenderedPieceVec;
 class RemotePlayer : public cyvasse::Player
 {
 	private:
-		bool m_setupComplete = false;
-
 		// contains all pieces before
 		// leaving setup, is empty afterwards
 		RenderedPieceVec m_pieceCache;
@@ -43,9 +41,6 @@ class RemotePlayer : public cyvasse::Player
 	public:
 		RemotePlayer(cyvasse::PlayersColor, RenderedMatch&, std::unique_ptr<RenderedFortress> = {});
 		virtual ~RemotePlayer() = default;
-
-		bool setupComplete() const final override
-		{ return m_setupComplete; }
 
 		RenderedPieceVec& getPieceCache()
 		{ return m_pieceCache; }

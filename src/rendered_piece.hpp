@@ -46,6 +46,9 @@ class RenderedPiece : public cyvasse::Piece
 		fea::Quad* getQuad()
 		{ return &m_quad; }
 
+		const fea::Quad* getQuad() const
+		{ return &m_quad; }
+
 		const glm::vec2& getPosition() const
 		{ return m_quad.getPosition(); }
 

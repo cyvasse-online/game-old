@@ -73,7 +73,7 @@ void RemotePlayer::handleMessage(Json::Value msg)
 			}
 		}
 
-		m_setupComplete = true;
+		m_setupDone = true;
 		m_match.tryLeaveSetup();
 	}
 	else if (action == GameMsgAction::SET_IS_READY)
@@ -86,12 +86,13 @@ void RemotePlayer::handleMessage(Json::Value msg)
 		if (it == m_match.getActivePieces().end())
 			throw runtime_error("move of non-existent piece at " + movement.oldPos.toString() + " requested");
 
-		auto piece = it->second;
+		assert(it->second);
+		auto& piece = *it->second;
 
-		if (piece->getType() != movement.pieceType)
+		if (piece.getType() != movement.pieceType)
 			throw runtime_error(
 				"remote client requested move of " + PieceTypeToStr(movement.pieceType) + ", but there is " +
-				PieceTypeToStr(piece->getType()) + " at " + movement.oldPos.toString()
+				PieceTypeToStr(piece.getType()) + " at " + movement.oldPos.toString()
 			);
 
 		m_match.tryMovePiece(piece, movement.newPos);
@@ -109,7 +110,8 @@ void RemotePlayer::handleMessage(Json::Value msg)
 				PieceTypeToStr(it->second->getType()) + " at " + movement.oldPos.toString()
 			);
 
-		auto piece = it->second;
+		assert(it->second);
+		auto& piece = *it->second;
 
 		it = m_match.getActivePieces().find(movement.defPiecePos);
 
@@ -130,13 +132,11 @@ void RemotePlayer::handleMessage(Json::Value msg)
 		if (m_fortress->isRuined)
 			throw runtime_error("requested promotion of a piece although the fortress is ruined");
 
-		auto piece = m_match.getPieceAt(m_fortress->getCoord());
-		if (!piece)
-			throw runtime_error("requested promotion of a piece although there is no piece on the fortress");
+		auto& piece = m_match.getPieceAt(m_fortress->getCoord()).value().get();
 
-		if (piece->getType() != promotion.origType)
+		if (piece.getType() != promotion.origType)
 			throw runtime_error("requested promotion of " + PieceTypeToStr(promotion.origType) + ", but there is a "
-				+ PieceTypeToStr(piece->getType()) + " piece in the fortress.");
+				+ PieceTypeToStr(piece.getType()) + " piece in the fortress.");
 
 		switch(promotion.origType)
 		{
@@ -176,7 +176,7 @@ void RemotePlayer::handleMessage(Json::Value msg)
 				throw runtime_error("requested promotion of unknown piece");
 		}
 
-		piece->promoteTo(promotion.newType);
+		piece.promoteTo(promotion.newType);
 	}
 	//else if (action == GameMsgAction::RESIGN)
 	else

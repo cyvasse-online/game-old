@@ -55,7 +55,7 @@ class RenderedMatch : public cyvasse::Match
 
 		Board m_board;
 
-		bool m_gameEnded;
+		bool m_gameEnded = false;
 		std::string m_status;
 
 		const cyvasse::PlayersColor m_ownColor, m_opColor;
@@ -65,7 +65,7 @@ class RenderedMatch : public cyvasse::Match
 
 		std::map<RenderPriority, std::vector<fea::Drawable2D*>> m_renderedEntities;
 
-		bool m_setupAccepted;
+		bool m_canEndSetup = false;
 
 		fea::Texture m_buttonSetupDoneTexture;
 		fea::Quad m_buttonSetupDone;
@@ -115,9 +115,9 @@ class RenderedMatch : public cyvasse::Match
 		void placePiecesSetup();
 
 		void tryLeaveSetup();
-		bool tryMovePiece(std::shared_ptr<cyvasse::Piece>, cyvasse::HexCoordinate<6>);
+		bool tryMovePiece(cyvasse::Piece&, cyvasse::HexCoordinate<6>);
 		virtual void addToBoard(cyvasse::PieceType, cyvasse::PlayersColor, cyvasse::HexCoordinate<6>) final override;
-		virtual void removeFromBoard(std::shared_ptr<cyvasse::Piece>) final override;
+		virtual void removeFromBoard(const cyvasse::Piece&) final override;
 		virtual void endGame(cyvasse::PlayersColor winner) final override;
 
 		void updateTurnStatus();

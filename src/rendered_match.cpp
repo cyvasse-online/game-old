@@ -70,12 +70,10 @@ RenderedMatch::RenderedMatch(IngameState& ingameState, fea::Renderer2D& renderer
 	, m_renderer{renderer}
 	, m_ingameState{ingameState}
 	, m_board(renderer, color)
-	, m_gameEnded{false}
 	, m_ownColor{color}
 	, m_opColor{!color}
 	, m_self{dynamic_cast<LocalPlayer&>(*m_players[m_ownColor])}
 	, m_op{dynamic_cast<RemotePlayer&>(*m_players[m_opColor])}
-	, m_setupAccepted{false}
 {
 	// hardcoded temporarily [TODO]
 	static const map<PlayersColor, HexCoordinate<6>> fortressStartCoords {
@@ -136,7 +134,7 @@ void RenderedMatch::tick()
 			m_renderer.queue(*it);
 
 	// Move the logic bit to the backend
-	if (m_setup && m_self.setupComplete() && !m_setupAccepted)
+	if (m_setup && m_canEndSetup)
 		m_renderer.queue(m_buttonSetupDone);
 
 	for (const auto& box : m_piecePromotionBoxes)
@@ -179,7 +177,7 @@ void RenderedMatch::onTileClicked(HexCoordinate<6> coord)
 {
 	// if the local player finished setting up,
 	// but the remote player didn't yet
-	if (m_setupAccepted && m_setup)
+	if (m_setup && m_self.isSetupDone())
 		return;
 
 	if (!m_setup && m_activePlayer != m_ownColor)
@@ -215,11 +213,13 @@ void RenderedMatch::onTileClicked(HexCoordinate<6> coord)
 		{
 			auto oldCoord = *m_selectedPiece->getCoord();
 
-			if (tryMovePiece(m_selectedPiece, coord))
+			if (tryMovePiece(*m_selectedPiece, coord))
 			{
 				// move is valid and was done
 
-				if (!m_setup)
+				if (m_setup)
+					m_canEndSetup = m_self.canEndSetup();
+				else
 				{
 					if (piece)
 						CyvasseWSClient::instance().send(json::gameMsgMoveCapture(
@@ -229,16 +229,12 @@ void RenderedMatch::onTileClicked(HexCoordinate<6> coord)
 						CyvasseWSClient::instance().send(json::gameMsgMove(
 							m_selectedPiece->getType(), oldCoord, coord
 						));
-				}
 
-				if (!m_setupAccepted)
-					m_self.checkSetupComplete();
+					showPossibleTargetTiles();
+				}
 
 				m_selectedPiece.reset();
 				m_board.clearHighlighting(HighlightingId::SEL);
-
-				if (!m_setup)
-					showPossibleTargetTiles();
 			}
 		}
 		else if (piece->getType() != PieceType::MOUNTAINS || m_setup)
@@ -278,9 +274,9 @@ void RenderedMatch::onMouseMoveOutside(const fea::Event::MouseMoveEvent&)
 void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& event)
 {
 	// 'Setup done' button clicked (while being visible)
-	if (m_self.setupComplete() && !m_setupAccepted && mouseOver(m_buttonSetupDone, {event.x, event.y}))
+	if (m_canEndSetup && mouseOver(m_buttonSetupDone, {event.x, event.y}))
 	{
-		m_setupAccepted = true;
+		m_self.setupDone();
 
 		// send before modifying m_activePieces, so the map doesn't
 		// have to be filtered for only black / white pieces
@@ -331,13 +327,12 @@ void RenderedMatch::onPromotionPieceClick(const fea::Event::MouseButtonEvent& mo
 	if (mouseButton.button != fea::Mouse::Button::LEFT)
 		return;
 
-	auto piece = getPieceAt(m_self.getFortress().getCoord());
-	assert(piece);
+	auto& piece = getPieceAt(m_self.getFortress().getCoord()).value().get();
 
-	PieceType origType = piece->getType();
+	PieceType origType = piece.getType();
 	PieceType newType = *m_piecePromotionHover;
 
-	piece->promoteTo(newType);
+	piece.promoteTo(newType);
 	CyvasseWSClient::instance().send(json::gameMsgPromote(origType, newType));
 
 	m_piecePromotionBoxes.clear();
@@ -398,13 +393,12 @@ void RenderedMatch::placePiecesSetup()
 
 void RenderedMatch::tryLeaveSetup()
 {
-	if (!m_setupAccepted) return;
-
 	for (auto&& player : m_players)
-		if (!player->setupComplete())
+		if (!player->isSetupDone())
 			return;
 
 	m_setup = false;
+	m_canEndSetup = false;
 
 	// TODO: rewrite the following stuff when adding a bot
 	auto& op = dynamic_cast<RemotePlayer&>(m_op);
@@ -424,13 +418,11 @@ void RenderedMatch::tryLeaveSetup()
 	updateTurnStatus();
 }
 
-bool RenderedMatch::tryMovePiece(shared_ptr<Piece> piece, HexCoordinate<6> coord)
+bool RenderedMatch::tryMovePiece(Piece& piece, HexCoordinate<6> coord)
 {
-	assert(piece);
+	auto oldCoord = piece.getCoord();
 
-	auto oldCoord = piece->getCoord();
-
-	if (piece->moveTo(coord, m_setup))
+	if (piece.moveTo(coord, m_setup))
 	{
 		m_board.clearHighlighting(HighlightingId::PTT);
 
@@ -459,27 +451,24 @@ void RenderedMatch::addToBoard(PieceType type, PlayersColor color, HexCoordinate
 {
 	Match::addToBoard(type, color, coord);
 
-	auto rPiece = dynamic_pointer_cast<RenderedPiece>(getPieceAt(coord));
-	assert(rPiece);
+	auto& rPiece = dynamic_cast<RenderedPiece&>(getPieceAt(coord).value().get());
 
-	rPiece->setPosition(m_board.getTileAt(coord)->getPosition());
-
-	m_renderedEntities[RenderPriority::PIECE].push_back(rPiece->getQuad());
+	rPiece.setPosition(m_board.getTileAt(coord)->getPosition());
+	m_renderedEntities[RenderPriority::PIECE].push_back(rPiece.getQuad());
 }
 
-void RenderedMatch::removeFromBoard(shared_ptr<Piece> piece)
+void RenderedMatch::removeFromBoard(const Piece& piece)
 {
 	Match::removeFromBoard(piece);
 
 	// TODO: place the piece somewhere outside
 	// the board instead of not rendering it
 
-	auto rPiece = dynamic_pointer_cast<RenderedPiece>(piece);
-	assert(rPiece);
+	auto& rPiece = dynamic_cast<const RenderedPiece&>(piece);
 
 	auto& piecesToRender = m_renderedEntities[RenderPriority::PIECE];
 
-	auto it = find(piecesToRender.begin(), piecesToRender.end(), rPiece->getQuad());
+	auto it = find(piecesToRender.begin(), piecesToRender.end(), rPiece.getQuad());
 	assert(it != piecesToRender.end());
 	piecesToRender.erase(it);
 }
