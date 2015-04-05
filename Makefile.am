@@ -53,6 +53,7 @@ cyvasse_game_CPPFLAGS = \
 
 cyvasse_game_CXXFLAGS = \
 	$(game_cxxflags) \
+	$(SDL2_CFLAGS) \
 	-pthread
 
 cyvasse_game_LDFLAGS = \
@@ -60,6 +61,7 @@ cyvasse_game_LDFLAGS = \
 
 cyvasse_game_LDADD = \
 	$(game_ldadd) \
+	$(SDL2_LIBS) \
 	-lboost_system
 
 else USING_EMSCRIPTEN # cross-compiling to js

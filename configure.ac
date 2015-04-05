@@ -21,6 +21,7 @@ PKG_CHECK_MODULES([FEA_STRUCTURE], [fea-structure])
 PKG_CHECK_MODULES([FEA_UI], [fea-ui])
 PKG_CHECK_MODULES([FEA_RENDERING], [fea-rendering])
 PKG_CHECK_MODULES([JSONCPP], [jsoncpp])
+PKG_CHECK_MODULES([SDL2], [sdl2])
 
 ## This is probably not the best way to check whether emconfigure is used
 AM_CONDITIONAL([USING_EMSCRIPTEN], [test -n "$EMMAKEN_JUST_CONFIGURE"])
