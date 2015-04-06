@@ -133,7 +133,7 @@ void RemotePlayer::handleMessage(Json::Value msg)
 		if (m_fortress->isRuined)
 			throw runtime_error("requested promotion of a piece although the fortress is ruined");
 
-		auto& piece = m_match.getPieceAt(m_fortress->getCoord()).value().get();
+		auto& piece = m_match.getPieceAt(m_fortress->getCoord())->get(); // TODO: use value() instead of operator->
 
 		if (piece.getType() != promotion.origType)
 			throw runtime_error("requested promotion of " + PieceTypeToStr(promotion.origType) + ", but there is a "

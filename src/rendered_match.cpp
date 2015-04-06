@@ -328,7 +328,7 @@ void RenderedMatch::onPromotionPieceClick(const fea::Event::MouseButtonEvent& mo
 	if (mouseButton.button != fea::Mouse::Button::LEFT)
 		return;
 
-	auto& piece = getPieceAt(m_self.getFortress().getCoord()).value().get();
+	auto& piece = getPieceAt(m_self.getFortress().getCoord())->get(); // TODO: use value() instead of operator->
 
 	PieceType origType = piece.getType();
 	PieceType newType = *m_piecePromotionHover;
@@ -451,7 +451,7 @@ void RenderedMatch::addToBoard(PieceType type, PlayersColor color, HexCoordinate
 {
 	Match::addToBoard(type, color, coord);
 
-	auto& rPiece = dynamic_cast<RenderedPiece&>(getPieceAt(coord).value().get());
+	auto& rPiece = dynamic_cast<RenderedPiece&>(getPieceAt(coord)->get()); // TODO: use value() instead of operator->
 
 	rPiece.setPosition(m_board.getTileAt(coord)->getPosition());
 	m_renderedEntities[RenderPriority::PIECE].push_back(rPiece.getQuad());
