@@ -277,6 +277,7 @@ void RenderedMatch::onClickedOutsideBoard(const fea::Event::MouseButtonEvent& ev
 	if (m_canEndSetup && mouseOver(m_buttonSetupDone, {event.x, event.y}))
 	{
 		m_self.setupDone();
+		m_canEndSetup = false;
 
 		// send before modifying m_activePieces, so the map doesn't
 		// have to be filtered for only black / white pieces
@@ -398,7 +399,6 @@ void RenderedMatch::tryLeaveSetup()
 			return;
 
 	m_setup = false;
-	m_canEndSetup = false;
 
 	// TODO: rewrite the following stuff when adding a bot
 	auto& op = dynamic_cast<RemotePlayer&>(m_op);
@@ -409,7 +409,7 @@ void RenderedMatch::tryLeaveSetup()
 	for (auto&& piece : op.getPieceCache())
 		placePiece(piece);
 
-	op.clearPieceCache();
+	op.getPieceCache().clear();
 
 	m_bearingTable.init();
 

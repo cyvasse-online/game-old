@@ -23,11 +23,16 @@
 	#include <emscripten.h>
 #endif
 
+#include <json/reader.h>
+#include <cyvws/json_game_msg.hpp>
+
 #include "ingame_state.hpp"
+#include "remote_player.hpp"
 #include "rendered_match.hpp"
 
 using namespace std;
 using namespace cyvasse;
+using namespace cyvws;
 
 #include <SDL2/SDL.h>
 
@@ -53,18 +58,32 @@ CyvasseApp::CyvasseApp()
 
 	#ifdef __EMSCRIPTEN__
 	EM_ASM(
-		if(typeof(gameMetaData) !== 'object' || gameMetaData === null) {
+		if (typeof(gameMetaData) !== 'object' || gameMetaData === null) {
 			throw new Error('No meta data found!');
 		}
 	);
 
-	auto color   = StrToPlayersColor(emscripten_run_script_string("gameMetaData.color"));
+	auto color = StrToPlayersColor(emscripten_run_script_string("gameMetaData.color"));
 	#else
 	// --- hardcoded only until game init code is written ---
 	auto color = PlayersColor::WHITE;
 	#endif
 
 	m_match = make_unique<RenderedMatch>(*ingameState, m_renderer, color);
+
+#ifdef __EMSCRIPTEN__
+	string piecesJsonStr = emscripten_run_script_string("JSON.stringify(initGameStatus.piecePositions) || ''");
+	auto& remotePlayer   = dynamic_cast<RemotePlayer&>(m_match->getPlayer(!color));
+
+	if (!piecesJsonStr.empty())
+	{
+		Json::Value piecesJson;
+		if (Json::Reader().parse(piecesJsonStr, piecesJson, false))
+			remotePlayer.setPieceCache(json::pieceMap(piecesJson));
+		else
+			EM_ASM(throw new Error('Invalid piecePositions?!'););
+	}
+#endif
 
 	m_stateMachine.addGameState("ingame", move(ingameState));
 //#ifdef __EMSCRIPTEN__

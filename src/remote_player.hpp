@@ -18,6 +18,7 @@
 #define _REMOTE_PLAYER_HPP_
 
 #include <cyvasse/player.hpp>
+#include <cyvws/json_game_msg.hpp>
 
 #include <json/value.h>
 
@@ -45,8 +46,7 @@ class RemotePlayer : public cyvasse::Player
 		RenderedPieceVec& getPieceCache()
 		{ return m_pieceCache; }
 
-		void clearPieceCache()
-		{ m_pieceCache.clear(); }
+		void setPieceCache(const cyvws::PieceMap&);
 
 		void handleMessage(Json::Value);
 };

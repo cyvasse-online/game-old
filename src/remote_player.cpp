@@ -24,7 +24,6 @@
 #include <cyvws/common.hpp>
 #include <cyvws/msg.hpp>
 #include <cyvws/game_msg.hpp>
-#include <cyvws/json_game_msg.hpp>
 
 #include "cyvasse_ws_client.hpp"
 #include "rendered_fortress.hpp"
@@ -44,6 +43,26 @@ RemotePlayer::RemotePlayer(PlayersColor color, RenderedMatch& match, unique_ptr<
 	CyvasseWSClient::instance().handleMessage = bind(&RemotePlayer::handleMessage, this, _1);
 }
 
+void RemotePlayer::setPieceCache(const PieceMap& pieces)
+{
+	evalOpeningArray(pieces);
+
+	for (const auto& it : pieces)
+	{
+		for (const auto& coord : it.second)
+		{
+			// TODO: Move this somewhere else (probably cyvmath)
+			if (it.first == PieceType::KING)
+				m_fortress->setCoord(coord);
+
+			m_pieceCache.push_back(make_shared<RenderedPiece>(it.first, coord, m_color, m_match));
+		}
+	}
+
+	m_setupDone = true;
+	m_match.tryLeaveSetup();
+}
+
 void RemotePlayer::handleMessage(Json::Value msg)
 {
 	// TODO: Revise when multiplayer for the native game is implemented
@@ -57,25 +76,7 @@ void RemotePlayer::handleMessage(Json::Value msg)
 	const auto& action = msgData[ACTION].asString();
 
 	if (action == GameMsgAction::SET_OPENING_ARRAY)
-	{
-		const auto& pieces = json::pieceMap(param);
-		evalOpeningArray(pieces);
-
-		for (const auto& it : pieces)
-		{
-			for (const auto& coord : it.second)
-			{
-				// TODO: Move this somewhere else (probably cyvmath)
-				if (it.first == PieceType::KING)
-					m_fortress->setCoord(coord);
-
-				m_pieceCache.push_back(make_shared<RenderedPiece>(it.first, coord, m_color, m_match));
-			}
-		}
-
-		m_setupDone = true;
-		m_match.tryLeaveSetup();
-	}
+		setPieceCache(json::pieceMap(param));
 	else if (action == GameMsgAction::SET_IS_READY)
 	{ }
 	else if (action == GameMsgAction::MOVE)
